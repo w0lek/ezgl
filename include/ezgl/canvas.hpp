@@ -24,10 +24,13 @@
 #include "ezgl/graphics.hpp"
 #include "ezgl/color.hpp"
 
+#ifdef EZGL_QT
+#else // EZGL_QT
 #include <cairo.h>
 #include <cairo-pdf.h>
 #include <cairo-svg.h>
 #include <gtk/gtk.h>
+#endif // EZGL_QT
 
 #include <string>
 

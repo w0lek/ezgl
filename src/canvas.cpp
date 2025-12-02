@@ -20,7 +20,10 @@
 
 #include "ezgl/graphics.hpp"
 
+#ifdef EZGL_QT
+#else // EZGL_QT
 #include <gtk/gtk.h>
+#endif // EZGL_QT
 
 #include <cassert>
 #include <cmath>

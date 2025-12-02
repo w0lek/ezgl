@@ -32,7 +32,10 @@
 #include <ctime>
 #include <vector>
 
+#ifdef EZGL_QT
+#else // EZGL_QT
 #include <gtk/gtk.h>
+#endif // EZGL_QT
 
 /**
  * A library for creating a graphical user interface.

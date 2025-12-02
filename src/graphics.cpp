@@ -19,7 +19,12 @@
 #include "ezgl/graphics.hpp"
 
 #include <cassert>
+
+#ifdef EZGL_QT
+#else // EZGL_QT
 #include <glib.h>
+#endif // EZGL_QT
+
 #include <numbers>
 
 namespace ezgl {
