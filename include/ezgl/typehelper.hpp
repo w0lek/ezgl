@@ -7,15 +7,15 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream>
+#include <memory>
 
 #include <QImage>
 #include <QWidget>
+#include <QComboBox>
+#include <QPushButton>
+#include <QDialog>
 
 class QObject;
-class QWidget;
-class QPushButton;
-class QComboBox;
-class QDialog;
 class QWindow;
 class QApplication;
 class QPainter;
@@ -48,6 +48,26 @@ using key_callback_fn = void*;
 #define TRUE 1
 #define FALSE 0
 
+// gtk wrapper
+QWidget* GTK_WIDGET(QObject* obj) {
+  return qobject_cast<QWidget*>(obj);
+}
+
+bool GTK_IS_BUTTON(QObject* obj) {
+  return qobject_cast<QPushButton*>(obj) != nullptr;
+}
+
+
+void gtk_widget_destroy(QWidget* widget)
+{
+  if (!widget)
+    return;
+
+  widget->hide();
+  widget->setParent(nullptr);
+  widget->deleteLater();
+}
+
 int gtk_widget_get_allocated_width(QWidget* w) {
   return w->width();
 }
@@ -55,6 +75,39 @@ int gtk_widget_get_allocated_width(QWidget* w) {
 int gtk_widget_get_allocated_height(QWidget* w) {
   return w->height();
 }
+
+char* gtk_combo_box_text_get_active_text(QComboBox* combo)
+{
+  if (!combo) {
+    return nullptr;
+  }
+
+  QByteArray utf8 = combo->currentText().toUtf8();
+  char* result = strdup(utf8.constData());  // caller must free()
+
+  return result;
+}
+
+void g_free(void* ptr)
+{
+  free(ptr);
+}
+
+enum {
+  GTK_RESPONSE_NONE         = -1,
+  GTK_RESPONSE_REJECT       = -2,
+  GTK_RESPONSE_ACCEPT       = -3,
+  GTK_RESPONSE_DELETE_EVENT = -4,
+  GTK_RESPONSE_OK           = -5,
+  GTK_RESPONSE_CANCEL       = -6,
+  GTK_RESPONSE_CLOSE        = -7,
+  GTK_RESPONSE_YES          = -8,
+  GTK_RESPONSE_NO           = -9,
+  GTK_RESPONSE_APPLY        = -10,
+  GTK_RESPONSE_HELP         = -11
+};
+
+// gtk wrapper
 
 #define g_return_val_if_fail(expr, val)      \
 do {                                         \

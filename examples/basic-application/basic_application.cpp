@@ -127,7 +127,11 @@ int main(int /*argc*/, char **/*argv*/)
   // connect added widgets to their callback functions.
   // Those callbacks are optional, so we can pass nullptr if
   // we don't need to take any action on those events
+#ifdef EZGL_QT
+  return application.run(initial_setup);
+#else
   return application.run(initial_setup, act_on_mouse_press, act_on_mouse_move, act_on_key_press);
+#endif
 }
 
 /**

@@ -459,6 +459,9 @@ public:
    */
   void flush_drawing();
 
+#ifdef HIDE_GTK_EVENT
+  int run(setup_callback_fn initial_setup_user_callback);
+#else // HIDE_GTK_EVENT
   /**
    * Run the application.
    *
@@ -480,6 +483,7 @@ public:
       mouse_callback_fn mouse_press_user_callback,
       mouse_callback_fn mouse_move_user_callback,
       key_callback_fn key_press_user_callback);
+#endif // HIDE_GTK_EVENT
 
   /**
    * Destructor.

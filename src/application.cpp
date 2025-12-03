@@ -21,6 +21,7 @@
 
 #ifdef EZGL_QT
 #include <QObject>
+#include <QApplication>
 #endif
 
 // GLib deprecated G_APPLICATION_FLAGS_NONE and replaced it with G_APPLICATION_DEFAULT_FLAGS,
@@ -180,10 +181,14 @@ GObject *application::get_object(gchar const *name) const
   return object;
 }
 
+#ifdef HIDE_GTK_EVENT
+int application::run(setup_callback_fn initial_setup_user_callback)
+#else // HIDE_GTK_EVENT
 int application::run(setup_callback_fn initial_setup_user_callback,
     mouse_callback_fn mouse_press_user_callback,
     mouse_callback_fn mouse_move_user_callback,
     key_callback_fn key_press_user_callback)
+#endif // HIDE_GTK_EVENT
 {
   if(disable_event_loop)
     return 0;

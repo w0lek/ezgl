@@ -22,6 +22,7 @@
 
 #ifdef EZGL_QT
 #include <QWidget>
+#include <QPainter>
 #include <ezgl/typehelper.hpp>
 #else // EZGL_QT
 #include <gtk/gtk.h>
@@ -72,18 +73,32 @@ static cairo_surface_t *create_surface(GtkWidget *widget)
 
 static cairo_t *create_context(cairo_surface_t *p_surface)
 {
+#ifdef EZGL_QT
+  QPainter *context = new QPainter(p_surface);
+
+  // Equivalent to CAIRO_ANTIALIAS_NONE
+  context->setRenderHint(QPainter::Antialiasing, false);
+  //context->setRenderHint(QPainter::HighQualityAntialiasing, false);
+  context->setRenderHint(QPainter::SmoothPixmapTransform, false);
+
+#else // EZGL_QT
   cairo_t *context = cairo_create(p_surface);
 
   // Set the antialiasing mode of the rasterizer used for drawing shapes
   // Set to CAIRO_ANTIALIAS_NONE for maximum speed
   // See https://www.cairographics.org/manual/cairo-cairo-t.html#cairo-antialias-t
   cairo_set_antialias(context, CAIRO_ANTIALIAS_NONE);
-
+#endif // EZGL_QT
   return context;
+
 }
 
 bool canvas::print_pdf(const char *file_name, int output_width, int output_height)
 {
+#ifdef EZGL_QT
+  TODO()
+  return false;
+#else // EZGL_QT
   cairo_surface_t *pdf_surface;
   cairo_t *context;
   int surface_width = 0;
@@ -119,10 +134,15 @@ bool canvas::print_pdf(const char *file_name, int output_width, int output_heigh
   cairo_destroy(context);
 
   return true;
+#endif // EZGL_QT
 }
 
 bool canvas::print_svg(const char *file_name, int output_width, int output_height)
 {
+#ifdef EZGL_QT
+  TODO();
+  return false;
+#else // EZGL_QT
   cairo_surface_t *svg_surface;
   cairo_t *context;
   int surface_width = 0;
@@ -158,10 +178,15 @@ bool canvas::print_svg(const char *file_name, int output_width, int output_heigh
   cairo_destroy(context);
 
   return true;
+#endif // EZGL_QT
 }
 
 bool canvas::print_png(const char *file_name, int output_width, int output_height)
 {
+#ifdef EZGL_QT
+  TODO();
+  return false;
+#else // EZGL_QT
   cairo_surface_t *png_surface;
   cairo_t *context;
   int surface_width = 0;
@@ -200,6 +225,7 @@ bool canvas::print_png(const char *file_name, int output_width, int output_heigh
   cairo_destroy(context);
 
   return true;
+#endif // EZGL_QT
 }
 
 #ifndef HIDE_GTK_EVENT
