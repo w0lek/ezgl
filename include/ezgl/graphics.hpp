@@ -26,6 +26,7 @@
 
 #ifdef EZGL_QT
 #include <QFont>
+class QImage;
 #else // EZGL_QT
 #include <cairo.h>
 #include <gdk/gdk.h>
@@ -52,6 +53,10 @@
 namespace ezgl {
 
 #ifdef EZGL_QT
+/**
+ * define ezgl::surface type used for drawing png bitmaps
+ */
+typedef QImage surface;
 #else // EZGL_QT
 /**
  * define ezgl::surface type used for drawing png bitmaps
@@ -563,6 +568,8 @@ private:
   // Current coordinate system (World is the default)
   t_coordinate_system current_coordinate_system = WORLD;
 
+#ifdef EZGL_QT
+#else
   // A non-owning pointer to a cairo graphics context.
   cairo_t *m_cairo;
 
@@ -579,6 +586,7 @@ private:
   // Transparency flag, if set, cairo will be used
   bool transparency_flag = false;
 #endif
+#endif // EZGL_QT
 
   transform_fn m_transform;
 

@@ -53,6 +53,7 @@ add_library(
   include/ezgl/graphics.hpp
   include/ezgl/point.hpp
   include/ezgl/rectangle.hpp
+  include/ezgl/typehelper.hpp
   src/application.cpp
   src/camera.cpp
   src/canvas.cpp

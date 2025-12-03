@@ -19,6 +19,10 @@
 
 #include "ezgl/application.hpp"
 
+#ifdef EZGL_QT
+#include <QObject>
+#endif
+
 // GLib deprecated G_APPLICATION_FLAGS_NONE and replaced it with G_APPLICATION_DEFAULT_FLAGS,
 // however, this enum was not introduced until GLib 2.74. These lines of code allow EZGL
 // to be backwards compatible with older versions of GLib, while not using the deprecated
@@ -163,7 +167,14 @@ canvas *application::add_canvas(std::string const &canvas_id,
 GObject *application::get_object(gchar const *name) const
 {
   // Getting an object from the GTK builder does not increase its reference count.
+#ifdef EZGL_QT
+  QObject* object = nullptr;
+  for (QObject* widget: qApp->topLevelObjects()) {
+    object = widget->findChild<QObject*>(name, Qt::FindChildrenRecursively);
+  }
+#else
   GObject *object = gtk_builder_get_object(m_builder, name);
+#endif
   g_return_val_if_fail(object != nullptr, nullptr);
 
   return object;

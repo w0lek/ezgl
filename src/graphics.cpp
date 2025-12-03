@@ -21,6 +21,7 @@
 #include <cassert>
 
 #ifdef EZGL_QT
+#include <ezgl/typehelper.hpp>
 #else // EZGL_QT
 #include <glib.h>
 #endif // EZGL_QT

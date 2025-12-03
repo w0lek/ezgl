@@ -25,6 +25,7 @@
 #include "ezgl/color.hpp"
 
 #ifdef EZGL_QT
+#include "ezgl/typehelper.hpp"
 #else // EZGL_QT
 #include <cairo.h>
 #include <cairo-pdf.h>

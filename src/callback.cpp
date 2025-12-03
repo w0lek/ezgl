@@ -18,6 +18,10 @@
 
 #include "ezgl/callback.hpp"
 
+#ifdef EZGL_QT
+#include "ezgl/typehelper.hpp"
+#endif
+
 namespace ezgl {
 
 /**
