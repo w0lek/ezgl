@@ -9,16 +9,17 @@
 #include <iostream>
 #include <memory>
 
+#include <QObject>
 #include <QImage>
 #include <QWidget>
+#include <QWindow>
 #include <QComboBox>
 #include <QPushButton>
 #include <QDialog>
+#include <QPainter>
+#include <QColor>
 
-class QObject;
-class QWindow;
 class QApplication;
-class QPainter;
 
 // gtk to std types
 using gchar = char;
@@ -36,7 +37,13 @@ using GtkApplication = QApplication;
 using GdkWindow = QWindow;
 
 // cairo fake types
-using cairo_t = QPainter;
+struct cairo_t {
+public:
+  cairo_t(QImage* image): painter(image) {}
+  QColor color;
+  QPainter painter;
+};
+
 using cairo_surface_t = QImage;
 
 // cairo fake types
@@ -51,6 +58,14 @@ using key_callback_fn = void*;
 // gtk wrapper
 QWidget* GTK_WIDGET(QObject* obj) {
   return qobject_cast<QWidget*>(obj);
+}
+
+QComboBox* GTK_COMBO_BOX(QObject* obj) {
+  return qobject_cast<QComboBox*>(obj);
+}
+
+QWindow* GTK_WINDOW(QObject* obj) {
+  return qobject_cast<QWindow*>(obj);
 }
 
 bool GTK_IS_BUTTON(QObject* obj) {
@@ -88,6 +103,17 @@ char* gtk_combo_box_text_get_active_text(QComboBox* combo)
   return result;
 }
 
+void gtk_combo_box_set_active(QComboBox* combo, int idx)
+{
+  combo->setCurrentIndex(idx);
+}
+
+
+void gtk_widget_queue_draw(QWidget* widget)
+{
+  widget->update();
+}
+
 void g_free(void* ptr)
 {
   free(ptr);
@@ -108,6 +134,40 @@ enum {
 };
 
 // gtk wrapper
+
+// cairo wrapper
+void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b) {
+  ctx->color.setRedF(r);
+  ctx->color.setGreenF(g);
+  ctx->color.setBlueF(b);
+  ctx->color.setAlphaF(1.0);
+}
+
+void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a) {
+  ctx->color.setRedF(r);
+  ctx->color.setGreenF(g);
+  ctx->color.setBlueF(b);
+  ctx->color.setAlphaF(a);
+}
+
+void cairo_paint(cairo_t* ctx)
+{
+  ctx->painter.fillRect(ctx->painter.viewport(), ctx->color);
+}
+
+void cairo_surface_destroy(QImage* surface) {
+  delete surface;
+}
+
+void cairo_destroy(cairo_t* cairo) {
+  delete cairo;
+}
+
+void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y)
+{
+  cairo->painter.drawImage(QPointF(x, y), *surface);
+}
+// cairo wrapper
 
 #define g_return_val_if_fail(expr, val)      \
 do {                                         \
@@ -179,6 +239,8 @@ log_message("ERROR", __FILE__, __LINE__, fmt, ##__VA_ARGS__)
   std::cerr << "TODO:" \
             << __FILE__ << ":" << __LINE__ \
             << std::endl; \
+  assert(false); \
+
 
 
 #endif //EZGL_TYPEHELPER_HPP

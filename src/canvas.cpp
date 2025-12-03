@@ -74,12 +74,12 @@ static cairo_surface_t *create_surface(GtkWidget *widget)
 static cairo_t *create_context(cairo_surface_t *p_surface)
 {
 #ifdef EZGL_QT
-  QPainter *context = new QPainter(p_surface);
+  cairo_t *context = new cairo_t(p_surface);
 
   // Equivalent to CAIRO_ANTIALIAS_NONE
-  context->setRenderHint(QPainter::Antialiasing, false);
+  context->painter.setRenderHint(QPainter::Antialiasing, false);
   //context->setRenderHint(QPainter::HighQualityAntialiasing, false);
-  context->setRenderHint(QPainter::SmoothPixmapTransform, false);
+  context->painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
 
 #else // EZGL_QT
   cairo_t *context = cairo_create(p_surface);
@@ -327,12 +327,12 @@ void canvas::initialize(GtkWidget *drawing_area)
   // Draw to the newly created surface for the first time.
   redraw();
 
+#ifndef HIDE_GTK_EVENT
   // Connect to configure events in case our widget changes shape.
   g_signal_connect(m_drawing_area, "configure-event", G_CALLBACK(configure_event), this);
   // Connect to draw events so that we draw our surface to the drawing area.
   g_signal_connect(m_drawing_area, "draw", G_CALLBACK(draw_surface), this);
 
-#ifndef HIDE_GTK_EVENT
   // GtkDrawingArea objects need specific events enabled explicitly.
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_BUTTON_PRESS_MASK);
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_BUTTON_RELEASE_MASK);

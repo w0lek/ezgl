@@ -46,7 +46,7 @@ void application::startup(GtkApplication *, gpointer user_data)
   g_return_if_fail(ezgl_app != nullptr);
 
   char const *main_ui_resource = ezgl_app->m_main_ui.c_str();
-
+#ifndef HIDE_GTK_BUILDER
   if (!build_ui_from_file) {
     // Build the main user interface from the XML resource.
     // The XML resource is built from an XML file using the glib-compile-resources tool.
@@ -63,6 +63,7 @@ void application::startup(GtkApplication *, gpointer user_data)
       g_error("%s.", error->message);
     }
   }
+#endif // HIDE_GTK_BUILDER
 
   for(auto &c_pair : ezgl_app->m_canvases) {
     GObject *drawing_area = ezgl_app->get_object(c_pair.second->id());
@@ -103,7 +104,9 @@ application::application(application::settings s)
     , m_canvas_id(s.canvas_identifier)
     , m_application_id(s.application_identifier)
     , m_application(gtk_application_new(s.application_identifier.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS))
+#ifndef HIDE_GTK_BUILDER
     , m_builder(gtk_builder_new())
+#endif // HIDE_GTK_BUILDER
     , m_register_callbacks(s.setup_callbacks)
 {
 #ifdef EZGL_USE_X11
@@ -111,10 +114,12 @@ application::application(application::settings s)
   gdk_set_allowed_backends("x11,*");
 #endif
 
+#ifndef HIDE_GTK_EVENT
   // Connect our static functions application::{startup, activate} to their callbacks. We pass 'this' as the userdata
   // so that we can use it in our static functions.
   g_signal_connect(m_application, "startup", G_CALLBACK(startup), this);
   g_signal_connect(m_application, "activate", G_CALLBACK(activate), this);
+#endif // HIDE_GTK_EVENT
 
   first_run = true;
   resume_run = false;
@@ -122,11 +127,15 @@ application::application(application::settings s)
 
 application::~application()
 {
+#ifdef EZGL_QT
+  delete m_application;
+#else
   // GTK uses reference counting to track object lifetime. Since we called *_new() for our application and builder, we
   // need to unreference them. This should set their reference count to 0, letting GTK know that they should be cleaned
   // up in memory.
   g_object_unref(m_builder);
   g_object_unref(m_application);
+#endif
 }
 
 canvas *application::get_canvas(const std::string &canvas_id) const
@@ -169,10 +178,9 @@ GObject *application::get_object(gchar const *name) const
 {
   // Getting an object from the GTK builder does not increase its reference count.
 #ifdef EZGL_QT
-  QObject* object = nullptr;
-  for (QObject* widget: qApp->topLevelObjects()) {
-    object = widget->findChild<QObject*>(name, Qt::FindChildrenRecursively);
-  }
+  // TODO: rename method to find_object?
+  QObject* object = qApp->findChild<QObject*>(name, Qt::FindChildrenRecursively);
+  assert(object);
 #else
   GObject *object = gtk_builder_get_object(m_builder, name);
 #endif
@@ -230,14 +238,25 @@ int application::run(setup_callback_fn initial_setup_user_callback,
   // But if the GTK window is closed, we will have to destruct and reconstruct the GTKApplication
   else {
     // Destroy the GTK application
+#ifdef EZGL_QT
+#else // EZGL_QT
     g_object_unref(m_application);
+#endif // EZGL_QT
+
+#ifndef HIDE_GTK_BUILDER
     g_object_unref(m_builder);
+#endif // HIDE_GTK_BUILDER
 
     // Reconstruct the GTK application
     m_application = (gtk_application_new(m_application_id.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS));
+#ifndef HIDE_GTK_BUILDER
     m_builder = (gtk_builder_new());
+#endif // HIDE_GTK_BUILDER
+
+#ifndef HIDE_GTK_EVENT
     g_signal_connect(m_application, "startup", G_CALLBACK(startup), this);
     g_signal_connect(m_application, "activate", G_CALLBACK(activate), this);
+#endif // HIDE_GTK_EVENT
 
     // set the resume_run flag to false
     resume_run = false;
@@ -270,6 +289,7 @@ void application::register_default_events_callbacks(ezgl::application *applicati
   std::string main_canvas_id = application->get_main_canvas_id();
   GObject *main_canvas = application->get_object(main_canvas_id.c_str());
 
+#ifndef HIDE_GTK_EVENT
   // We want to enable user event handlers for mouse clicks, key presses etc.
   // when they are in the drawing area (MainCanvas).
   // Connect press_key function to keyboard presses in the MainCanvas (drawing area).
@@ -292,10 +312,12 @@ void application::register_default_events_callbacks(ezgl::application *applicati
 
   // Connect press_proceed function to the close button of the MainWindow
   g_signal_connect(window, "destroy", G_CALLBACK(press_proceed), application);
+#endif // HIDE_GTK_EVENT
 }
 
 void application::register_default_buttons_callbacks(ezgl::application *application)
 {
+#ifndef HIDE_GTK_EVENT
   // Connect press_zoom_fit function to the Zoom-fit button
   GObject *zoom_fit_button = application->get_object("ZoomFitButton");
   g_signal_connect(zoom_fit_button, "clicked", G_CALLBACK(press_zoom_fit), application);
@@ -327,10 +349,14 @@ void application::register_default_buttons_callbacks(ezgl::application *applicat
   // Connect press_proceed function to the Proceed button
   GObject *proceed_button = application->get_object("ProceedButton");
   g_signal_connect(proceed_button, "clicked", G_CALLBACK(press_proceed), application);
+#endif // HIDE_GTK_EVENT
 }
 
 void application::update_message(std::string const &message)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   // Get the StatusBar Object
   GtkStatusbar *status_bar = (GtkStatusbar *)get_object("StatusBar");
 
@@ -339,6 +365,7 @@ void application::update_message(std::string const &message)
 
   // Push user message to the message stack
   gtk_statusbar_push(status_bar, 0, message.c_str());
+#endif // EZGL_QT
 }
 
 void application::create_button(const char *button_text,
@@ -348,6 +375,9 @@ void application::create_button(const char *button_text,
     int height,
     button_callback_fn button_func)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -372,12 +402,16 @@ void application::create_button(const char *button_text,
 
   // show the button
   gtk_widget_show(new_button);
+#endif // EZGL_QT
 }
 
 void application::create_button(const char *button_text,
     int insert_row,
     button_callback_fn button_func)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -386,9 +420,13 @@ void application::create_button(const char *button_text,
 
   // create the button
   create_button(button_text, 0, insert_row, 3, 1, button_func);
+#endif // EZGL_QT
 }
 
 void application::create_label(int insert_row, const char *label_text){
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   //Getting grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -397,6 +435,7 @@ void application::create_label(int insert_row, const char *label_text){
 
   //Creating label
   create_label(0, insert_row, 3, 1, label_text);
+#endif // EZGL_QT
 }
 
 void application::create_label(
@@ -406,6 +445,9 @@ void application::create_label(
   int height,
   const char *label_text)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   //Getting grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -417,7 +459,7 @@ void application::create_label(
 
   // show the button
   gtk_widget_show(new_label);
-
+#endif // EZGL_QT
 }
 
 void application::create_combo_box_text(
@@ -426,6 +468,9 @@ void application::create_combo_box_text(
   combo_box_callback_fn callback,
   std::vector<std::string> options)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -434,6 +479,7 @@ void application::create_combo_box_text(
 
   // create the combo box
   create_combo_box_text(name, 0, insert_row, 3, 1, callback, options);
+#endif // EZGL_QT
 }
 
 void application::create_combo_box_text(
@@ -445,6 +491,9 @@ void application::create_combo_box_text(
   combo_box_callback_fn combo_box_fn, 
   std::vector<std::string> options)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
     // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -476,9 +525,13 @@ void application::create_combo_box_text(
 
   // show the button
   gtk_widget_show(new_combo_box);
+#endif // EZGL_QT
 }
 
 void application::change_combo_box_text_options(const char* name, std::vector<std::string> new_options){
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
   // the text to delete, in c++ string form
   std::string name_to_find = std::string(name);
@@ -503,6 +556,7 @@ void application::change_combo_box_text_options(const char* name, std::vector<st
       }
     }
   }
+#endif // EZGL_QT
 }
 
 void application::create_dialog_window(
@@ -510,6 +564,9 @@ void application::create_dialog_window(
   const char* dialog_title, 
   const char *window_text)
 {
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   //getting window ptr
   GtkWindow* window = GTK_WINDOW(get_object(m_window_id.c_str()));
   GtkWidget* dialog = gtk_dialog_new_with_buttons(
@@ -538,6 +595,7 @@ void application::create_dialog_window(
 
   //Showing the dialog window
   gtk_widget_show_all(dialog);
+#endif // EZGL_QT
 }
 
 // A default callback function that closes the dialog box when user hits done. DO NOT CALL OR USE EXTERNALLY
@@ -551,6 +609,9 @@ void application::create_popup_message(const char* title, const char *message)
 }
 
 void application::create_popup_message_with_callback(dialog_callback_fn cbk_fn, const char* title, const char *message){
+#ifdef EZGL_QT
+  TODO();
+#else // EZGL_QT
   //getting window ptr
   GtkWindow* window = GTK_WINDOW(get_object(m_window_id.c_str()));
   GtkWidget* popup_mssg = gtk_dialog_new_with_buttons(
@@ -577,6 +638,7 @@ void application::create_popup_message_with_callback(dialog_callback_fn cbk_fn, 
 
   //Showing the dialog window
   gtk_widget_show_all(popup_mssg);
+#endif // EZGL_QT
 }
 
 bool application::destroy_widget(const char* widget_name){
@@ -594,6 +656,11 @@ bool application::destroy_widget(const char* widget_name){
 }
 
 GtkWidget* application::find_widget(const char* widget_name){
+#ifdef EZGL_QT
+  QWidget* widget = qobject_cast<QWidget*>(get_object(widget_name));
+  assert(widget);
+  return widget;
+#else
   GtkWidget* widget = nullptr;
 
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -619,11 +686,15 @@ GtkWidget* application::find_widget(const char* widget_name){
   }
   
   return widget;
+#endif
 }
 
 
 bool application::destroy_button(const char *button_text_to_destroy)
 {
+#ifdef EZGL_QT
+  TODO();
+#else
   // get the inner grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -663,10 +734,14 @@ bool application::destroy_button(const char *button_text_to_destroy)
   g_list_free (children);
   // couldn't find the button with the label 'button_text_to_destroy'
   return false;
+#endif
 }
 
 void application::change_button_text(const char *button_text, const char *new_button_text)
 {
+#ifdef EZGL_QT
+  TODO();
+#else
   // get the inner grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
 
@@ -701,6 +776,7 @@ void application::change_button_text(const char *button_text, const char *new_bu
 
   // free the children list
   g_list_free (children);
+#endif
 }
 
 void application::change_canvas_world_coordinates(std::string const &canvas_id,
@@ -732,9 +808,12 @@ void application::flush_drawing()
   // queue a redraw of the GtkWidget
   gtk_widget_queue_draw(drawing_area);
 
+#ifdef EZGL_QT
+#else
   // run the main loop on pending events
   while(gtk_events_pending())
     gtk_main_iteration();
+#endif
 }
 
 renderer *application::get_renderer()
