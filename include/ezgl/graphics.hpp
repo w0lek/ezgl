@@ -25,6 +25,7 @@
 #include "ezgl/camera.hpp"
 
 #ifdef EZGL_QT
+#include <ezgl/typehelper.hpp>
 #include <QFont>
 class QImage;
 #else // EZGL_QT
@@ -569,10 +570,11 @@ private:
   t_coordinate_system current_coordinate_system = WORLD;
 
 #ifdef EZGL_QT
+  // A non-owning pointer to a cairo graphics context.
+  cairo_t *m_cairo; // we use fake tpe for now
 #else
   // A non-owning pointer to a cairo graphics context.
   cairo_t *m_cairo;
-
 #ifdef EZGL_USE_X11
   // The x11 drawable
   Drawable x11_drawable;

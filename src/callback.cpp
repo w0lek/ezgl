@@ -51,6 +51,7 @@ struct mouse_pan {
   bool has_panned = false; 
 } g_mouse_pan;
 
+#ifndef HIDE_GTK_EVENT
 gboolean press_key(GtkWidget *, GdkEventKey *event, gpointer data)
 {
   auto application = static_cast<ezgl::application *>(data);
@@ -207,6 +208,7 @@ gboolean scroll_mouse(GtkWidget *, GdkEvent *event, gpointer data)
   }
   return TRUE;
 }
+#endif // #ifndef HIDE_GTK_EVENT
 
 gboolean press_zoom_fit(GtkWidget *, gpointer data)
 {

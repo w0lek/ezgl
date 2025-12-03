@@ -164,8 +164,10 @@ private:
   renderer *m_animation_renderer = nullptr;
 
 private:
+#ifndef HIDE_GTK_EVENT
   // Called each time our drawing area widget has changed (e.g., in size).
   static gboolean configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data);
+#endif // #ifndef HIDE_GTK_EVENT
 
   // Called each time we need to draw to our drawing area widget.
   static gboolean draw_surface(GtkWidget *widget, cairo_t *context, gpointer data);

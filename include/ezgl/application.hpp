@@ -68,6 +68,7 @@ using setup_callback_fn = void (*)(application *app, bool new_window);
  */
 using button_callback_fn = void (*)(GtkWidget *widget, application *app);
 
+#ifndef HIDE_GTK_EVENT
 /**
  * The signature of a user-defined callback function for mouse events
  */
@@ -77,6 +78,7 @@ using mouse_callback_fn = void (*)(application *app, GdkEventButton *event, doub
  * The signature of a user-defined callback function for keyboard events
  */
 using key_callback_fn = void (*)(application *app, GdkEventKey *event, char *key_name);
+#endif // #ifndef HIDE_GTK_EVENT
 
 /**
  * The signature of a user-defined callback function for the combo-box "changed" signal
@@ -567,8 +569,10 @@ private:
   // The GTK application.
   GtkApplication *m_application;
 
+#ifndef HIDE_GTK_BUILDER
   // The GUI builder that parses an XML user interface.
   GtkBuilder *m_builder;
+#endif // HIDE_GTK_BUILDER
 
   // The function to call when the application is starting up.
   connect_g_objects_fn m_register_callbacks;
@@ -598,7 +602,7 @@ private:
 public:
   // The user-defined initial setup callback function
   setup_callback_fn initial_setup_callback;
-
+#ifndef HIDE_GTK_EVENT
   // The user-defined callback function for handling mouse press
   mouse_callback_fn mouse_press_callback;
 
@@ -607,6 +611,7 @@ public:
 
   // The user-defined callback function for handling keyboard press
   key_callback_fn key_press_callback;
+#endif // #ifndef HIDE_GTK_EVENT
 };
 
 /**

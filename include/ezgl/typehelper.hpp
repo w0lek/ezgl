@@ -8,20 +8,40 @@
 #include <ctime>
 #include <iostream>
 
-class QWidget;
+#include <QImage>
+
 class QObject;
+class QWidget;
+class QPushButton;
 class QComboBox;
 class QDialog;
 class QApplication;
+class QPainter;
 
+// gtk to std types
 using gchar = char;
-using GObject = QObject;
 using gpointer = void*;
 using gboolean = int;
+using gint = int;
+
+// gtk to qt types
+using GObject = QObject;
 using GtkWidget = QWidget;
+using GtkButton = QPushButton;
 using GtkComboBoxText = QComboBox;
 using GtkDialog = QDialog;
 using GtkApplication = QApplication;
+
+// cairo fake types
+using cairo_t = QPainter;
+struct cairo_surface_t {
+  QImage image;
+};
+// cairo fake types
+using mouse_callback_fn = void*;
+using mouse_callback_fn = void*;
+using key_callback_fn = void*;
+// gtk fake types
 
 #define TRUE 1
 #define FALSE 0
@@ -34,6 +54,17 @@ do {                                         \
         << __FILE__ << ":" << __LINE__       \
         << std::endl;                        \
         return (val);                        \
+  }                                          \
+} while (0)
+
+#define g_return_if_fail(expr)               \
+do {                                         \
+      if (!(expr)) {                         \
+        std::cerr << "CRITICAL: assertion '" \
+        << #expr << "' failed at "           \
+        << __FILE__ << ":" << __LINE__       \
+        << std::endl;                        \
+        return;                              \
   }                                          \
 } while (0)
 

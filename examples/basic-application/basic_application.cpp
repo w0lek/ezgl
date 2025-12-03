@@ -70,6 +70,7 @@ void create_dialog_button_cbk(GtkWidget *widget, ezgl::application *application)
 void create_mssg_button_cbk(GtkWidget* widget, ezgl::application *application);
 void dialog_cbk(GtkDialog* self, gint response_id, ezgl::application* app);
 
+#ifndef HIDE_GTK_EVENT
 /**
  * EVENT CALLBACK FUNCTIONS
  * 
@@ -78,6 +79,7 @@ void dialog_cbk(GtkDialog* self, gint response_id, ezgl::application* app);
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
+#endif // #ifndef HIDE_GTK_EVENT
 
 static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
 
@@ -640,6 +642,7 @@ void dialog_cbk(GtkDialog* self, gint response_id, ezgl::application* app){
   gtk_widget_destroy(GTK_WIDGET(self));
 }
 
+#ifndef HIDE_GTK_EVENT
 /**
  * Function to handle mouse press event
  * The current mouse position in the main canvas' world coordinate system is returned
@@ -691,3 +694,4 @@ void act_on_key_press(ezgl::application *application, GdkEventKey */*event*/, ch
 
   std::cout << key_name <<" key is pressed" << std::endl;
 }
+#endif // #ifndef HIDE_GTK_EVENT

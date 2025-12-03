@@ -21,6 +21,7 @@
 #include "ezgl/graphics.hpp"
 
 #ifdef EZGL_QT
+#include <ezgl/typehelper.hpp>
 #else // EZGL_QT
 #include <gtk/gtk.h>
 #endif // EZGL_QT
@@ -187,6 +188,7 @@ bool canvas::print_png(const char *file_name, int output_width, int output_heigh
   return true;
 }
 
+#ifndef HIDE_GTK_EVENT
 gboolean canvas::configure_event(GtkWidget *widget, GdkEventConfigure *, gpointer data)
 {
   // User data should have been set during the signal connection.
@@ -223,6 +225,7 @@ gboolean canvas::configure_event(GtkWidget *widget, GdkEventConfigure *, gpointe
   g_info("canvas::configure_event has been handled.");
   return TRUE; // the configure event was handled
 }
+#endif // #ifndef HIDE_GTK_EVENT
 
 gboolean canvas::draw_surface(GtkWidget *, cairo_t *context, gpointer data)
 {
@@ -289,11 +292,13 @@ void canvas::initialize(GtkWidget *drawing_area)
   // Connect to draw events so that we draw our surface to the drawing area.
   g_signal_connect(m_drawing_area, "draw", G_CALLBACK(draw_surface), this);
 
+#ifndef HIDE_GTK_EVENT
   // GtkDrawingArea objects need specific events enabled explicitly.
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_BUTTON_PRESS_MASK);
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_BUTTON_RELEASE_MASK);
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_POINTER_MOTION_MASK);
   gtk_widget_add_events(GTK_WIDGET(m_drawing_area), GDK_SCROLL_MASK);
+#endif // #ifndef HIDE_GTK_EVENT
 
   g_info("canvas::initialize successful.");
 }
