@@ -21,6 +21,7 @@
 #include "ezgl/graphics.hpp"
 
 #ifdef EZGL_QT
+#include <QWidget>
 #include <ezgl/typehelper.hpp>
 #else // EZGL_QT
 #include <gtk/gtk.h>
@@ -34,6 +35,18 @@ namespace ezgl {
 
 static cairo_surface_t *create_surface(GtkWidget *widget)
 {
+#if EZGL_QT
+  const double dpr = widget->devicePixelRatioF();
+
+  const int width  = std::max(1, int(widget->width()  * dpr));
+  const int height = std::max(1, int(widget->height() * dpr));
+
+  surface* img = new surface(width, height, QImage::Format_ARGB32_Premultiplied);
+  img->setDevicePixelRatio(dpr);
+  img->fill(Qt::transparent);
+
+  return img;
+#else
   GdkWindow *parent_window = gtk_widget_get_window(widget);
   int const width = gtk_widget_get_allocated_width(widget);
   int const height = gtk_widget_get_allocated_height(widget);
@@ -54,6 +67,7 @@ static cairo_surface_t *create_surface(GtkWidget *widget)
   cairo_surface_set_device_scale(p_surface, 1, 1);
 
   return p_surface;
+#endif
 }
 
 static cairo_t *create_context(cairo_surface_t *p_surface)

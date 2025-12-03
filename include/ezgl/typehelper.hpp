@@ -9,12 +9,14 @@
 #include <iostream>
 
 #include <QImage>
+#include <QWidget>
 
 class QObject;
 class QWidget;
 class QPushButton;
 class QComboBox;
 class QDialog;
+class QWindow;
 class QApplication;
 class QPainter;
 
@@ -31,12 +33,12 @@ using GtkButton = QPushButton;
 using GtkComboBoxText = QComboBox;
 using GtkDialog = QDialog;
 using GtkApplication = QApplication;
+using GdkWindow = QWindow;
 
 // cairo fake types
 using cairo_t = QPainter;
-struct cairo_surface_t {
-  QImage image;
-};
+using cairo_surface_t = QImage;
+
 // cairo fake types
 using mouse_callback_fn = void*;
 using mouse_callback_fn = void*;
@@ -45,6 +47,14 @@ using key_callback_fn = void*;
 
 #define TRUE 1
 #define FALSE 0
+
+int gtk_widget_get_allocated_width(QWidget* w) {
+  return w->width();
+}
+
+int gtk_widget_get_allocated_height(QWidget* w) {
+  return w->height();
+}
 
 #define g_return_val_if_fail(expr, val)      \
 do {                                         \
@@ -108,6 +118,9 @@ inline void log_message(const char* level,
   log_message("WARNING", __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #endif // EZGL_QT
+
+#define g_error(fmt, ...) \
+log_message("ERROR", __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define TODO() \
   std::cerr << "TODO:" \
