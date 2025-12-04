@@ -317,6 +317,7 @@ int canvas::height() const
 
 void canvas::initialize(GtkWidget *drawing_area)
 {
+  g_debug("~~~ canvas::initialize");
   g_return_if_fail(drawing_area != nullptr);
 
   m_drawing_area = drawing_area;

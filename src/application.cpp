@@ -86,6 +86,7 @@ void application::activate(GtkApplication *, gpointer user_data)
   // The main parent window needs to be explicitly added to our GTK application.
   GObject *window = ezgl_app->get_object(ezgl_app->m_window_id.c_str());
 #ifdef EZGL_QT
+  TODO();
 #else
   gtk_application_add_window(ezgl_app->m_application, GTK_WINDOW(window));
 #endif
