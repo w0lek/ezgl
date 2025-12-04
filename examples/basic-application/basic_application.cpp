@@ -93,7 +93,7 @@ static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
  *
  * @return the exit status of the application run.
  */
-int main(int /*argc*/, char **/*argv*/)
+int main(int argc, char **argv)
 {
   ezgl::application::settings settings;
 
@@ -108,8 +108,11 @@ int main(int /*argc*/, char **/*argv*/)
   settings.canvas_identifier = "MainCanvas";
 
   // Create our EZGL application.
+#ifdef EZGL_QT
+  ezgl::application application(settings, argc, argv);
+#else
   ezgl::application application(settings);
-
+#endif
   // Set some parameters for the main sub-window (MainCanvas), where 
   // visualization graphics are draw. Set the callback function that will be 
   // called when the main window needs redrawing, and define the (world) 
@@ -171,6 +174,9 @@ void draw_main_canvas(ezgl::renderer *g)
  */
 void initial_setup(ezgl::application *application, bool /*new_window*/)
 {
+#ifdef EZGL_QT
+
+#else
   // Update the status bar message
   application->update_message("EZGL Application");
 
@@ -201,6 +207,7 @@ void initial_setup(ezgl::application *application, bool /*new_window*/)
   application->create_button("Create Dialog", row++, create_dialog_button_cbk);
 
   application->create_button("Create Popup Mssg", row++, create_mssg_button_cbk);
+#endif
 }
 
 /**
@@ -531,12 +538,15 @@ void screen_coordinates_example(ezgl::renderer *g)
  */
 void draw_png_example(ezgl::renderer *g)
 {
+#ifdef EZGL_QT
+#else
   ezgl::surface *png_surface = ezgl::renderer::load_png("small_image.png");
   g->draw_surface(png_surface, {50, 200});
   ezgl::renderer::free_surface(png_surface);
   g->set_font_size(10);
   g->set_color(ezgl::BLACK);
   g->draw_text ({50, 225}, "draw_surface", 200, DBL_MAX);
+#endif
 }
 
 /**

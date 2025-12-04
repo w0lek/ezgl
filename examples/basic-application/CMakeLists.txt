@@ -6,16 +6,16 @@ project(
   LANGUAGES CXX
 )
 
-# create the resouce list
-set(
-  RESOURCE_LIST
-  # Strip all the whitespace characters from ui file
-  STRIPBLANKS main.ui
-)
-
 if (USE_QT)
 
 else(USE_QT)
+    # create the resouce list
+    set(
+      RESOURCE_LIST
+      # Strip all the whitespace characters from ui file
+      STRIPBLANKS main.ui
+    )
+
     # include the macros used to generate/compile the resources
     include(GlibCompileResourcesSupport)
 

@@ -68,8 +68,10 @@ QWidget* gtk_application_get_active_window(QApplication* app);
 void gtk_main();
 void gtk_main_quit();
 
+int g_application_run(QApplication* app);
 void g_application_quit(QApplication* app);
 QApplication* gtk_application_new(const char* appName);
+QApplication* gtk_application_new(const char* appName, int argc, char** argv);
 void gtk_widget_destroy(QWidget* widget);
 int gtk_widget_get_allocated_width(QWidget* w);
 int gtk_widget_get_allocated_height(QWidget* w);
@@ -80,17 +82,9 @@ void gtk_widget_queue_draw(QWidget* widget);
 void g_free(void* ptr);
 
 enum {
-  GTK_RESPONSE_NONE         = -1,
   GTK_RESPONSE_REJECT       = -2,
   GTK_RESPONSE_ACCEPT       = -3,
   GTK_RESPONSE_DELETE_EVENT = -4,
-  GTK_RESPONSE_OK           = -5,
-  GTK_RESPONSE_CANCEL       = -6,
-  GTK_RESPONSE_CLOSE        = -7,
-  GTK_RESPONSE_YES          = -8,
-  GTK_RESPONSE_NO           = -9,
-  GTK_RESPONSE_APPLY        = -10,
-  GTK_RESPONSE_HELP         = -11
 };
 
 // gtk wrapper
@@ -140,7 +134,7 @@ void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double 
 #define g_return_val_if_fail(expr, val)      \
 do {                                         \
       if (!(expr)) {                         \
-        std::cerr << "CRITICAL: assertion '" \
+        std::cerr << "CRITICAL: '" \
         << #expr << "' failed at "           \
         << __FILE__ << ":" << __LINE__       \
         << std::endl;                        \
@@ -151,7 +145,7 @@ do {                                         \
 #define g_return_if_fail(expr)               \
 do {                                         \
       if (!(expr)) {                         \
-        std::cerr << "CRITICAL: assertion '" \
+        std::cerr << "CRITICAL: '" \
         << #expr << "' failed at "           \
         << __FILE__ << ":" << __LINE__       \
         << std::endl;                        \

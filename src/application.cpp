@@ -25,7 +25,7 @@
 #endif
 
 #ifdef EZGL_QT
-
+#include <QVBoxLayout>
 #else // EZGL_QT
 // GLib deprecated G_APPLICATION_FLAGS_NONE and replaced it with G_APPLICATION_DEFAULT_FLAGS,
 // however, this enum was not introduced until GLib 2.74. These lines of code allow EZGL
@@ -44,6 +44,44 @@ namespace ezgl {
 // This allows basic scripted testing even if the GUI is on (return immediately when the event loop is called)
 bool disable_event_loop = false;
 
+#ifdef EZGL_QT
+void application::startup()
+{
+  //g_return_if_fail(ezgl_app != nullptr);
+
+#ifndef HIDE_GTK_BUILDER
+  char const *main_ui_resource = ezgl_app->m_main_ui.c_str();
+  if (!build_ui_from_file) {
+    // Build the main user interface from the XML resource.
+    // The XML resource is built from an XML file using the glib-compile-resources tool.
+    // This adds an extra compilation step, but it embeds the UI description in the executable.
+    GError *error = nullptr;
+    if(gtk_builder_add_from_resource(ezgl_app->m_builder, main_ui_resource, &error) == 0) {
+      g_error("%s.", error->message);
+    }
+  }
+  else {
+    // Build the main user interface from the XML file.
+    GError *error = nullptr;
+    if(gtk_builder_add_from_file(ezgl_app->m_builder, main_ui_resource, &error) == 0) {
+      g_error("%s.", error->message);
+    }
+  }
+#endif // HIDE_GTK_BUILDER
+
+  for(auto &c_pair : m_canvases) {
+#ifdef EZGL_QT
+    QWidget* drawing_area = new QWidget;
+    m_window->layout()->addWidget(drawing_area);
+#else
+    GObject *drawing_area = get_object(c_pair.second->id());
+#endif
+    c_pair.second->initialize(GTK_WIDGET(drawing_area));
+  }
+
+  g_info("application::startup successful.");
+}
+#else // EZGL_QT
 void application::startup(GtkApplication *, gpointer user_data)
 {
   auto ezgl_app = static_cast<application *>(user_data);
@@ -77,7 +115,39 @@ void application::startup(GtkApplication *, gpointer user_data)
 
   g_info("application::startup successful.");
 }
+#endif // EZGL_QT
 
+#ifdef EZGL_QT
+void application::activate()
+{
+  //g_return_if_fail(ezgl_app != nullptr);
+
+  // The main parent window needs to be explicitly added to our GTK application.
+  //// OLD
+  //GObject *window = ezgl_app->get_object(ezgl_app->m_window_id.c_str());
+  //gtk_application_add_window(ezgl_app->m_application, GTK_WINDOW(window));
+  //// NEW
+  m_window->show();
+  //// NEW
+
+#ifndef HIDE_GTK_EVENT
+  // Setup the default callbacks for the mouse and key events
+  register_default_events_callbacks(ezgl_app);
+
+  if(ezgl_app->m_register_callbacks != nullptr) {
+    ezgl_app->m_register_callbacks(ezgl_app);
+  } else {
+    // Setup the default callbacks for the prebuilt buttons
+    register_default_buttons_callbacks(ezgl_app);
+  }
+
+  if(ezgl_app->initial_setup_callback != nullptr)
+    ezgl_app->initial_setup_callback(ezgl_app, true);
+#endif // HIDE_GTK_EVENT
+
+  g_info("application::activate successful.");
+}
+#else // EZGL_QT
 void application::activate(GtkApplication *, gpointer user_data)
 {
   auto ezgl_app = static_cast<application *>(user_data);
@@ -85,11 +155,7 @@ void application::activate(GtkApplication *, gpointer user_data)
 
   // The main parent window needs to be explicitly added to our GTK application.
   GObject *window = ezgl_app->get_object(ezgl_app->m_window_id.c_str());
-#ifdef EZGL_QT
-  TODO();
-#else
   gtk_application_add_window(ezgl_app->m_application, GTK_WINDOW(window));
-#endif
 
   // Setup the default callbacks for the mouse and key events
   register_default_events_callbacks(ezgl_app);
@@ -106,33 +172,52 @@ void application::activate(GtkApplication *, gpointer user_data)
 
   g_info("application::activate successful.");
 }
+#endif // EZGL_QT
 
+#ifdef EZGL_QT
+application::application(application::settings s, int argc, char** argv)
+#else
 application::application(application::settings s)
+#endif
     : m_main_ui(s.main_ui_resource)
     , m_window_id(s.window_identifier)
     , m_canvas_id(s.canvas_identifier)
     , m_application_id(s.application_identifier)
 #ifdef EZGL_QT
-    , m_application(gtk_application_new(s.application_identifier.c_str()))
+//    , m_application(gtk_application_new(s.application_identifier.c_str(), argc, argv))
 #else // EZGL_QT
     , m_application(gtk_application_new(s.application_identifier.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS))
 #endif // EZGL_QT
 #ifndef HIDE_GTK_BUILDER
     , m_builder(gtk_builder_new())
 #endif // HIDE_GTK_BUILDER
+#ifndef HIDE_GTK_EVENT
     , m_register_callbacks(s.setup_callbacks)
+#endif // HIDE_GTK_EVENT
 {
 #ifdef EZGL_USE_X11
   // Prefer x11 first, then other backends.
   gdk_set_allowed_backends("x11,*");
 #endif
 
-#ifndef HIDE_GTK_EVENT
+#ifdef EZGL_QT
+  // we moved this to run method
+#else
   // Connect our static functions application::{startup, activate} to their callbacks. We pass 'this' as the userdata
   // so that we can use it in our static functions.
   g_signal_connect(m_application, "startup", G_CALLBACK(startup), this);
   g_signal_connect(m_application, "activate", G_CALLBACK(activate), this);
-#endif // HIDE_GTK_EVENT
+#endif
+
+#ifdef EZGL_QT
+  m_application = new QApplication(argc, argv);
+  m_window = new QWidget;
+  QVBoxLayout* layout = new QVBoxLayout;
+  m_window->setLayout(layout);
+  m_window->setStyleSheet("background: red;");
+  m_window->setObjectName(m_window_id.c_str());
+  qInfo() << m_application->arguments(); // without this line we got a crash, memory corruption?
+#endif
 
   first_run = true;
   resume_run = false;
@@ -141,6 +226,7 @@ application::application(application::settings s)
 application::~application()
 {
 #ifdef EZGL_QT
+  g_debug("application::~application");
   delete m_application;
 #else
   // GTK uses reference counting to track object lifetime. Since we called *_new() for our application and builder, we
@@ -192,8 +278,15 @@ GObject *application::get_object(gchar const *name) const
   // Getting an object from the GTK builder does not increase its reference count.
 #ifdef EZGL_QT
   // TODO: rename method to find_object?
-  QObject* object = qApp->findChild<QObject*>(name, Qt::FindChildrenRecursively);
-  assert(object);
+  QObject* object = nullptr;
+  for (QWidget* w: QApplication::allWidgets()) {
+    g_debug("~~~ iterate over", w->objectName().toStdString().c_str());
+    if (w->objectName() == name) {
+      g_debug("~~~ found", w->objectName().toStdString().c_str());
+      object = w;
+      break;
+    }
+  }
 #else
   GObject *object = gtk_builder_get_object(m_builder, name);
 #endif
@@ -211,6 +304,9 @@ int application::run(setup_callback_fn initial_setup_user_callback,
     key_callback_fn key_press_user_callback)
 #endif // HIDE_GTK_EVENT
 {
+  startup();
+  activate();
+
   if(disable_event_loop)
     return 0;
 
@@ -228,7 +324,7 @@ int application::run(setup_callback_fn initial_setup_user_callback,
     g_info("The event loop is now starting.");
 
 #ifdef EZGL_QT
-    return m_application->exec();
+    return g_application_run(m_application);
 #else // EZGL_QT
     // see: https://developer.gnome.org/gio/stable/GApplication.html#g-application-run
     return g_application_run(G_APPLICATION(m_application), 0, 0);

@@ -172,12 +172,22 @@ public:
   };
 
 public:
+#ifdef EZGL_QT
+  /**
+   * Create an application.
+   *
+   * @param s The preconfigured settings.
+   */
+  explicit application(application::settings s, int argc, char** argv);
+
+#else
   /**
    * Create an application.
    *
    * @param s The preconfigured settings.
    */
   explicit application(application::settings s);
+#endif
 
   /**
    * Add a canvas to the application.
@@ -573,13 +583,19 @@ private:
   // The GTK application.
   GtkApplication *m_application;
 
+#ifdef EZGL_QT
+  QWidget* m_window{nullptr};
+#endif
+
 #ifndef HIDE_GTK_BUILDER
   // The GUI builder that parses an XML user interface.
   GtkBuilder *m_builder;
 #endif // HIDE_GTK_BUILDER
 
+#ifndef HIDE_GTK_EVENT
   // The function to call when the application is starting up.
   connect_g_objects_fn m_register_callbacks;
+#endif // HIDE_GTK_EVENT
 
   // The collection of canvases added to the application.
   std::map<std::string, std::unique_ptr<canvas>> m_canvases;
@@ -591,11 +607,19 @@ private:
   bool resume_run;
 
 private:
-  // Called when our GtkApplication is initialized for the first time.
-  static void startup(GtkApplication *gtk_app, gpointer user_data);
+// Called when our GtkApplication is initialized for the first time.
+#ifdef EZGL_QT
+void startup();
+#else // EZGL_QT
+static void startup(GtkApplication *gtk_app, gpointer user_data);
+#endif // EZGL_QT
 
-  // Called when GTK activates our application for the first time.
+// Called when GTK activates our application for the first time.
+#ifdef EZGL_QT
+  void activate();
+#else // EZGL_QT
   static void activate(GtkApplication *gtk_app, gpointer user_data);
+#endif // EZGL_QT
 
   // Called during application activation to setup the default callbacks for the prebuilt buttons
   static void register_default_buttons_callbacks(application *application);

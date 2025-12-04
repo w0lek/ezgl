@@ -39,6 +39,12 @@ void gtk_main_quit()
   QApplication::quit();
 }
 
+int g_application_run(QApplication* app)
+{
+  g_debug("~~~ g_application_run");
+  return app->exec();
+}
+
 void g_application_quit(QApplication* app)
 {
   g_debug("~~~ g_application_quit");
@@ -47,9 +53,21 @@ void g_application_quit(QApplication* app)
 
 QApplication* gtk_application_new(const char* appName)
 {
-  g_debug("~~~ gtk_application_new");
+  g_debug("~~~ gtk_application_new RISKY");
   int argc = 0;
   char** argv = nullptr;
+  QApplication* app = new QApplication(argc, argv);
+  app->setApplicationName(appName);
+  return app;
+}
+
+QApplication* gtk_application_new(const char* appName, int argc, char** argv)
+{
+  if (qApp) {
+    g_debug("~~~ gtk_application_new is already created, return existed");
+    return qApp;
+  }
+  g_debug("~~~ gtk_application_new");
   QApplication* app = new QApplication(argc, argv);
   app->setApplicationName(appName);
   return app;
@@ -279,10 +297,12 @@ void cairo_paint(cairo_t* ctx)
 }
 
 void cairo_surface_destroy(QImage* surface) {
+  g_debug("~~~cairo_surface_destroy");
   delete surface;
 }
 
 void cairo_destroy(cairo_t* cairo) {
+  g_debug("~~~cairo_destroy");
   delete cairo;
 }
 

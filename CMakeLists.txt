@@ -10,7 +10,7 @@ project(
 # we rely on GTK3 for the GUI, so make sure the system has it
 find_package(PkgConfig REQUIRED)
 
-set(USE_QT TRUE)
+set(USE_QT 1)
 if(USE_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
