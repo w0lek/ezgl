@@ -111,7 +111,7 @@ application::application(application::settings s)
     , m_canvas_id(s.canvas_identifier)
     , m_application_id(s.application_identifier)
 #ifdef EZGL_QT
-    , m_application()
+    , m_application(gtk_application_new(s.application_identifier.c_str()))
 #else // EZGL_QT
     , m_application(gtk_application_new(s.application_identifier.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS))
 #endif // EZGL_QT

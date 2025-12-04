@@ -8,6 +8,7 @@
 #include <ctime>
 #include <iostream>
 #include <memory>
+#include <string_view>
 
 #include <QObject>
 #include <QApplication>
@@ -160,19 +161,35 @@ do {                                         \
 
 void log_message(const char* level, const char* file, int line, const char* fmt, ...);
 
+constexpr const char* __filename_helper(const char* path)
+{
+  const char* file = path;
+  for (const char* p = path; *p != '\0'; ++p) {
+    if (*p == '/' || *p == '\\') {
+      file = p + 1;
+    }
+  }
+  return file;
+}
+
+#define __FILENAME__ (__filename_helper(__FILE__))
+
 // Macros similar to g_info / g_warning
 #define g_info(fmt, ...)    \
-  log_message("INFO",    __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+  log_message("INFO",    __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define g_warning(fmt, ...) \
-  log_message("WARNING", __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+  log_message("WARNING", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define g_error(fmt, ...) \
-log_message("ERROR", __FILE__, __LINE__, fmt, ##__VA_ARGS__)
+  log_message("ERROR", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
+
+#define debug(fmt, ...) \
+  log_message("DEBUG", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define TODO() \
   std::cerr << "TODO:" \
-            << __FILE__ << ":" << __LINE__ \
+            << __FILENAME__ << ":" << __LINE__ \
             << std::endl; \
   assert(false); \
                                          \
