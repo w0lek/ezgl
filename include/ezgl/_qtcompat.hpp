@@ -40,7 +40,13 @@ using GdkWindow = QWindow;
 // cairo fake types
 struct cairo_t {
 public:
-  cairo_t(QImage* image): painter(image) {}
+  cairo_t(QImage* image): painter(image) {
+    qInfo() << "~~~ cairo_t()";
+  }
+  ~cairo_t() {
+    qInfo() << "~~~ ~cairo_t()";
+  }
+
   QColor color;
   QPainter painter;
   QPainterPath path;

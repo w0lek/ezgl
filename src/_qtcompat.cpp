@@ -54,8 +54,8 @@ void g_application_quit(QApplication* app)
 QApplication* gtk_application_new(const char* appName)
 {
   g_debug("~~~ gtk_application_new RISKY");
-  int argc = 0;
-  char** argv = nullptr;
+  static int argc = 0;
+  static char** argv = nullptr;
   QApplication* app = new QApplication(argc, argv);
   app->setApplicationName(appName);
   return app;

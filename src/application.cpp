@@ -184,7 +184,7 @@ application::application(application::settings s)
     , m_canvas_id(s.canvas_identifier)
     , m_application_id(s.application_identifier)
 #ifdef EZGL_QT
-//    , m_application(gtk_application_new(s.application_identifier.c_str(), argc, argv))
+    , m_application(gtk_application_new(s.application_identifier.c_str(), argc, argv))
 #else // EZGL_QT
     , m_application(gtk_application_new(s.application_identifier.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS))
 #endif // EZGL_QT
@@ -210,7 +210,7 @@ application::application(application::settings s)
 #endif
 
 #ifdef EZGL_QT
-  m_application = new QApplication(argc, argv);
+  // m_application = new QApplication(argc, argv);
   m_window = new QWidget;
   QVBoxLayout* layout = new QVBoxLayout;
   m_window->setLayout(layout);
