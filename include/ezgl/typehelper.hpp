@@ -10,6 +10,7 @@
 #include <memory>
 
 #include <QObject>
+#include <QApplication>
 #include <QImage>
 #include <QWidget>
 #include <QWindow>
@@ -18,8 +19,6 @@
 #include <QDialog>
 #include <QPainter>
 #include <QColor>
-
-class QApplication;
 
 // gtk to std types
 using gchar = char;
@@ -68,10 +67,41 @@ QWindow* GTK_WINDOW(QObject* obj) {
   return qobject_cast<QWindow*>(obj);
 }
 
+QApplication* G_APPLICATION(QObject* obj) {
+  return qobject_cast<QApplication*>(obj);
+}
+
 bool GTK_IS_BUTTON(QObject* obj) {
   return qobject_cast<QPushButton*>(obj) != nullptr;
 }
 
+QWidget* gtk_application_get_active_window(QApplication* app)
+{
+  return QApplication::activeWindow();
+}
+
+void gtk_main() {
+  qApp->exec();
+}
+
+void gtk_main_quit()
+{
+  QApplication::quit();
+}
+
+void g_application_quit(QApplication* app)
+{
+  app->exit(0);
+}
+
+QApplication* gtk_application_new(const char* appName)
+{
+  int argc = 0;
+  char** argv = nullptr;
+  QApplication* app = new QApplication(argc, argv);
+  app->setApplicationName(appName);
+  return app;
+}
 
 void gtk_widget_destroy(QWidget* widget)
 {

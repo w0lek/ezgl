@@ -24,6 +24,9 @@
 #include <QApplication>
 #endif
 
+#ifdef EZGL_QT
+
+#else // EZGL_QT
 // GLib deprecated G_APPLICATION_FLAGS_NONE and replaced it with G_APPLICATION_DEFAULT_FLAGS,
 // however, this enum was not introduced until GLib 2.74. These lines of code allow EZGL
 // to be backwards compatible with older versions of GLib, while not using the deprecated
@@ -33,6 +36,7 @@ static constexpr GApplicationFlags EZGL_APPLICATION_DEFAULT_FLAGS = G_APPLICATIO
 #else
 static constexpr GApplicationFlags EZGL_APPLICATION_DEFAULT_FLAGS = G_APPLICATION_FLAGS_NONE;
 #endif
+#endif // EZGL_QT
 
 namespace ezgl {
 
@@ -80,7 +84,10 @@ void application::activate(GtkApplication *, gpointer user_data)
 
   // The main parent window needs to be explicitly added to our GTK application.
   GObject *window = ezgl_app->get_object(ezgl_app->m_window_id.c_str());
+#ifdef EZGL_QT
+#else
   gtk_application_add_window(ezgl_app->m_application, GTK_WINDOW(window));
+#endif
 
   // Setup the default callbacks for the mouse and key events
   register_default_events_callbacks(ezgl_app);
@@ -103,7 +110,11 @@ application::application(application::settings s)
     , m_window_id(s.window_identifier)
     , m_canvas_id(s.canvas_identifier)
     , m_application_id(s.application_identifier)
+#ifdef EZGL_QT
+    , m_application()
+#else // EZGL_QT
     , m_application(gtk_application_new(s.application_identifier.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS))
+#endif // EZGL_QT
 #ifndef HIDE_GTK_BUILDER
     , m_builder(gtk_builder_new())
 #endif // HIDE_GTK_BUILDER
@@ -214,8 +225,12 @@ int application::run(setup_callback_fn initial_setup_user_callback,
 
     g_info("The event loop is now starting.");
 
+#ifdef EZGL_QT
+    return m_application->exec();
+#else // EZGL_QT
     // see: https://developer.gnome.org/gio/stable/GApplication.html#g-application-run
     return g_application_run(G_APPLICATION(m_application), 0, 0);
+#endif // EZGL_QT
   }
   // The result of calling g_application_run() again after it returns is unspecified.
   // So in the subsequent runs instead of calling g_application_run(), we will go back to the event loop using gtk_main()
@@ -248,7 +263,12 @@ int application::run(setup_callback_fn initial_setup_user_callback,
 #endif // HIDE_GTK_BUILDER
 
     // Reconstruct the GTK application
+#ifdef EZGL_QT
+    m_application = (gtk_application_new(m_application_id.c_str());
+#else // EZGL_QT
     m_application = (gtk_application_new(m_application_id.c_str(), EZGL_APPLICATION_DEFAULT_FLAGS));
+#endif // EZGL_QT
+
 #ifndef HIDE_GTK_BUILDER
     m_builder = (gtk_builder_new());
 #endif // HIDE_GTK_BUILDER
@@ -263,8 +283,12 @@ int application::run(setup_callback_fn initial_setup_user_callback,
 
     g_info("The event loop is now restarting.");
 
+#ifdef EZGL_QT
+    return m_application->exec();
+#else // EZGL_QT
     // see: https://developer.gnome.org/gio/stable/GApplication.html#g-application-run
     return g_application_run(G_APPLICATION(m_application), 0, 0);
+#endif // EZGL_QT
   }
 }
 
