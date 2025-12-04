@@ -15,17 +15,13 @@ QWindow* GTK_WINDOW(QObject* obj) {
   return qobject_cast<QWindow*>(obj);
 }
 
-QApplication* G_APPLICATION(QObject* obj) {
-  return qobject_cast<QApplication*>(obj);
-}
-
 bool GTK_IS_BUTTON(QObject* obj) {
   return qobject_cast<QPushButton*>(obj) != nullptr;
 }
 
-QWidget* gtk_application_get_active_window(QApplication* app)
+QWidget* gtk_application_get_active_window(Application* app)
 {
-  return QApplication::activeWindow();
+  return Application::activeWindow();
 }
 
 void gtk_main() {
@@ -39,36 +35,32 @@ void gtk_main_quit()
   QApplication::quit();
 }
 
-int g_application_run(QApplication* app)
+int g_application_run(Application* app)
 {
   g_debug("~~~ g_application_run");
   return app->exec();
 }
 
-void g_application_quit(QApplication* app)
+void g_application_quit(Application* app)
 {
   g_debug("~~~ g_application_quit");
   app->exit(0);
 }
 
-QApplication* gtk_application_new(const char* appName)
+Application* gtk_application_new(const char* appName)
 {
   g_debug("~~~ gtk_application_new RISKY");
   static int argc = 0;
   static char** argv = nullptr;
-  QApplication* app = new QApplication(argc, argv);
+  Application* app = new Application(argc, argv);
   app->setApplicationName(appName);
   return app;
 }
 
-QApplication* gtk_application_new(const char* appName, int argc, char** argv)
+Application* gtk_application_new(const char* appName, int& argc, char** argv)
 {
-  if (qApp) {
-    g_debug("~~~ gtk_application_new is already created, return existed");
-    return qApp;
-  }
   g_debug("~~~ gtk_application_new");
-  QApplication* app = new QApplication(argc, argv);
+  Application* app = new Application(argc, argv);
   app->setApplicationName(appName);
   return app;
 }

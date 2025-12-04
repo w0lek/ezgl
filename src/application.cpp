@@ -175,7 +175,7 @@ void application::activate(GtkApplication *, gpointer user_data)
 #endif // EZGL_QT
 
 #ifdef EZGL_QT
-application::application(application::settings s, int argc, char** argv)
+application::application(application::settings s, int& argc, char** argv)
 #else
 application::application(application::settings s)
 #endif
@@ -216,7 +216,8 @@ application::application(application::settings s)
   m_window->setLayout(layout);
   m_window->setStyleSheet("background: red;");
   m_window->setObjectName(m_window_id.c_str());
-  qInfo() << m_application->arguments(); // without this line we got a crash, memory corruption?
+  qInfo() << m_application->applicationName();
+  qInfo() << m_application->arguments();
 #endif
 
   first_run = true;
@@ -397,7 +398,11 @@ void application::quit()
     gtk_main_quit();
   } else {
     // Quit the GTK application (exit g_application_run())
+#ifdef EZGL_QT
+    g_application_quit(m_application);
+#else
     g_application_quit(G_APPLICATION(m_application));
+#endif
   }
 }
 

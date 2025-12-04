@@ -28,13 +28,24 @@ using gpointer = void*;
 using gboolean = int;
 using gint = int;
 
+class Application : public QApplication {
+public:
+  Application(int& argc, char** argv): QApplication(argc, argv) {
+    qInfo() << "Application()";
+    // qInfo() << "Application()" << argc << QString(*argv);
+  }
+  ~Application() {
+    qInfo() << "~Application()";
+  }
+};
+
 // gtk to qt types
 using GObject = QObject;
 using GtkWidget = QWidget;
 using GtkButton = QPushButton;
 using GtkComboBoxText = QComboBox;
 using GtkDialog = QDialog;
-using GtkApplication = QApplication;
+using GtkApplication = Application;
 using GdkWindow = QWindow;
 
 // cairo fake types
@@ -67,17 +78,16 @@ using key_callback_fn = void*;
 QWidget* GTK_WIDGET(QObject* obj);
 QComboBox* GTK_COMBO_BOX(QObject* obj);
 QWindow* GTK_WINDOW(QObject* obj);
-QApplication* G_APPLICATION(QObject* obj);
 
 bool GTK_IS_BUTTON(QObject* obj);
-QWidget* gtk_application_get_active_window(QApplication* app);
+QWidget* gtk_application_get_active_window(Application* app);
 void gtk_main();
 void gtk_main_quit();
 
-int g_application_run(QApplication* app);
-void g_application_quit(QApplication* app);
-QApplication* gtk_application_new(const char* appName);
-QApplication* gtk_application_new(const char* appName, int argc, char** argv);
+int g_application_run(Application* app);
+void g_application_quit(Application* app);
+Application* gtk_application_new(const char* appName);
+Application* gtk_application_new(const char* appName, int& argc, char** argv);
 void gtk_widget_destroy(QWidget* widget);
 int gtk_widget_get_allocated_width(QWidget* w);
 int gtk_widget_get_allocated_height(QWidget* w);

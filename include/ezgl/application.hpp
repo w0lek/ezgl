@@ -178,7 +178,7 @@ public:
    *
    * @param s The preconfigured settings.
    */
-  explicit application(application::settings s, int argc, char** argv);
+  explicit application(application::settings s, int& argc, char** argv);
 
 #else
   /**
