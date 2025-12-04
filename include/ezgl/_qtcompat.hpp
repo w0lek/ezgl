@@ -184,7 +184,7 @@ constexpr const char* __filename_helper(const char* path)
 #define g_error(fmt, ...) \
   log_message("ERROR", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
-#define debug(fmt, ...) \
+#define g_debug(fmt, ...) \
   log_message("DEBUG", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define TODO() \

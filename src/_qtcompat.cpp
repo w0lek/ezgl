@@ -29,25 +29,25 @@ QWidget* gtk_application_get_active_window(QApplication* app)
 }
 
 void gtk_main() {
-  debug("~~~ gtk_main");
+  g_debug("~~~ gtk_main");
   qApp->exec();
 }
 
 void gtk_main_quit()
 {
-  debug("~~~ gtk_main_quit");
+  g_debug("~~~ gtk_main_quit");
   QApplication::quit();
 }
 
 void g_application_quit(QApplication* app)
 {
-  debug("~~~ g_application_quit");
+  g_debug("~~~ g_application_quit");
   app->exit(0);
 }
 
 QApplication* gtk_application_new(const char* appName)
 {
-  debug("~~~ gtk_application_new");
+  g_debug("~~~ gtk_application_new");
   int argc = 0;
   char** argv = nullptr;
   QApplication* app = new QApplication(argc, argv);
@@ -57,7 +57,7 @@ QApplication* gtk_application_new(const char* appName)
 
 void gtk_widget_destroy(QWidget* widget)
 {
-  debug("~~~ gtk_widget_destroy");
+  g_debug("~~~ gtk_widget_destroy");
   if (!widget)
     return;
 
@@ -94,13 +94,13 @@ void gtk_combo_box_set_active(QComboBox* combo, int idx)
 
 void gtk_widget_queue_draw(QWidget* widget)
 {
-  debug("~~~ gtk_widget_queue_draw");
+  g_debug("~~~ gtk_widget_queue_draw");
   widget->update();
 }
 
 void g_free(void* ptr)
 {
-  debug("~~~ g_free");
+  g_debug("~~~ g_free");
   free(ptr);
 }
 // gtk wrapper

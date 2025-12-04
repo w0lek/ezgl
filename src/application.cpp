@@ -71,6 +71,7 @@ void application::startup(GtkApplication *, gpointer user_data)
 
   for(auto &c_pair : ezgl_app->m_canvases) {
     GObject *drawing_area = ezgl_app->get_object(c_pair.second->id());
+    g_debug(c_pair.second->id());
     c_pair.second->initialize(GTK_WIDGET(drawing_area));
   }
 
