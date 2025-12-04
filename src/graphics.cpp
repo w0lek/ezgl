@@ -852,11 +852,15 @@ void renderer::draw_arc_path(point2d center,
 
 void renderer::draw_surface(surface *p_surface, point2d point, double scale_factor)
 {
+#ifdef EZGL_QT
+  TODO();
+#else
   // Check if the surface is properly created
   if(cairo_surface_status(p_surface) != CAIRO_STATUS_SUCCESS) {
     g_warning("renderer::draw_surface: Error drawing surface at address %p; surface is not valid.", (void*) p_surface);
     return;
   }
+#endif
 
   // calculate surface width and height in screen coordinates
   double s_width = (double)cairo_image_surface_get_width(p_surface) * scale_factor;
@@ -915,6 +919,10 @@ void renderer::draw_surface(surface *p_surface, point2d point, double scale_fact
 
 surface *renderer::load_png(const char *file_path)
 {
+#ifdef EZGL_QT
+  TODO();
+  return nullptr;
+#else // EZGL_QT
   // Create an image surface from a PNG image
   cairo_surface_t *png_surface = cairo_image_surface_create_from_png(file_path);
 
@@ -928,12 +936,17 @@ surface *renderer::load_png(const char *file_path)
   }
 
   return png_surface;
+#endif // EZGL_QT
 }
 
 void renderer::free_surface(surface *p_surface)
 {
+#ifdef EZGL_QT
+  delete p_surface;
+#else // EZGL_QT
   // Check if the surface is properly created
   if (cairo_surface_status(p_surface) == CAIRO_STATUS_SUCCESS)
     cairo_surface_destroy(p_surface);
+#endif // EZGL_QT
 }
 }

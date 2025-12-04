@@ -182,6 +182,37 @@ using cairo_font_slant_t = QFont::Style;
 #define CAIRO_FONT_WEIGHT_BOLD QFont::Bold
 using cairo_font_weight_t = QFont::Weight;
 
+int cairo_image_surface_get_width(QImage* image)
+{
+  return image->width();
+}
+
+int cairo_image_surface_get_height(QImage* image)
+{
+  return image->height();
+}
+
+
+void cairo_new_path(cairo_t* ctx)
+{
+  ctx->path = QPainterPath();
+}
+
+void cairo_scale(cairo_t* ctx, double sx, double sy)
+{
+  ctx->painter.scale(sx, sy);
+}
+
+void cairo_save(cairo_t* ctx)
+{
+  ctx->painter.save();
+}
+
+void cairo_restore(cairo_t* ctx)
+{
+  ctx->painter.restore();
+}
+
 void cairo_fill(cairo_t* ctx)
 {
   QBrush brush(ctx->color);
@@ -210,6 +241,48 @@ void cairo_move_to(cairo_t* ctx, double x, double y)
 void cairo_line_to(cairo_t* ctx, double x, double y)
 {
   ctx->path.lineTo(QPointF(x, y));
+}
+
+/*
+Cairo expects clockwise ⇒ Qt expects counterclockwise.
+→ multiply angles by -1.
+
+Cairo sweep direction is implicit (angle2 < angle1).
+→ compute sweep = endDeg - startDeg.
+
+Qt’s arcTo uses bounding box and angles in degrees.
+*/
+void cairo_arc(cairo_t* cr,
+    double xc, double yc,
+    double radius,
+    double angle1, double angle2)
+{
+  // radians → degrees
+  double startDeg = -angle1 * 180.0 / std::numbers::pi;
+  double endDeg   = -angle2 * 180.0 / std::numbers::pi;
+
+  double spanDeg = endDeg - startDeg;
+
+  QRectF rect(xc - radius, yc - radius,
+      radius * 2.0, radius * 2.0);
+
+  cr->path.arcTo(rect, startDeg, spanDeg);
+}
+void cairo_arc_negative(cairo_t* ctx,
+    double xc, double yc,
+    double radius,
+    double angle1, double angle2)
+{
+  // radians → degrees
+  double startDeg = -angle1 * 180.0 / std::numbers::pi;
+  double endDeg   = -angle2 * 180.0 / std::numbers::pi;
+
+  double sweep = endDeg - startDeg; // negative sweep
+
+  double d = radius * 2.0;
+  QRectF rect(xc - radius, yc - radius, d, d);
+
+  ctx->path.arcTo(rect, startDeg, sweep);
 }
 
 void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight)
