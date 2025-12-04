@@ -644,6 +644,7 @@ void renderer::draw_text(point2d point, std::string const &text)
 
 void renderer::draw_text(point2d point, std::string const &text, double bound_x, double bound_y)
 {
+#ifndef HIDE_CAIRO_DRAW_TEXT
   // the center point of the text
   point2d center = point;
 
@@ -731,6 +732,7 @@ void renderer::draw_text(point2d point, std::string const &text, double bound_x,
 
   // restore the old state to undo the performed rotation
   cairo_restore(m_cairo);
+#endif // HIDE_CAIRO_DRAW_TEXT
 }
 
 void renderer::draw_rectangle_path(point2d start, point2d end, bool fill_flag)

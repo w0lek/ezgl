@@ -116,30 +116,17 @@ enum class font_slant : int {
   /**
    * No slant.
    */
-#ifdef EZGL_QT
-  normal,
-#else // EZGL_QT
   normal = CAIRO_FONT_SLANT_NORMAL,
-#endif // EZGL_QT
 
   /**
    * Slant is more calligraphic. Make sure the font you're using has an italic design, otherwise it may look ugly.
    */
-#ifdef EZGL_QT
-  italic,
-#else // EZGL_QT
   italic = CAIRO_FONT_SLANT_ITALIC,
-#endif // EZGL_QT
-
 
   /**
    * Slanted to the right.
    */
-#ifdef EZGL_QT
-  oblique
-#else // EZGL_QT
   oblique = CAIRO_FONT_SLANT_OBLIQUE
-#endif // EZGL_QT
 };
 
 /**
@@ -149,20 +136,12 @@ enum class font_weight : int {
 /**
    * No additional weight.
    */
-#ifdef EZGL_QT
-  normal = QFont::Normal,
-#else // EZGL_QT
   normal = CAIRO_FONT_WEIGHT_NORMAL,
-#endif // EZGL_QT
 
 /**
    * Bold font weight.
    */
-#ifdef EZGL_QT
-  bold = QFont::Bold
-#else // EZGL_QT
   bold = CAIRO_FONT_WEIGHT_BOLD
-#endif // EZGL_QT
 };
 
 /**
@@ -172,21 +151,13 @@ enum class line_cap : int {
   /**
    * Start and stop the line exactly where it begins/ends.
    */
-#ifdef EZGL_QT
-  butt,
-#else // EZGL_QT
   butt = CAIRO_LINE_CAP_BUTT,
-#endif // EZGL_QT
 
   /**
    * Each end of the line has circles. This is useful to ensure polylines formed of multiple line segments
    * do not have gaps in them.
    */
-#ifdef EZGL_QT
-  round
-#else // EZGL_QT
   round = CAIRO_LINE_CAP_ROUND
-#endif // EZGL_QT
 };
 
 /**

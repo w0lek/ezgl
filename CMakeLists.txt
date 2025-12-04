@@ -81,7 +81,8 @@ if(USE_QT)
         PUBLIC
         EZGL_QT
         HIDE_GTK_EVENT
-        HIDE_GTK_BUILDER)
+        HIDE_GTK_BUILDER
+        HIDE_CAIRO_DRAW_TEXT)
 
 else(USE_QT)
 

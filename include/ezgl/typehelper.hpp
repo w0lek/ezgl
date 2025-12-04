@@ -18,6 +18,7 @@
 #include <QPushButton>
 #include <QDialog>
 #include <QPainter>
+#include <QPainterPath>
 #include <QColor>
 
 // gtk to std types
@@ -41,6 +42,7 @@ public:
   cairo_t(QImage* image): painter(image) {}
   QColor color;
   QPainter painter;
+  QPainterPath path;
 };
 
 using cairo_surface_t = QImage;
@@ -166,6 +168,101 @@ enum {
 // gtk wrapper
 
 // cairo wrapper
+#define CAIRO_LINE_CAP_BUTT	Qt::FlatCap
+#define CAIRO_LINE_CAP_ROUND Qt::RoundCap
+#define CAIRO_LINE_CAP_SQUARE	Qt::SquareCap
+using cairo_line_cap_t = Qt::PenCapStyle;
+
+#define CAIRO_FONT_SLANT_NORMAL QFont::StyleNormal
+#define CAIRO_FONT_SLANT_ITALIC QFont::StyleItalic
+#define CAIRO_FONT_SLANT_OBLIQUE QFont::StyleOblique
+using cairo_font_slant_t = QFont::Style;
+
+#define CAIRO_FONT_WEIGHT_NORMAL QFont::Normal
+#define CAIRO_FONT_WEIGHT_BOLD QFont::Bold
+using cairo_font_weight_t = QFont::Weight;
+
+void cairo_fill(cairo_t* ctx)
+{
+  QBrush brush(ctx->color);
+  ctx->painter.setBrush(brush);
+
+  ctx->painter.drawPath(ctx->path);
+  ctx->path = QPainterPath(); // reset like Cairo resets current path
+}
+
+void cairo_close_path(cairo_t* ctx)
+{
+  ctx->path.closeSubpath(); // ??
+}
+
+void cairo_stroke(cairo_t* ctx)
+{
+  ctx->painter.strokePath(ctx->path, ctx->painter.pen());
+  ctx->path = QPainterPath();    // reset for next stroke
+}
+
+void cairo_move_to(cairo_t* ctx, double x, double y)
+{
+  ctx->path.moveTo(QPointF(x, y));
+}
+
+void cairo_line_to(cairo_t* ctx, double x, double y)
+{
+  ctx->path.lineTo(QPointF(x, y));
+}
+
+void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight)
+{
+  QFont font = ctx->painter.font();
+
+  if (family) {
+    font.setFamily(QString::fromUtf8(family));
+  }
+
+  font.setStyle(slant);
+  font.setWeight(weight);
+
+  ctx->painter.setFont(font);
+}
+
+void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
+{
+  QPen pen = ctx->painter.pen();
+  if (pattern == nullptr || count == 0) {
+    pen.setStyle(Qt::SolidLine);
+  } else {
+    QVector<double> dashes(count);
+    for (int i = 0; i < count; ++i) {
+      dashes[i] = pattern[i];
+    }
+
+    pen.setDashPattern(dashes);
+    pen.setDashOffset(offset);
+  }
+  ctx->painter.setPen(pen);
+}
+
+void cairo_set_font_size(cairo_t* ctx, int size)
+{
+  QFont font = ctx->painter.font();
+  font.setPointSizeF(size);
+  ctx->painter.setFont(font);
+}
+
+void cairo_set_line_width(cairo_t* ctx, int width)
+{
+  QPen pen = ctx->painter.pen();
+  pen.setWidthF(width == 0 ? 1.0 : width);
+  ctx->painter.setPen(pen);
+}
+
+void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {
+  QPen pen = ctx->painter.pen();
+  pen.setCapStyle(cap);
+  ctx->painter.setPen(pen);
+}
+
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b) {
   ctx->color.setRedF(r);
   ctx->color.setGreenF(g);
