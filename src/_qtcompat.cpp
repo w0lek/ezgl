@@ -144,9 +144,9 @@ void apply_painter_states_helper(cairo_t* ctx, Painter& painter)
 
   for (int flag: ctx->dirtyFlags) {
     switch(flag) {
-    case cairo_t::DIRTY::PEN: painter.setPen(ctx->pen);
-    case cairo_t::DIRTY::BRUSH: painter.setBrush(ctx->brush);
-    case cairo_t::DIRTY::FONT: painter.setFont(ctx->font);
+    case cairo_t::DIRTY::PEN: painter.setPen(ctx->pen); break;
+    case cairo_t::DIRTY::BRUSH: painter.setBrush(ctx->brush); break;
+    case cairo_t::DIRTY::FONT: painter.setFont(ctx->font); break;
     }
   }
   ctx->dirtyFlags.clear();
@@ -158,7 +158,7 @@ void cairo_fill(cairo_t* ctx, Painter& painter)
   apply_painter_states_helper(ctx, painter);
 
   // set brush
-  painter.setBrush(ctx->brush);
+  //painter.setBrush(ctx->brush); // this is not needed since is covered by apply_painter_states_helper
 
   // draw path
   painter.drawPath(ctx->path);

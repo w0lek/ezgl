@@ -73,7 +73,7 @@ public:
   Painter(Image* image): QPainter(image) {
     m_id = Painter::nextid++;
     Painter::counter++;
-    qInfo() << "Painter(" << m_id << ")";
+    //qInfo() << "Painter(" << m_id << ")";
     assert(image);
     assert(!image->isNull());
     assert(isActive());
@@ -81,7 +81,7 @@ public:
   }
 
   virtual ~Painter() {
-    qInfo() << "~Painter(" << m_id << ")";
+    //qInfo() << "~Painter(" << m_id << ")";
     Painter::counter--;
   }
 };
