@@ -2,6 +2,19 @@
 
 #ifdef EZGL_QT
 
+DrawingAreaWidget::DrawingAreaWidget(QWidget* parent): QWidget(parent) {
+
+}
+
+void DrawingAreaWidget::paintEvent(QPaintEvent* event)
+{
+  QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing);
+
+  // draw...
+  p.fillRect(rect(), Qt::black);
+}
+
 // gtk wrapper
 QWidget* GTK_WIDGET(QObject* obj) {
   return qobject_cast<QWidget*>(obj);

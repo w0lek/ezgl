@@ -71,8 +71,7 @@ void application::startup()
 
   for(auto &c_pair : m_canvases) {
 #ifdef EZGL_QT
-    QWidget* drawing_area = new QWidget;
-    drawing_area->setStyleSheet("background: blue;");
+    QWidget* drawing_area = new DrawingAreaWidget;
     m_window->layout()->addWidget(drawing_area);
 #else // EZGL_QT
     GObject *drawing_area = get_object(c_pair.second->id());

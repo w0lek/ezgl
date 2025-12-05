@@ -22,22 +22,40 @@
 #include <QPainterPath>
 #include <QColor>
 
+class DrawingAreaWidget : public QWidget {
+public:
+  explicit DrawingAreaWidget(QWidget* parent = nullptr);
+protected:
+  void paintEvent(QPaintEvent* event) override final;
+};
+
 // gtk to std types
 using gchar = char;
 using gpointer = void*;
 using gboolean = int;
 using gint = int;
 
+// tmp solution to track lifetime
 class Application : public QApplication {
 public:
   Application(int& argc, char** argv): QApplication(argc, argv) {
     qInfo() << "Application()";
-    // qInfo() << "Application()" << argc << QString(*argv);
   }
   ~Application() {
     qInfo() << "~Application()";
   }
 };
+
+class Image : public QImage {
+public:
+  Image(const QString& str): QImage(str) {
+    qInfo() << "Image()";
+  }
+  ~Image() {
+    qInfo() << "~Image()";
+  }
+};
+//
 
 // gtk to qt types
 using GObject = QObject;
@@ -51,15 +69,15 @@ using GdkWindow = QWindow;
 // cairo fake types
 struct cairo_t {
 public:
-  cairo_t(QImage* image): painter(image) {
+  cairo_t(const Image& image): image(image) {
     qInfo() << "~~~ cairo_t()";
   }
   ~cairo_t() {
     qInfo() << "~~~ ~cairo_t()";
   }
 
+  Image image;
   QColor color;
-  QPainter painter;
   QPainterPath path;
 };
 
