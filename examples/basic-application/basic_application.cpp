@@ -143,28 +143,28 @@ int main(int argc, char **argv)
 void draw_main_canvas(ezgl::renderer *g)
 {
   // Draw some rectangles
-  draw_rectangle_example(g);
+  // draw_rectangle_example(g);
 
   // Draw different arcs
   draw_arc_example(g);
 
-  // Draw some rotated text
-  rotated_text_example(g);
+  // // Draw some rotated text
+  // rotated_text_example(g);
 
-  // Draw different transparent and opaque polys
-  draw_poly_example(g);
+  // // Draw different transparent and opaque polys
+  // draw_poly_example(g);
 
-  // Draw some text with different sizes
-  draw_text_example(g);
+  // // Draw some text with different sizes
+  // draw_text_example(g);
 
-  // Draw wide lines with different end shapes
-  draw_line_example(g);
+  // // Draw wide lines with different end shapes
+  // draw_line_example(g);
 
-  // Draw to screen coordinates
-  screen_coordinates_example(g);
+  // // Draw to screen coordinates
+  // screen_coordinates_example(g);
 
-  // Draw a small png
-  draw_png_example(g);
+  // // Draw a small png
+  // draw_png_example(g);
 }
 
 /**
@@ -291,32 +291,32 @@ void draw_arc_example(ezgl::renderer *g)
 {
   float radius = 50;
 
-  // Draw solid line
-  g->set_color(ezgl::BLACK);
-  g->draw_text({250, 150}, "draw_line", 150.0, DBL_MAX);
-  g->set_line_dash(ezgl::line_dash::none);
-  g->draw_line({200, 120}, {200, 200});
+  // // Draw solid line
+  // g->set_color(ezgl::BLACK);
+  // g->draw_text({250, 150}, "draw_line", 150.0, DBL_MAX);
+  // g->set_line_dash(ezgl::line_dash::none);
+  // g->draw_line({200, 120}, {200, 200});
 
-  // Draw dashed line
-  g->set_line_dash(ezgl::line_dash::asymmetric_5_3);
-  g->draw_line({300, 120}, {300, 200});
+  // // Draw dashed line
+  // g->set_line_dash(ezgl::line_dash::asymmetric_5_3);
+  // g->draw_line({300, 120}, {300, 200});
 
-  // Draw elliptic arc
-  g->set_color(ezgl::MAGENTA);
-  g->draw_text({450, 160}, "draw_elliptic_arc", 150.0, DBL_MAX);
-  g->draw_elliptic_arc({550, 160}, 30, 60, 90, 270);
+  // // Draw elliptic arc
+  // g->set_color(ezgl::MAGENTA);
+  // g->draw_text({450, 160}, "draw_elliptic_arc", 150.0, DBL_MAX);
+  // g->draw_elliptic_arc({550, 160}, 30, 60, 90, 270);
 
-  // Draw filled in elliptic arc
-  g->draw_text({700, 160}, "fill_elliptic_arc", 150.0, DBL_MAX);
-  g->fill_elliptic_arc({800, 160}, 30, 60, 90, 270);
+  // // Draw filled in elliptic arc
+  // g->draw_text({700, 160}, "fill_elliptic_arc", 150.0, DBL_MAX);
+  // g->fill_elliptic_arc({800, 160}, 30, 60, 90, 270);
 
   // Draw arcs
   g->set_color(ezgl::BLUE);
-  g->draw_text({190, 300}, "draw_arc", radius * 2, 150);
+  // g->draw_text({190, 300}, "draw_arc", radius * 2, 150);
   g->draw_arc({190, 300}, radius, 0, 270);
   g->draw_arc({300, 300}, radius, 0, -180);
 
-  // Draw filled in arcs
+  // // Draw filled in arcs
   g->fill_arc({410, 300}, radius, 90, -90);
   g->fill_arc({520, 300}, radius, 0, 360);
   g->set_color(ezgl::BLACK);

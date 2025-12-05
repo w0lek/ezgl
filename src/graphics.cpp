@@ -845,6 +845,15 @@ void renderer::draw_arc_path(point2d center,
   // if the arc will be filled in, start drawing from the center of the arc
   if(fill_flag)
     cairo_move_to(m_cairo, center.x, center.y);
+#ifdef EZGL_QT
+  else {
+    // this step is not needed for cairo but is needed for QPainter
+    double start_angle_radians = -start_angle * std::numbers::pi / 180;
+    double startx = center.x + radius * std::cos(start_angle_radians);
+    double starty = center.y + radius * std::sin(start_angle_radians);
+    cairo_move_to(m_cairo, startx, starty);
+  }
+#endif
 
   // calculating the ending angle
   double end_angle = start_angle + extent_angle;

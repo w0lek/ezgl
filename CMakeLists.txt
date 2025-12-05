@@ -89,7 +89,8 @@ if(USE_QT)
         HIDE_GTK_EVENT
         HIDE_GTK_BUILDER
         HIDE_CAIRO_DRAW_TEXT
-        HIDE_CAIRO)
+    #    HIGHT_DPI_FACTOR
+    )
 
 else(USE_QT)
 

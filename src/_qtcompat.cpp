@@ -14,9 +14,13 @@ DrawingAreaWidget::~DrawingAreaWidget()
 
 Image* DrawingAreaWidget::createSurface() {
   if (!m_image) {
+#ifdef HIGHT_DPI_FACTOR
+    const double dpr = 2.0 * devicePixelRatioF();
+#else
     const double dpr = devicePixelRatioF();
+#endif
 
-    const int w  = std::max(1, int(width()  * dpr));
+    const int w = std::max(1, int(width()  * dpr));
     const int h = std::max(1, int(height() * dpr));
 
     m_image = new Image(w, h, QImage::Format_ARGB32_Premultiplied);
@@ -175,9 +179,6 @@ void cairo_fill(cairo_t* ctx, Painter& painter)
 {
   apply_painter_states_helper(ctx, painter);
 
-  // set brush
-  //painter.setBrush(ctx->brush); // this is not needed since is covered by apply_painter_states_helper
-
   // draw path
   painter.drawPath(ctx->path);
 
@@ -205,6 +206,38 @@ void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, Pain
 {
   painter.drawImage(QPointF(x, y), *surface);
 }
+
+// void cairo_scale(cairo_t* ctx, double sx, double sy, Painter& painter)
+// {
+//   painter.scale(sx, sy);
+// }
+
+// void cairo_save(cairo_t* ctx, Painter& painter)
+// {
+//   painter.save();
+// }
+
+// void cairo_restore(cairo_t* ctx, Painter& painter)
+// {
+//   painter.restore();
+// }
+void cairo_scale(cairo_t* ctx, double sx, double sy)
+{
+  TODO;
+  //painter.scale(sx, sy);
+}
+
+void cairo_save(cairo_t* ctx)
+{
+  TODO;
+  //painter.save();
+}
+
+void cairo_restore(cairo_t* ctx)
+{
+  TODO;
+  //painter.restore();
+}
 // QPainter specific
 
 int cairo_image_surface_get_width(QImage* image)
@@ -220,24 +253,6 @@ int cairo_image_surface_get_height(QImage* image)
 void cairo_new_path(cairo_t* ctx)
 {
   ctx->path = QPainterPath();
-}
-
-void cairo_scale(cairo_t* ctx, double sx, double sy)
-{
-  TODO; // we need apply transform properly
-  //ctx->transform.scale(sx, sy);
-}
-
-void cairo_save(cairo_t* ctx)
-{
-  TODO;
-  //ctx->painter.save();
-}
-
-void cairo_restore(cairo_t* ctx)
-{
-  TODO;
-  //ctx->painter.restore();
 }
 
 void cairo_close_path(cairo_t* ctx)
@@ -266,8 +281,8 @@ void cairo_arc(cairo_t* ctx,
 
   double spanDeg = endDeg - startDeg;
 
-  QRectF rect(xc - radius, yc - radius,
-      radius * 2.0, radius * 2.0);
+  double d = radius * 2.0;
+  QRectF rect(xc - radius, yc - radius, d, d);
 
   ctx->path.arcTo(rect, startDeg, spanDeg);
 }

@@ -216,14 +216,17 @@ void cairo_fill(cairo_t* ctx, Painter&);
 void cairo_stroke(cairo_t* ctx, Painter&);
 void cairo_paint(cairo_t* ctx, Painter&);
 void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
+// void cairo_save(cairo_t* ctx, Painter&);
+// void cairo_restore(cairo_t* ctx, Painter&);
+// void cairo_scale(cairo_t* ctx, double sx, double sy, Painter&);
+void cairo_save(cairo_t* ctx);
+void cairo_restore(cairo_t* ctx);
+void cairo_scale(cairo_t* ctx, double sx, double sy);
 // QPainter specific
 
 int cairo_image_surface_get_width(QImage* image);
 int cairo_image_surface_get_height(QImage* image);
 void cairo_new_path(cairo_t* ctx);
-void cairo_scale(cairo_t* ctx, double sx, double sy);
-void cairo_save(cairo_t* ctx);
-void cairo_restore(cairo_t* ctx);
 void cairo_close_path(cairo_t* ctx);
 void cairo_move_to(cairo_t* ctx, double x, double y);
 void cairo_line_to(cairo_t* ctx, double x, double y);
