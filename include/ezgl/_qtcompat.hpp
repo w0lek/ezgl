@@ -81,10 +81,28 @@ public:
     qInfo() << "~~~ ~cairo_t()";
   }
 
+  void setAntialias(bool enabled) {
+    if (enabled) {
+      renderHints |= QPainter::Antialiasing;
+    } else {
+      renderHints &= ~QPainter::Antialiasing;
+    }
+  }
+
+  void setSmoothPixmap(bool enabled) {
+    if (enabled) {
+      renderHints |= QPainter::SmoothPixmapTransform;
+    } else {
+      renderHints &= ~QPainter::SmoothPixmapTransform;
+    }
+  }
+
+  QPainter::RenderHints renderHints;
   QTransform transform;
   Image* image{nullptr};
   QColor color;
   QPen pen;
+  QBrush brush;
   QPainterPath path;
 };
 
@@ -222,12 +240,16 @@ constexpr const char* __filename_helper(const char* path)
 #define g_debug(fmt, ...) \
   log_message("DEBUG", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
-#define TODO() \
+#define TODO \
   std::cerr << "TODO:" \
             << __FILENAME__ << ":" << __LINE__ \
             << std::endl; \
-  assert(false); \
-                                         \
+                                        \
+#define ASSERT_TODO \
+std::cerr << "TODO:" \
+          << __FILENAME__ << ":" << __LINE__ \
+          << std::endl; \
+    assert(false); \
 
 #endif // EZGL_QT
 #endif // EZGL_GTKCOMPAT_HPP

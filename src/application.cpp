@@ -483,7 +483,7 @@ void application::register_default_buttons_callbacks(ezgl::application *applicat
 void application::update_message(std::string const &message)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   // Get the StatusBar Object
   GtkStatusbar *status_bar = (GtkStatusbar *)get_object("StatusBar");
@@ -504,7 +504,7 @@ void application::create_button(const char *button_text,
     button_callback_fn button_func)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -538,7 +538,7 @@ void application::create_button(const char *button_text,
     button_callback_fn button_func)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -553,7 +553,7 @@ void application::create_button(const char *button_text,
 
 void application::create_label(int insert_row, const char *label_text){
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   //Getting grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -574,7 +574,7 @@ void application::create_label(
   const char *label_text)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   //Getting grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -597,7 +597,7 @@ void application::create_combo_box_text(
   std::vector<std::string> options)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -620,7 +620,7 @@ void application::create_combo_box_text(
   std::vector<std::string> options)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
     // get the internal Gtk grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -658,7 +658,7 @@ void application::create_combo_box_text(
 
 void application::change_combo_box_text_options(const char* name, std::vector<std::string> new_options){
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
   // the text to delete, in c++ string form
@@ -693,7 +693,7 @@ void application::create_dialog_window(
   const char *window_text)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   //getting window ptr
   GtkWindow* window = GTK_WINDOW(get_object(m_window_id.c_str()));
@@ -738,7 +738,7 @@ void application::create_popup_message(const char* title, const char *message)
 
 void application::create_popup_message_with_callback(dialog_callback_fn cbk_fn, const char* title, const char *message){
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else // EZGL_QT
   //getting window ptr
   GtkWindow* window = GTK_WINDOW(get_object(m_window_id.c_str()));
@@ -821,7 +821,7 @@ GtkWidget* application::find_widget(const char* widget_name){
 bool application::destroy_button(const char *button_text_to_destroy)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else
   // get the inner grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");
@@ -868,7 +868,7 @@ bool application::destroy_button(const char *button_text_to_destroy)
 void application::change_button_text(const char *button_text, const char *new_button_text)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else
   // get the inner grid
   GtkGrid *in_grid = (GtkGrid *)get_object("InnerGrid");

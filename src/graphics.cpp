@@ -853,7 +853,7 @@ void renderer::draw_arc_path(point2d center,
 void renderer::draw_surface(surface *p_surface, point2d point, double scale_factor)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
 #else
   // Check if the surface is properly created
   if(cairo_surface_status(p_surface) != CAIRO_STATUS_SUCCESS) {
@@ -920,7 +920,7 @@ void renderer::draw_surface(surface *p_surface, point2d point, double scale_fact
 surface *renderer::load_png(const char *file_path)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
   return nullptr;
 #else // EZGL_QT
   // Create an image surface from a PNG image

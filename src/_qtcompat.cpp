@@ -151,12 +151,14 @@ void cairo_scale(cairo_t* ctx, double sx, double sy)
 
 void cairo_save(cairo_t* ctx)
 {
-  ctx->painter.save();
+  ASSERT_TODO();
+  //ctx->painter.save();
 }
 
 void cairo_restore(cairo_t* ctx)
 {
-  ctx->painter.restore();
+  ASSERT_TODO();
+  //ctx->painter.restore();
 }
 
 void cairo_fill(cairo_t* ctx)

@@ -77,9 +77,8 @@ static cairo_t *create_context(cairo_surface_t *p_surface)
   cairo_t *context = new cairo_t(p_surface);
 
   // Equivalent to CAIRO_ANTIALIAS_NONE
-  context->painter.setRenderHint(QPainter::Antialiasing, false);
-  //context->setRenderHint(QPainter::HighQualityAntialiasing, false);
-  context->painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+  context->setAntialias(false);
+  context->setSmoothPixmap(false);
 
 #else // EZGL_QT
   cairo_t *context = cairo_create(p_surface);
@@ -96,7 +95,7 @@ static cairo_t *create_context(cairo_surface_t *p_surface)
 bool canvas::print_pdf(const char *file_name, int output_width, int output_height)
 {
 #ifdef EZGL_QT
-  TODO()
+  ASSERT_TODO;
   return false;
 #else // EZGL_QT
   cairo_surface_t *pdf_surface;
@@ -140,7 +139,7 @@ bool canvas::print_pdf(const char *file_name, int output_width, int output_heigh
 bool canvas::print_svg(const char *file_name, int output_width, int output_height)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
   return false;
 #else // EZGL_QT
   cairo_surface_t *svg_surface;
@@ -184,7 +183,7 @@ bool canvas::print_svg(const char *file_name, int output_width, int output_heigh
 bool canvas::print_png(const char *file_name, int output_width, int output_height)
 {
 #ifdef EZGL_QT
-  TODO();
+  ASSERT_TODO;
   return false;
 #else // EZGL_QT
   cairo_surface_t *png_surface;
