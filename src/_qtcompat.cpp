@@ -2,17 +2,35 @@
 
 #ifdef EZGL_QT
 
-DrawingAreaWidget::DrawingAreaWidget(QWidget* parent): QWidget(parent) {
+DrawingAreaWidget::DrawingAreaWidget(QWidget* parent): QWidget(parent)
+{
 
+}
+
+DrawingAreaWidget::~DrawingAreaWidget()
+{
+
+}
+
+Image* DrawingAreaWidget::createSurface() {
+  if (!m_image) {
+    const double dpr = devicePixelRatioF();
+
+    const int w  = std::max(1, int(width()  * dpr));
+    const int h = std::max(1, int(height() * dpr));
+
+    m_image = new Image(w, h, QImage::Format_ARGB32_Premultiplied);
+    m_image->setDevicePixelRatio(dpr);
+    m_image->fill(Qt::transparent);
+  }
+  return m_image;
 }
 
 void DrawingAreaWidget::paintEvent(QPaintEvent* event)
 {
-  QPainter p(this);
-  p.setRenderHint(QPainter::Antialiasing);
-
-  // draw...
-  p.fillRect(rect(), Qt::black);
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.drawImage(rect(), *m_image, m_image->rect());
 }
 
 // gtk wrapper

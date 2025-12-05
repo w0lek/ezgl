@@ -7,8 +7,6 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream>
-#include <memory>
-#include <string_view>
 
 #include <QObject>
 #include <QApplication>
@@ -21,13 +19,6 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QColor>
-
-class DrawingAreaWidget : public QWidget {
-public:
-  explicit DrawingAreaWidget(QWidget* parent = nullptr);
-protected:
-  void paintEvent(QPaintEvent* event) override final;
-};
 
 // gtk to std types
 using gchar = char;
@@ -58,6 +49,20 @@ public:
   virtual ~Image() {
     qInfo() << "~Image()";
   }
+};
+
+class DrawingAreaWidget : public QWidget {
+  Q_OBJECT
+public:
+  explicit DrawingAreaWidget(QWidget* parent = nullptr);
+  virtual ~DrawingAreaWidget();
+  Image* createSurface();
+
+protected:
+  void paintEvent(QPaintEvent* event) override final;
+
+private:
+  Image* m_image{nullptr};
 };
 
 class Painter : public QPainter {

@@ -12,6 +12,11 @@ find_package(PkgConfig REQUIRED)
 
 set(USE_QT 1)
 if(USE_QT)
+    # Enable Qt automatic code generation
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
     if(NOT Qt6_FOUND)

@@ -34,33 +34,32 @@
 
 namespace ezgl {
 
+#if EZGL_QT
+Image *create_surface(QWidget* widget)
+{
+  DrawingAreaWidget* drawableAreaWidget = qobject_cast<DrawingAreaWidget*>(widget);
+  if (drawableAreaWidget) {
+    return drawableAreaWidget->createSurface();
+  }
+  assert(false);
+  return nullptr;
+}
+#else
 static cairo_surface_t *create_surface(GtkWidget *widget)
 {
-#if EZGL_QT
-  const double dpr = widget->devicePixelRatioF();
-
-  const int width  = std::max(1, int(widget->width()  * dpr));
-  const int height = std::max(1, int(widget->height() * dpr));
-
-  surface* img = new surface(width, height, QImage::Format_ARGB32_Premultiplied);
-  img->setDevicePixelRatio(dpr);
-  img->fill(Qt::transparent);
-
-  return img;
-#else
   GdkWindow *parent_window = gtk_widget_get_window(widget);
   int const width = gtk_widget_get_allocated_width(widget);
   int const height = gtk_widget_get_allocated_height(widget);
 
   // Cairo image surfaces are more efficient than normal Cairo surfaces
   // However, you cannot use X11 functions to draw on image surfaces
-#ifdef EZGL_USE_X11
+  #ifdef EZGL_USE_X11
   cairo_surface_t *p_surface = gdk_window_create_similar_surface(
       parent_window, CAIRO_CONTENT_COLOR_ALPHA, width, height);
-#else
+  #else
   cairo_surface_t *p_surface = gdk_window_create_similar_image_surface(
       parent_window, CAIRO_FORMAT_ARGB32, width, height, 0);
-#endif
+  #endif
 
   // On HiDPI displays, Cairos surfaces are scaled to 2x or more
   // However, EZGL doesn't support scaling yet
@@ -68,8 +67,8 @@ static cairo_surface_t *create_surface(GtkWidget *widget)
   cairo_surface_set_device_scale(p_surface, 1, 1);
 
   return p_surface;
-#endif
 }
+#endif
 
 static cairo_t *create_context(cairo_surface_t *p_surface)
 {

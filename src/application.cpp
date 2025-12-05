@@ -306,8 +306,10 @@ int application::run(setup_callback_fn initial_setup_user_callback,
     key_callback_fn key_press_user_callback)
 #endif // HIDE_GTK_EVENT
 {
+#ifdef EZGL_QT
   startup();
   activate();
+#endif
 
   if(disable_event_loop)
     return 0;
