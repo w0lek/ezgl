@@ -224,7 +224,8 @@ void cairo_new_path(cairo_t* ctx)
 
 void cairo_scale(cairo_t* ctx, double sx, double sy)
 {
-  ctx->transform.scale(sx, sy);
+  TODO; // we need apply transform properly
+  //ctx->transform.scale(sx, sy);
 }
 
 void cairo_save(cairo_t* ctx)
@@ -333,17 +334,21 @@ void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {
 }
 
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b) {
-  ctx->color.setRedF(r);
-  ctx->color.setGreenF(g);
-  ctx->color.setBlueF(b);
-  ctx->color.setAlphaF(1.0);
+  QColor c;
+  c.setRedF(r);
+  c.setGreenF(g);
+  c.setBlueF(b);
+  c.setAlphaF(1.0);
+  ctx->setColor(c);
 }
 
 void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a) {
-  ctx->color.setRedF(r);
-  ctx->color.setGreenF(g);
-  ctx->color.setBlueF(b);
-  ctx->color.setAlphaF(a);
+  QColor c;
+  c.setRedF(r);
+  c.setGreenF(g);
+  c.setBlueF(b);
+  c.setAlphaF(a);
+  ctx->setColor(c);
 }
 
 void cairo_surface_destroy(QImage* surface) {
