@@ -465,7 +465,12 @@ void renderer::draw_line(point2d start, point2d end)
   cairo_move_to(m_cairo, start.x, start.y);
   cairo_line_to(m_cairo, end.x, end.y);
 
+#ifdef EZGL_QT
+  QPainter painter(m_cairo->image);
+  cairo_stroke(m_cairo, painter);
+#else
   cairo_stroke(m_cairo);
+#endif
 }
 
 void renderer::draw_rectangle(point2d start, point2d end)
@@ -583,7 +588,12 @@ void renderer::fill_poly(std::vector<point2d> const &points)
   }
 
   cairo_close_path(m_cairo);
+#ifdef EZGL_QT
+  QPainter painter(m_cairo->image);
+  cairo_fill(m_cairo, painter);
+#else
   cairo_fill(m_cairo);
+#endif
 }
 
 void renderer::draw_elliptic_arc(point2d center,
@@ -768,10 +778,18 @@ void renderer::draw_rectangle_path(point2d start, point2d end, bool fill_flag)
   cairo_close_path(m_cairo);
 
   // actual drawing
+#ifdef EZGL_QT
+  QPainter painter(m_cairo->image);
+  if(fill_flag)
+    cairo_fill(m_cairo, painter);
+  else
+    cairo_stroke(m_cairo, painter);
+#else
   if(fill_flag)
     cairo_fill(m_cairo);
   else
     cairo_stroke(m_cairo);
+#endif
 }
 
 void renderer::draw_arc_path(point2d center,
@@ -844,10 +862,18 @@ void renderer::draw_arc_path(point2d center,
   cairo_restore(m_cairo);
 
   // actual drawing
+#ifdef EZGL_QT
+  QPainter painter(m_cairo->image);
+  if(fill_flag)
+    cairo_fill(m_cairo, painter);
+  else
+    cairo_stroke(m_cairo, painter);
+#else // EZGL_QT
   if(fill_flag)
     cairo_fill(m_cairo);
   else
     cairo_stroke(m_cairo);
+#endif // EZGL_QT
 }
 
 void renderer::draw_surface(surface *p_surface, point2d point, double scale_factor)
@@ -905,11 +931,21 @@ void renderer::draw_surface(surface *p_surface, point2d point, double scale_fact
     top_left.y /= scale_factor;
   }
 
+#ifdef EZGL_QT
+  QPainter painter(m_cairo->image);
+
+  // Create a source for painting from the surface
+  cairo_set_source_surface(m_cairo, p_surface, top_left.x, top_left.y, painter);
+
+  // Actual drawing
+  cairo_paint(m_cairo, painter);
+#else
   // Create a source for painting from the surface
   cairo_set_source_surface(m_cairo, p_surface, top_left.x, top_left.y);
 
   // Actual drawing
   cairo_paint(m_cairo);
+#endif
 
   if (scale_factor != 1) {
     // restore the old state to undo the performed scaling

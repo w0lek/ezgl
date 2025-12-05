@@ -129,6 +129,63 @@ void g_free(void* ptr)
 // gtk wrapper
 
 // cairo wrapper
+
+// QPainter specific
+namespace {
+void apply_painter_states_helper(cairo_t* ctx, QPainter& painter)
+{
+  painter.setRenderHints(ctx->renderHints);
+  if (ctx->dirtyFlags.empty()) {
+    return;
+  }
+
+  for (int flag: ctx->dirtyFlags) {
+    switch(flag) {
+    case cairo_t::DIRTY::PEN: painter.setPen(ctx->pen);
+    case cairo_t::DIRTY::BRUSH: painter.setBrush(ctx->brush);
+    case cairo_t::DIRTY::FONT: painter.setFont(ctx->font);
+    }
+  }
+  ctx->dirtyFlags.clear();
+}
+} // namespace
+
+void cairo_fill(cairo_t* ctx, QPainter& painter)
+{
+  apply_painter_states_helper(ctx, painter);
+
+  // set brush
+  painter.setBrush(ctx->brush);
+
+  // draw path
+  painter.drawPath(ctx->path);
+
+  // clear path after drawing
+  ctx->path = QPainterPath();
+}
+
+void cairo_stroke(cairo_t* ctx, QPainter& painter)
+{
+  apply_painter_states_helper(ctx, painter);
+
+  // draw stroke path
+  painter.strokePath(ctx->path, ctx->pen);
+
+  // clear path after drawing
+  ctx->path = QPainterPath();
+}
+
+void cairo_paint(cairo_t* ctx, QPainter& painter)
+{
+  painter.fillRect(painter.viewport(), ctx->color);
+}
+
+void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, QPainter& painter)
+{
+  painter.drawImage(QPointF(x, y), *surface);
+}
+// QPainter specific
+
 int cairo_image_surface_get_width(QImage* image)
 {
   return image->width();
@@ -151,34 +208,19 @@ void cairo_scale(cairo_t* ctx, double sx, double sy)
 
 void cairo_save(cairo_t* ctx)
 {
-  ASSERT_TODO();
+  TODO;
   //ctx->painter.save();
 }
 
 void cairo_restore(cairo_t* ctx)
 {
-  ASSERT_TODO();
+  TODO;
   //ctx->painter.restore();
-}
-
-void cairo_fill(cairo_t* ctx)
-{
-  QBrush brush(ctx->color);
-  ctx->painter.setBrush(brush);
-
-  ctx->painter.drawPath(ctx->path);
-  ctx->path = QPainterPath(); // reset like Cairo resets current path
 }
 
 void cairo_close_path(cairo_t* ctx)
 {
   ctx->path.closeSubpath(); // ??
-}
-
-void cairo_stroke(cairo_t* ctx)
-{
-  ctx->painter.strokePath(ctx->path, ctx->painter.pen());
-  ctx->path = QPainterPath();    // reset for next stroke
 }
 
 void cairo_move_to(cairo_t* ctx, double x, double y)
@@ -226,53 +268,47 @@ void cairo_arc_negative(cairo_t* ctx,
 
 void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight)
 {
-  QFont font = ctx->painter.font();
-
   if (family) {
-    font.setFamily(QString::fromUtf8(family));
+    ctx->font.setFamily(QString::fromUtf8(family));
   }
 
-  font.setStyle(slant);
-  font.setWeight(weight);
+  ctx->font.setStyle(slant);
+  ctx->font.setWeight(weight);
 
-  ctx->painter.setFont(font);
+  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::FONT);
 }
 
 void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
 {
-  QPen pen = ctx->painter.pen();
   if (pattern == nullptr || count == 0) {
-    pen.setStyle(Qt::SolidLine);
+    ctx->pen.setStyle(Qt::SolidLine);
   } else {
     QVector<double> dashes(count);
     for (int i = 0; i < count; ++i) {
       dashes[i] = pattern[i];
     }
 
-    pen.setDashPattern(dashes);
-    pen.setDashOffset(offset);
+    ctx->pen.setDashPattern(dashes);
+    ctx->pen.setDashOffset(offset);
   }
-  ctx->painter.setPen(pen);
+  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_font_size(cairo_t* ctx, int size)
 {
-  QFont font = ctx->painter.font();
-  font.setPointSizeF(size);
-  ctx->painter.setFont(font);
+  ctx->font.setPointSizeF(size);
+  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::FONT);
 }
 
 void cairo_set_line_width(cairo_t* ctx, int width)
 {
-  QPen pen = ctx->painter.pen();
-  pen.setWidthF(width == 0 ? 1.0 : width);
-  ctx->painter.setPen(pen);
+  ctx->pen.setWidthF(width == 0 ? 1.0 : width);
+  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {
-  QPen pen = ctx->painter.pen();
-  pen.setCapStyle(cap);
-  ctx->painter.setPen(pen);
+  ctx->pen.setCapStyle(cap);
+  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b) {
@@ -289,11 +325,6 @@ void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a)
   ctx->color.setAlphaF(a);
 }
 
-void cairo_paint(cairo_t* ctx)
-{
-  ctx->painter.fillRect(ctx->painter.viewport(), ctx->color);
-}
-
 void cairo_surface_destroy(QImage* surface) {
   g_debug("~~~cairo_surface_destroy");
   delete surface;
@@ -302,11 +333,6 @@ void cairo_surface_destroy(QImage* surface) {
 void cairo_destroy(cairo_t* cairo) {
   g_debug("~~~cairo_destroy");
   delete cairo;
-}
-
-void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y)
-{
-  cairo->painter.drawImage(QPointF(x, y), *surface);
 }
 // cairo wrapper
 

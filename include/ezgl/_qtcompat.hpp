@@ -73,6 +73,11 @@ using GdkWindow = QWindow;
 
 // cairo fake types
 struct cairo_t {
+  enum DIRTY {
+    PEN,
+    BRUSH,
+    FONT
+  };
 public:
   cairo_t(Image* image): image(image) {
     qInfo() << "~~~ cairo_t()";
@@ -104,6 +109,9 @@ public:
   QPen pen;
   QBrush brush;
   QPainterPath path;
+  QFont font;
+
+  std::vector<int> dirtyFlags;
 };
 
 using cairo_surface_t = Image;
@@ -163,20 +171,24 @@ using cairo_font_slant_t = QFont::Style;
 #define CAIRO_FONT_WEIGHT_BOLD QFont::Bold
 using cairo_font_weight_t = QFont::Weight;
 
+// QPainter specific
+void cairo_fill(cairo_t* ctx, QPainter&);
+void cairo_stroke(cairo_t* ctx, QPainter&);
+void cairo_paint(cairo_t* ctx, QPainter&);
+void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, QPainter&);
+// QPainter specific
+
 int cairo_image_surface_get_width(QImage* image);
 int cairo_image_surface_get_height(QImage* image);
 void cairo_new_path(cairo_t* ctx);
 void cairo_scale(cairo_t* ctx, double sx, double sy);
 void cairo_save(cairo_t* ctx);
 void cairo_restore(cairo_t* ctx);
-void cairo_fill(cairo_t* ctx);
 void cairo_close_path(cairo_t* ctx);
-void cairo_stroke(cairo_t* ctx);
 void cairo_move_to(cairo_t* ctx, double x, double y);
 void cairo_line_to(cairo_t* ctx, double x, double y);
 void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2);
 void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2);
-
 void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
 void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
 void cairo_set_font_size(cairo_t* ctx, int size);
@@ -184,10 +196,8 @@ void cairo_set_line_width(cairo_t* ctx, int width);
 void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap);
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b);
 void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
-void cairo_paint(cairo_t* ctx);
 void cairo_surface_destroy(QImage* surface);
 void cairo_destroy(cairo_t* cairo);
-void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y);
 // cairo wrapper
 
 #define g_return_val_if_fail(expr, val)      \
@@ -245,8 +255,9 @@ constexpr const char* __filename_helper(const char* path)
             << __FILENAME__ << ":" << __LINE__ \
             << std::endl; \
                                         \
+
 #define ASSERT_TODO \
-std::cerr << "TODO:" \
+std::cerr << "ASSERT_TODO:" \
           << __FILENAME__ << ":" << __LINE__ \
           << std::endl; \
     assert(false); \
