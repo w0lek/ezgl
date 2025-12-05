@@ -51,6 +51,11 @@ public:
   Image(const QString& str): QImage(str) {
     qInfo() << "Image()";
   }
+  Image(int width, int height, QImage::Format format): QImage(width, height, format) {
+    qInfo() << "Image()" << width << height << format;
+  }
+
+
   ~Image() {
     qInfo() << "~Image()";
   }
@@ -69,19 +74,21 @@ using GdkWindow = QWindow;
 // cairo fake types
 struct cairo_t {
 public:
-  cairo_t(const Image& image): image(image) {
+  cairo_t(Image* image): image(image) {
     qInfo() << "~~~ cairo_t()";
   }
   ~cairo_t() {
     qInfo() << "~~~ ~cairo_t()";
   }
 
-  Image image;
+  QTransform transform;
+  Image* image{nullptr};
   QColor color;
+  QPen pen;
   QPainterPath path;
 };
 
-using cairo_surface_t = QImage;
+using cairo_surface_t = Image;
 
 // cairo fake types
 using mouse_callback_fn = void*;

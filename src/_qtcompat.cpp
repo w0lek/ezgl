@@ -128,6 +128,7 @@ void g_free(void* ptr)
 }
 // gtk wrapper
 
+// cairo wrapper
 int cairo_image_surface_get_width(QImage* image)
 {
   return image->width();
@@ -138,7 +139,6 @@ int cairo_image_surface_get_height(QImage* image)
   return image->height();
 }
 
-
 void cairo_new_path(cairo_t* ctx)
 {
   ctx->path = QPainterPath();
@@ -146,7 +146,7 @@ void cairo_new_path(cairo_t* ctx)
 
 void cairo_scale(cairo_t* ctx, double sx, double sy)
 {
-  ctx->painter.scale(sx, sy);
+  ctx->transform.scale(sx, sy);
 }
 
 void cairo_save(cairo_t* ctx)
@@ -189,15 +189,6 @@ void cairo_line_to(cairo_t* ctx, double x, double y)
   ctx->path.lineTo(QPointF(x, y));
 }
 
-/*
-Cairo expects clockwise ⇒ Qt expects counterclockwise.
-→ multiply angles by -1.
-
-Cairo sweep direction is implicit (angle2 < angle1).
-→ compute sweep = endDeg - startDeg.
-
-Qt’s arcTo uses bounding box and angles in degrees.
-*/
 void cairo_arc(cairo_t* cr,
     double xc, double yc,
     double radius,

@@ -57,7 +57,7 @@ namespace ezgl {
 /**
  * define ezgl::surface type used for drawing png bitmaps
  */
-typedef QImage surface;
+typedef Image surface;
 #else // EZGL_QT
 /**
  * define ezgl::surface type used for drawing png bitmaps
