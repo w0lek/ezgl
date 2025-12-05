@@ -276,14 +276,14 @@ constexpr const char* __filename_helper(const char* path)
   log_message("DEBUG", __FILENAME__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define TODO \
-  std::cerr << "TODO:" \
-            << __FILENAME__ << ":" << __LINE__ \
+  std::cerr << "TODO!!!:" \
+            << __FILENAME__ << " : " << __LINE__ << " : " << __PRETTY_FUNCTION__ \
             << std::endl; \
                                         \
 
 #define ASSERT_TODO \
 std::cerr << "ASSERT_TODO:" \
-          << __FILENAME__ << ":" << __LINE__ \
+          << __FILENAME__ << " : " << __LINE__ << " : " << __PRETTY_FUNCTION__ \
           << std::endl; \
     assert(false); \
 
