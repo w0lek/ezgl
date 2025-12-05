@@ -72,10 +72,11 @@ void application::startup()
   for(auto &c_pair : m_canvases) {
 #ifdef EZGL_QT
     QWidget* drawing_area = new QWidget;
+    drawing_area->setStyleSheet("background: blue;");
     m_window->layout()->addWidget(drawing_area);
-#else
+#else // EZGL_QT
     GObject *drawing_area = get_object(c_pair.second->id());
-#endif
+#endif // EZGL_QT
     c_pair.second->initialize(GTK_WIDGET(drawing_area));
   }
 
@@ -216,6 +217,7 @@ application::application(application::settings s)
   m_window->setLayout(layout);
   m_window->setStyleSheet("background: red;");
   m_window->setObjectName(m_window_id.c_str());
+  m_window->resize(800, 600);
   qInfo() << m_application->applicationName();
   qInfo() << m_application->arguments();
 #endif
