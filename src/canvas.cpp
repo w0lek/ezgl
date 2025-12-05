@@ -273,7 +273,7 @@ gboolean canvas::draw_surface(GtkWidget *, cairo_t *context, gpointer data)
 
   // Assume surface is non-null.
 #ifdef EZGL_QT
-  QPainter painter(context->image);
+  Painter painter(context->image);
   cairo_set_source_surface(context, p_surface, 0, 0, painter);
   cairo_paint(context, painter);
 #else
@@ -355,8 +355,10 @@ void canvas::redraw()
   cairo_set_source_rgb(m_context, m_background_color.red / 255.0, m_background_color.green / 255.0,
       m_background_color.blue / 255.0);
 #ifdef EZGL_QT
-  QPainter painter(m_context->image);
+  {
+  Painter painter(m_context->image);
   cairo_paint(m_context, painter);
+  }
 #else
   cairo_paint(m_context);
 #endif

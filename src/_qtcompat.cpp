@@ -78,6 +78,8 @@ Application* gtk_application_new(const char* appName, int& argc, char** argv)
   return app;
 }
 
+int Painter::counter = 0;
+
 void gtk_widget_destroy(QWidget* widget)
 {
   g_debug("~~~ gtk_widget_destroy");
@@ -132,7 +134,7 @@ void g_free(void* ptr)
 
 // QPainter specific
 namespace {
-void apply_painter_states_helper(cairo_t* ctx, QPainter& painter)
+void apply_painter_states_helper(cairo_t* ctx, Painter& painter)
 {
   painter.setRenderHints(ctx->renderHints);
   if (ctx->dirtyFlags.empty()) {
@@ -150,7 +152,7 @@ void apply_painter_states_helper(cairo_t* ctx, QPainter& painter)
 }
 } // namespace
 
-void cairo_fill(cairo_t* ctx, QPainter& painter)
+void cairo_fill(cairo_t* ctx, Painter& painter)
 {
   apply_painter_states_helper(ctx, painter);
 
@@ -164,7 +166,7 @@ void cairo_fill(cairo_t* ctx, QPainter& painter)
   ctx->path = QPainterPath();
 }
 
-void cairo_stroke(cairo_t* ctx, QPainter& painter)
+void cairo_stroke(cairo_t* ctx, Painter& painter)
 {
   apply_painter_states_helper(ctx, painter);
 
@@ -175,12 +177,12 @@ void cairo_stroke(cairo_t* ctx, QPainter& painter)
   ctx->path = QPainterPath();
 }
 
-void cairo_paint(cairo_t* ctx, QPainter& painter)
+void cairo_paint(cairo_t* ctx, Painter& painter)
 {
   painter.fillRect(painter.viewport(), ctx->color);
 }
 
-void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, QPainter& painter)
+void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, Painter& painter)
 {
   painter.drawImage(QPointF(x, y), *surface);
 }
@@ -233,7 +235,7 @@ void cairo_line_to(cairo_t* ctx, double x, double y)
   ctx->path.lineTo(QPointF(x, y));
 }
 
-void cairo_arc(cairo_t* cr,
+void cairo_arc(cairo_t* ctx,
     double xc, double yc,
     double radius,
     double angle1, double angle2)
@@ -247,7 +249,7 @@ void cairo_arc(cairo_t* cr,
   QRectF rect(xc - radius, yc - radius,
       radius * 2.0, radius * 2.0);
 
-  cr->path.arcTo(rect, startDeg, spanDeg);
+  ctx->path.arcTo(rect, startDeg, spanDeg);
 }
 void cairo_arc_negative(cairo_t* ctx,
     double xc, double yc,

@@ -466,8 +466,18 @@ void renderer::draw_line(point2d start, point2d end)
   cairo_line_to(m_cairo, end.x, end.y);
 
 #ifdef EZGL_QT
-  QPainter painter(m_cairo->image);
-  cairo_stroke(m_cairo, painter);
+  qInfo() << "~~~ 111";
+  Q_ASSERT(m_cairo->image);  // pointer не null
+  qInfo() << "image isNull:" << m_cairo->image->isNull()
+          << " size:" << m_cairo->image->size()
+          << " format:" << m_cairo->image->format();
+
+
+  {
+    Painter painter(m_cairo->image);
+    cairo_stroke(m_cairo, painter);
+  }
+  qInfo() << "~~~ 222";
 #else
   cairo_stroke(m_cairo);
 #endif
@@ -589,8 +599,10 @@ void renderer::fill_poly(std::vector<point2d> const &points)
 
   cairo_close_path(m_cairo);
 #ifdef EZGL_QT
-  QPainter painter(m_cairo->image);
+  {
+  Painter painter(m_cairo->image);
   cairo_fill(m_cairo, painter);
+  }
 #else
   cairo_fill(m_cairo);
 #endif
@@ -779,11 +791,13 @@ void renderer::draw_rectangle_path(point2d start, point2d end, bool fill_flag)
 
   // actual drawing
 #ifdef EZGL_QT
-  QPainter painter(m_cairo->image);
+  {
+  Painter painter(m_cairo->image);
   if(fill_flag)
     cairo_fill(m_cairo, painter);
   else
     cairo_stroke(m_cairo, painter);
+  }
 #else
   if(fill_flag)
     cairo_fill(m_cairo);
@@ -863,11 +877,13 @@ void renderer::draw_arc_path(point2d center,
 
   // actual drawing
 #ifdef EZGL_QT
-  QPainter painter(m_cairo->image);
+  {
+  Painter painter(m_cairo->image);
   if(fill_flag)
     cairo_fill(m_cairo, painter);
   else
     cairo_stroke(m_cairo, painter);
+  }
 #else // EZGL_QT
   if(fill_flag)
     cairo_fill(m_cairo);
@@ -932,13 +948,15 @@ void renderer::draw_surface(surface *p_surface, point2d point, double scale_fact
   }
 
 #ifdef EZGL_QT
-  QPainter painter(m_cairo->image);
+  {
+  Painter painter(m_cairo->image);
 
   // Create a source for painting from the surface
   cairo_set_source_surface(m_cairo, p_surface, top_left.x, top_left.y, painter);
 
   // Actual drawing
   cairo_paint(m_cairo, painter);
+  }
 #else
   // Create a source for painting from the surface
   cairo_set_source_surface(m_cairo, p_surface, top_left.x, top_left.y);

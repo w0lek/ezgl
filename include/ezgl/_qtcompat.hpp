@@ -41,7 +41,7 @@ public:
   Application(int& argc, char** argv): QApplication(argc, argv) {
     qInfo() << "Application()";
   }
-  ~Application() {
+  virtual ~Application() {
     qInfo() << "~Application()";
   }
 };
@@ -55,9 +55,27 @@ public:
     qInfo() << "Image()" << width << height << format;
   }
 
-
-  ~Image() {
+  virtual ~Image() {
     qInfo() << "~Image()";
+  }
+};
+
+class Painter : public QPainter {
+private:
+  static int counter;
+  int m_id = 0;
+
+  Painter(const Painter&) = delete;
+  Painter& operator=(const Painter&) = delete;
+
+public:
+  Painter(Image* image): QPainter(image) {
+    m_id = Painter::counter++;
+    qInfo() << "Painter(" << m_id << ")";
+  }
+
+  virtual ~Painter() {
+    qInfo() << "~Painter(" << m_id << ")";
   }
 };
 //
@@ -172,10 +190,10 @@ using cairo_font_slant_t = QFont::Style;
 using cairo_font_weight_t = QFont::Weight;
 
 // QPainter specific
-void cairo_fill(cairo_t* ctx, QPainter&);
-void cairo_stroke(cairo_t* ctx, QPainter&);
-void cairo_paint(cairo_t* ctx, QPainter&);
-void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, QPainter&);
+void cairo_fill(cairo_t* ctx, Painter&);
+void cairo_stroke(cairo_t* ctx, Painter&);
+void cairo_paint(cairo_t* ctx, Painter&);
+void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
 // QPainter specific
 
 int cairo_image_surface_get_width(QImage* image);
