@@ -466,18 +466,10 @@ void renderer::draw_line(point2d start, point2d end)
   cairo_line_to(m_cairo, end.x, end.y);
 
 #ifdef EZGL_QT
-  qInfo() << "~~~ 111";
-  Q_ASSERT(m_cairo->image);  // pointer не null
-  qInfo() << "image isNull:" << m_cairo->image->isNull()
-          << " size:" << m_cairo->image->size()
-          << " format:" << m_cairo->image->format();
-
-
   {
     Painter painter(m_cairo->image);
     cairo_stroke(m_cairo, painter);
   }
-  qInfo() << "~~~ 222";
 #else
   cairo_stroke(m_cairo);
 #endif

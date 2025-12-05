@@ -79,6 +79,7 @@ Application* gtk_application_new(const char* appName, int& argc, char** argv)
 }
 
 int Painter::counter = 0;
+int Painter::nextid = 0;
 
 void gtk_widget_destroy(QWidget* widget)
 {

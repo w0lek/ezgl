@@ -62,6 +62,7 @@ public:
 
 class Painter : public QPainter {
 private:
+  static int nextid;
   static int counter;
   int m_id = 0;
 
@@ -70,12 +71,18 @@ private:
 
 public:
   Painter(Image* image): QPainter(image) {
-    m_id = Painter::counter++;
+    m_id = Painter::nextid++;
+    Painter::counter++;
     qInfo() << "Painter(" << m_id << ")";
+    assert(image);
+    assert(!image->isNull());
+    assert(isActive());
+    assert(Painter::counter == 1);
   }
 
   virtual ~Painter() {
     qInfo() << "~Painter(" << m_id << ")";
+    Painter::counter--;
   }
 };
 //
