@@ -321,7 +321,7 @@ void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
     ctx->pen.setStyle(Qt::SolidLine);
   } else {
     QVector<double> dashes(count);
-    for (int i = 0; i < count; ++i) {
+    for (int i=0; i < count; ++i) {
       dashes[i] = pattern[i];
     }
 
