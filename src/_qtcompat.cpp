@@ -262,12 +262,14 @@ void cairo_close_path(cairo_t* ctx)
 
 void cairo_move_to(cairo_t* ctx, double x, double y)
 {
-  ctx->path.moveTo(QPointF(x, y));
+  // +0.5 pixel to get more consistent line width
+  ctx->path.moveTo(QPointF(x+0.5, y+0.5));
 }
 
 void cairo_line_to(cairo_t* ctx, double x, double y)
 {
-  ctx->path.lineTo(QPointF(x, y));
+  // +0.5 pixel to get more consistent line width
+  ctx->path.lineTo(QPointF(x+0.5, y+0.5));
 }
 
 void cairo_arc(cairo_t* ctx,
