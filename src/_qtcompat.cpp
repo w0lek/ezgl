@@ -314,7 +314,7 @@ void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t
 void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
 {
   if (pattern == nullptr || count == 0) {
-    ctx->pen.setStyle(Qt::SolidLine);
+    ctx->pen.setSolid();
   } else {
     QList<double> dashes(count);
     for (int i=0; i < count; ++i) {
@@ -332,7 +332,7 @@ void cairo_set_font_size(cairo_t* ctx, int size)
 
 void cairo_set_line_width(cairo_t* ctx, int width)
 {
-  ctx->pen.setWidthF(width == 0 ? 1.0 : width);
+  ctx->pen.setWidth(width == 0 ? 1.0 : width);
 }
 
 void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {

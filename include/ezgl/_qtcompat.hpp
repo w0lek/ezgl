@@ -101,6 +101,58 @@ using GtkDialog = QDialog;
 using GtkApplication = Application;
 using GdkWindow = QWindow;
 
+class Pen : public QPen {
+public:
+  Pen(): QPen(Qt::SolidLine) {}
+
+  void setWidth(double width) {
+    QPen::setWidthF(width);
+    m_width = width;
+    if (!isSolid()) {
+      applyNormalizedDashPattern();
+    }
+  }
+
+  void setDashPattern(const QList<double>& dashPattern) {
+    QPen::setStyle(Qt::CustomDashLine);
+    m_dashPatternOrig = dashPattern;
+    applyNormalizedDashPattern();
+  }
+
+  void setSolid() {
+    if (!isSolid()) {
+      QPen::setStyle(Qt::SolidLine);
+      m_dashPatternOrig.clear();
+      QPen::setDashPattern(m_dashPatternOrig);
+      QPen::setDashOffset(0.0);
+    }
+  }
+
+  bool isSolid() const { // in some reason QPen::isSOlid() doesn't return valid value
+    return (style() == Qt::SolidLine);
+  }
+
+private:
+  double m_width = 1.0;
+  QList<double> m_dashPatternOrig;
+  double m_offset = 0.0;
+
+  void setWidthF(double width)=delete;
+  void applyNormalizedDashPattern() {
+    if (m_width > 1.0f) {
+      QList<double> normalizedDashPattern;
+      for (double p: m_dashPatternOrig) {
+        // pattern[] is in “cairo units” (pixels/user space),
+        // Qt expects “pen-width units”, so normalize:
+        normalizedDashPattern.append(p/double(m_width));
+      }
+      QPen::setDashPattern(normalizedDashPattern);
+    } else {
+      QPen::setDashPattern(m_dashPatternOrig);
+    }
+  }
+};
+
 // cairo fake types
 struct cairo_t {
   enum DIRTY {
@@ -142,7 +194,7 @@ public:
   QPainter::RenderHints renderHints;
   Image* image{nullptr};
   QColor color;
-  QPen pen = QPen(Qt::SolidPattern);
+  Pen pen;
   QBrush brush = QBrush(Qt::SolidPattern);
   QPainterPath path;
   QFont font;
