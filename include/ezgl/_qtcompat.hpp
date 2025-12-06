@@ -50,6 +50,7 @@ public:
     qInfo() << "~Image()";
   }
 };
+// tmp solution to track lifetime
 
 class DrawingAreaWidget : public QWidget {
   Q_OBJECT
