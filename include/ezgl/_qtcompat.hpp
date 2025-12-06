@@ -136,21 +136,16 @@ public:
   {
     this->color = color;
     pen.setColor(color);
-    dirtyFlags.emplace_back(DIRTY::PEN);
-
     brush.setColor(color);
-    dirtyFlags.emplace_back(DIRTY::BRUSH);
   }
 
   QPainter::RenderHints renderHints;
   Image* image{nullptr};
   QColor color;
-  QPen pen;
-  QBrush brush;
+  QPen pen = QPen(Qt::SolidPattern);
+  QBrush brush = QBrush(Qt::SolidPattern);
   QPainterPath path;
   QFont font;
-
-  std::vector<int> dirtyFlags;
 };
 
 using cairo_surface_t = Image;

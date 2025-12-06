@@ -4,7 +4,7 @@
 
 DrawingAreaWidget::DrawingAreaWidget(QWidget* parent): QWidget(parent)
 {
-
+  setFixedSize(DRAWING_AREA_WIDTH, DRAWING_AREA_HEIGHT);
 }
 
 DrawingAreaWidget::~DrawingAreaWidget()
@@ -20,9 +20,13 @@ Image* DrawingAreaWidget::createSurface() {
     const double dpr = devicePixelRatioF();
 #endif
 
+#ifndef HARDCODE_DRAWING_AREA_SIZE
     const int w = std::max(1, int(width()  * dpr));
     const int h = std::max(1, int(height() * dpr));
-
+#else
+    const int w = DRAWING_AREA_WIDTH;
+    const int h = DRAWING_AREA_HEIGHT;
+#endif
     m_image = new Image(w, h, QImage::Format_ARGB32_Premultiplied);
     m_image->setDevicePixelRatio(dpr);
     m_image->fill(Qt::transparent);
@@ -32,9 +36,12 @@ Image* DrawingAreaWidget::createSurface() {
 
 void DrawingAreaWidget::paintEvent(QPaintEvent* event)
 {
+  {
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
   painter.drawImage(rect(), *m_image, m_image->rect());
+  }
+  m_image->save("my_image.png", "PNG");
 }
 
 // gtk wrapper
@@ -156,36 +163,13 @@ void g_free(void* ptr)
 // cairo wrapper
 
 // QPainter specific
-namespace {
-void apply_painter_states_helper(cairo_t* ctx, Painter& painter)
-{
-  //painter.setRenderHints(ctx->renderHints);
-  //painter.setRenderHints(QPainter::Antialiasing, true);
-  //painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
-  if (ctx->dirtyFlags.empty()) {
-    return;
-  }
-
-  for (int flag: ctx->dirtyFlags) {
-    switch(flag) {
-    case cairo_t::DIRTY::PEN: painter.setPen(ctx->pen); break;
-    case cairo_t::DIRTY::BRUSH: painter.setBrush(ctx->brush); break;
-    case cairo_t::DIRTY::FONT: painter.setFont(ctx->font); break;
-    }
-  }
-  ctx->dirtyFlags.clear();
-}
-} // namespace
-
 void cairo_fill(cairo_t* ctx, Painter& painter)
 {
-  apply_painter_states_helper(ctx, painter);
-
   // deactivate pen while fill
   painter.setPen(Qt::NoPen);
 
-  // refresh brush color
-  painter.setBrush(ctx->color);
+  // refresh brush
+  painter.setBrush(ctx->brush);
 
   // draw path
   painter.drawPath(ctx->path);
@@ -196,13 +180,11 @@ void cairo_fill(cairo_t* ctx, Painter& painter)
 
 void cairo_stroke(cairo_t* ctx, Painter& painter)
 {
-  apply_painter_states_helper(ctx, painter);
-
   // deactivate brush while fill
   painter.setBrush(Qt::NoBrush);
 
-  // refresh pen color
-  painter.setPen(ctx->color);
+  // refresh pen
+  painter.setPen(ctx->pen);
 
   // draw stroke path
   painter.strokePath(ctx->path, ctx->pen);
@@ -271,19 +253,19 @@ void cairo_new_path(cairo_t* ctx)
 
 void cairo_close_path(cairo_t* ctx)
 {
-  ctx->path.closeSubpath(); // ??
+  ctx->path.closeSubpath();
 }
 
 void cairo_move_to(cairo_t* ctx, double x, double y)
 {
-  // +0.5 pixel to get more consistent line width
-  ctx->path.moveTo(QPointF(x+0.5, y+0.5));
+  // Add 0.5 for extra half-pixel accuracy
+  ctx->path.moveTo(x+0.5, y+0.5);
 }
 
 void cairo_line_to(cairo_t* ctx, double x, double y)
 {
-  // +0.5 pixel to get more consistent line width
-  ctx->path.lineTo(QPointF(x+0.5, y+0.5));
+  // Add 0.5 for extra half-pixel accuracy
+  ctx->path.lineTo(x+0.5, y+0.5);
 }
 
 void cairo_arc(cairo_t* ctx,
@@ -327,8 +309,6 @@ void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t
 
   ctx->font.setStyle(slant);
   ctx->font.setWeight(weight);
-
-  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::FONT);
 }
 
 void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
@@ -340,28 +320,23 @@ void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
     for (int i=0; i < count; ++i) {
       dashes[i] = pattern[i];
     }
-
     ctx->pen.setDashPattern(dashes);
     ctx->pen.setDashOffset(offset);
   }
-  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_font_size(cairo_t* ctx, int size)
 {
   ctx->font.setPointSizeF(size);
-  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::FONT);
 }
 
 void cairo_set_line_width(cairo_t* ctx, int width)
 {
   ctx->pen.setWidthF(width == 0 ? 1.0 : width);
-  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {
   ctx->pen.setCapStyle(cap);
-  ctx->dirtyFlags.emplace_back(cairo_t::DIRTY::PEN);
 }
 
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b) {

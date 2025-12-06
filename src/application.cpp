@@ -213,10 +213,10 @@ application::application(application::settings s)
   // m_application = new QApplication(argc, argv);
   m_window = new QWidget;
   QVBoxLayout* layout = new QVBoxLayout;
+  layout->setContentsMargins(0,0,0,0);
   m_window->setLayout(layout);
-  m_window->setStyleSheet("background: red;");
   m_window->setObjectName(m_window_id.c_str());
-  m_window->resize(800, 600);
+  m_window->resize(DRAWING_AREA_WIDTH, DRAWING_AREA_HEIGHT);
   qInfo() << m_application->applicationName();
   qInfo() << m_application->arguments();
 #endif
