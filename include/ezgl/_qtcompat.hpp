@@ -137,6 +137,7 @@ public:
     this->color = color;
     pen.setColor(color);
     dirtyFlags.emplace_back(DIRTY::PEN);
+
     brush.setColor(color);
     brush.setStyle(Qt::SolidPattern);
     dirtyFlags.emplace_back(DIRTY::BRUSH);

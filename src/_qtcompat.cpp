@@ -159,7 +159,9 @@ void g_free(void* ptr)
 namespace {
 void apply_painter_states_helper(cairo_t* ctx, Painter& painter)
 {
-  painter.setRenderHints(ctx->renderHints);
+  //painter.setRenderHints(ctx->renderHints);
+  //painter.setRenderHints(QPainter::Antialiasing, true);
+  //painter.setRenderHints(QPainter::SmoothPixmapTransform, true);
   if (ctx->dirtyFlags.empty()) {
     return;
   }
@@ -179,6 +181,12 @@ void cairo_fill(cairo_t* ctx, Painter& painter)
 {
   apply_painter_states_helper(ctx, painter);
 
+  // deactivate pen while fill
+  painter.setPen(Qt::NoPen);
+
+  // refresh brush color
+  painter.setBrush(ctx->color);
+
   // draw path
   painter.drawPath(ctx->path);
 
@@ -189,6 +197,12 @@ void cairo_fill(cairo_t* ctx, Painter& painter)
 void cairo_stroke(cairo_t* ctx, Painter& painter)
 {
   apply_painter_states_helper(ctx, painter);
+
+  // deactivate brush while fill
+  painter.setBrush(Qt::NoBrush);
+
+  // refresh pen color
+  painter.setPen(ctx->color);
 
   // draw stroke path
   painter.strokePath(ctx->path, ctx->pen);
@@ -322,7 +336,7 @@ void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
   if (pattern == nullptr || count == 0) {
     ctx->pen.setStyle(Qt::SolidLine);
   } else {
-    QVector<double> dashes(count);
+    QList<double> dashes(count);
     for (int i=0; i < count; ++i) {
       dashes[i] = pattern[i];
     }

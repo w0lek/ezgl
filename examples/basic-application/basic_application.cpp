@@ -316,7 +316,7 @@ void draw_arc_example(ezgl::renderer *g)
   g->draw_arc({190, 300}, radius, 0, 270);
   g->draw_arc({300, 300}, radius, 0, -180);
 
-  // // Draw filled in arcs
+  // Draw filled in arcs
   g->fill_arc({410, 300}, radius, 90, -90);
   g->fill_arc({520, 300}, radius, 0, 360);
   g->set_color(ezgl::BLACK);
