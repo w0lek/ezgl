@@ -89,7 +89,6 @@ if(USE_QT)
         HIDE_GTK_EVENT
         HIDE_GTK_BUILDER
         HIDE_CAIRO_DRAW_TEXT
-        #HIGHT_DPI_FACTOR
         HARDCODE_DRAWING_AREA_SIZE
     )
     add_definitions(-DDRAWING_AREA_WIDTH=1028)

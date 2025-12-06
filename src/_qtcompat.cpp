@@ -14,11 +14,7 @@ DrawingAreaWidget::~DrawingAreaWidget()
 
 Image* DrawingAreaWidget::createSurface() {
   if (!m_image) {
-#ifdef HIGHT_DPI_FACTOR
-    const double dpr = 2.0 * devicePixelRatioF();
-#else
     const double dpr = devicePixelRatioF();
-#endif
 
 #ifndef HARDCODE_DRAWING_AREA_SIZE
     const int w = std::max(1, int(width()  * dpr));
