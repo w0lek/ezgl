@@ -205,6 +205,7 @@ void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter)
 
   // refresh pen
   painter.setPen(ctx->pen);
+  painter.setFont(ctx->font);
 
   if (ctx->transform.has_value()) {
     painter.setTransform(ctx->transform.value());
