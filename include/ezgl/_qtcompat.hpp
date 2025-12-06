@@ -139,12 +139,10 @@ public:
     dirtyFlags.emplace_back(DIRTY::PEN);
 
     brush.setColor(color);
-    brush.setStyle(Qt::SolidPattern);
     dirtyFlags.emplace_back(DIRTY::BRUSH);
   }
 
   QPainter::RenderHints renderHints;
-  QTransform transform;
   Image* image{nullptr};
   QColor color;
   QPen pen;
