@@ -198,15 +198,25 @@ void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, Pain
 {
   painter.drawImage(QPointF(x, y), *surface);
 }
+
+void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter)
+{
+  QString text = QString::fromUtf8(utf8);
+
+  // refresh pen
+  painter.setPen(ctx->pen);
+
+  if (ctx->transform.has_value()) {
+    painter.setTransform(ctx->transform.value());
+  }
+  painter.drawText(ctx->currentPos, text);
+
+  QFontMetricsF fm(painter.font());
+  ctx->currentPos.rx() += fm.horizontalAdvance(text);
+}
 // QPainter specific
 
 // QTransform specific
-void cairo_scale(cairo_t* ctx, double sx, double sy)
-{
-  assert(ctx->transform.has_value());
-  ctx->transform.value().scale(sx, sy);
-}
-
 void cairo_save(cairo_t* ctx)
 {
   ctx->transform = QTransform();
@@ -216,7 +226,54 @@ void cairo_restore(cairo_t* ctx)
 {
   ctx->transform = std::nullopt;
 }
+
+void cairo_scale(cairo_t* ctx, double sx, double sy)
+{
+  assert(ctx->transform.has_value());
+  ctx->transform.value().scale(sx, sy);
+}
+
+void cairo_rotate(cairo_t* ctx, double angle)
+{
+  const double angleDegrees = angle * 180.0 / std::numbers::pi;
+  assert(ctx->transform.has_value());
+  ctx->transform.value().rotate(angleDegrees);
+}
 // QTransform specific
+
+void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents)
+{
+  QString text = QString::fromUtf8(utf8);
+  QFontMetricsF fm(ctx->font);
+
+  // QRectF is given in logical coords, origin at baseline (like Cairo)
+  QRectF br = fm.boundingRect(text);
+
+  extents->x_bearing = br.x();
+  extents->y_bearing = br.y();
+  extents->width     = br.width();
+  extents->height    = br.height();
+
+  // Advance: how much the current point moves along the baseline
+  extents->x_advance = fm.horizontalAdvance(text);
+  extents->y_advance = 0.0;  // Qt is horizontal layout, so y-advance is 0
+}
+
+void cairo_font_extents(cairo_t* ctx, cairo_font_extents_t* extents)
+{
+  QFontMetricsF fm(ctx->font);
+
+  extents->ascent  = fm.ascent();
+  extents->descent = fm.descent();
+  extents->height  = fm.height();
+
+  // rough equivalent: the maximum advance of any glyph in the font
+  extents->max_x_advance = fm.maxWidth();
+
+  // Cairo's max_y_advance is for vertical layouts. For Latin text it's 0.
+  extents->max_y_advance = 0.0;
+}
+// text
 
 int cairo_image_surface_get_width(QImage* image)
 {
@@ -242,6 +299,7 @@ void cairo_move_to(cairo_t* ctx, double x, double y)
 {
   // Add 0.5 for extra half-pixel accuracy
   ctx->path.moveTo(x+0.5, y+0.5);
+  ctx->currentPos = QPointF(x+0.5, y+0.5);
 }
 
 void cairo_line_to(cairo_t* ctx, double x, double y)

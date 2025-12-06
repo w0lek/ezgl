@@ -192,6 +192,7 @@ public:
     brush.setColor(color);
   }
 
+  QPointF currentPos; // used in text rendering
   QPainter::RenderHints renderHints;
   Image* image{nullptr};
   QColor color;
@@ -264,13 +265,38 @@ void cairo_fill(cairo_t* ctx, Painter&);
 void cairo_stroke(cairo_t* ctx, Painter&);
 void cairo_paint(cairo_t* ctx, Painter&);
 void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
+void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter);
 // QPainter specific
 
 // QTransform specific
 void cairo_save(cairo_t* ctx);
 void cairo_restore(cairo_t* ctx);
 void cairo_scale(cairo_t* ctx, double sx, double sy);
+void cairo_rotate(cairo_t* ctx, double angle);
 // QTransform specific
+
+
+// text
+typedef struct {
+  double x_bearing;
+  double y_bearing;
+  double width;
+  double height;
+  double x_advance;
+  double y_advance;
+} cairo_text_extents_t;
+
+typedef struct {
+  double ascent;
+  double descent;
+  double height;
+  double max_x_advance;
+  double max_y_advance;
+} cairo_font_extents_t;
+
+void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents);
+void cairo_font_extents(cairo_t* ctx, cairo_font_extents_t* extents);
+// text
 
 int cairo_image_surface_get_width(QImage* image);
 int cairo_image_surface_get_height(QImage* image);

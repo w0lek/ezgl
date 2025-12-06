@@ -88,7 +88,6 @@ if(USE_QT)
         EZGL_QT
         HIDE_GTK_EVENT
         HIDE_GTK_BUILDER
-        HIDE_CAIRO_DRAW_TEXT
         HARDCODE_DRAWING_AREA_SIZE
     )
     add_definitions(-DDRAWING_AREA_WIDTH=1028)
