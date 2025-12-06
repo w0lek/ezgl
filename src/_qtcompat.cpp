@@ -202,39 +202,25 @@ void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, Pain
 {
   painter.drawImage(QPointF(x, y), *surface);
 }
+// QPainter specific
 
-// void cairo_scale(cairo_t* ctx, double sx, double sy, Painter& painter)
-// {
-//   painter.scale(sx, sy);
-// }
-
-// void cairo_save(cairo_t* ctx, Painter& painter)
-// {
-//   painter.save();
-// }
-
-// void cairo_restore(cairo_t* ctx, Painter& painter)
-// {
-//   painter.restore();
-// }
+// QTransform specific
 void cairo_scale(cairo_t* ctx, double sx, double sy)
 {
-  TODO;
-  //painter.scale(sx, sy);
+  assert(ctx->transform.has_value());
+  ctx->transform.value().scale(sx, sy);
 }
 
 void cairo_save(cairo_t* ctx)
 {
-  TODO;
-  //painter.save();
+  ctx->transform = QTransform();
 }
 
 void cairo_restore(cairo_t* ctx)
 {
-  TODO;
-  //painter.restore();
+  ctx->transform = std::nullopt;
 }
-// QPainter specific
+// QTransform specific
 
 int cairo_image_surface_get_width(QImage* image)
 {
@@ -283,6 +269,9 @@ void cairo_arc(cairo_t* ctx,
   QRectF rect(xc - radius, yc - radius, d, d);
 
   ctx->path.arcTo(rect, startDeg, spanDeg);
+  if (ctx->transform.has_value()) {
+    ctx->path = ctx->path * ctx->transform.value();
+  }
 }
 void cairo_arc_negative(cairo_t* ctx,
     double xc, double yc,
@@ -293,12 +282,15 @@ void cairo_arc_negative(cairo_t* ctx,
   double startDeg = -angle1 * 180.0 / std::numbers::pi;
   double endDeg   = -angle2 * 180.0 / std::numbers::pi;
 
-  double sweep = endDeg - startDeg; // negative sweep
+  double spanDeg = endDeg - startDeg; // negative sweep
 
   double d = radius * 2.0;
   QRectF rect(xc - radius, yc - radius, d, d);
 
-  ctx->path.arcTo(rect, startDeg, sweep);
+  ctx->path.arcTo(rect, startDeg, spanDeg);
+  if (ctx->transform.has_value()) {
+    ctx->path = ctx->path * ctx->transform.value();
+  }
 }
 
 void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight)

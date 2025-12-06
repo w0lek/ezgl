@@ -198,6 +198,7 @@ public:
   QBrush brush = QBrush(Qt::SolidPattern);
   QPainterPath path;
   QFont font;
+  std::optional<QTransform> transform;
 };
 
 using cairo_surface_t = Image;
@@ -262,13 +263,13 @@ void cairo_fill(cairo_t* ctx, Painter&);
 void cairo_stroke(cairo_t* ctx, Painter&);
 void cairo_paint(cairo_t* ctx, Painter&);
 void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
-// void cairo_save(cairo_t* ctx, Painter&);
-// void cairo_restore(cairo_t* ctx, Painter&);
-// void cairo_scale(cairo_t* ctx, double sx, double sy, Painter&);
+// QPainter specific
+
+// QTransform specific
 void cairo_save(cairo_t* ctx);
 void cairo_restore(cairo_t* ctx);
 void cairo_scale(cairo_t* ctx, double sx, double sy);
-// QPainter specific
+// QTransform specific
 
 int cairo_image_surface_get_width(QImage* image);
 int cairo_image_surface_get_height(QImage* image);
