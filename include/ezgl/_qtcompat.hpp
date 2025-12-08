@@ -192,7 +192,6 @@ public:
     brush.setColor(color);
   }
 
-  QPointF currentPos; // used in text rendering
   QPainter::RenderHints renderHints;
   Image* image{nullptr};
   QColor color;
@@ -265,7 +264,6 @@ void cairo_fill(cairo_t* ctx, Painter&);
 void cairo_stroke(cairo_t* ctx, Painter&);
 void cairo_paint(cairo_t* ctx, Painter&);
 void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
-void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter);
 // QPainter specific
 
 // QTransform specific

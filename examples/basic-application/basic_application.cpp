@@ -312,7 +312,7 @@ void draw_arc_example(ezgl::renderer *g)
 
   // Draw arcs
   g->set_color(ezgl::BLUE);
-  // g->draw_text({190, 300}, "draw_arc", radius * 2, 150);
+  g->draw_text({190, 300}, "draw_arc", radius * 2, 150);
   g->draw_arc({190, 300}, radius, 0, 270);
   g->draw_arc({300, 300}, radius, 0, -180);
 

@@ -198,23 +198,6 @@ void cairo_set_source_surface(cairo_t*, Image* surface, double x, double y, Pain
 {
   painter.drawImage(QPointF(x, y), *surface);
 }
-
-void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter)
-{
-  QString text = QString::fromUtf8(utf8);
-
-  // refresh pen
-  painter.setPen(ctx->pen);
-  painter.setFont(ctx->font);
-
-  if (ctx->transform.has_value()) {
-    painter.setTransform(ctx->transform.value());
-  }
-  painter.drawText(ctx->currentPos, text);
-
-  QFontMetricsF fm(painter.font());
-  ctx->currentPos.rx() += fm.horizontalAdvance(text);
-}
 // QPainter specific
 
 // QTransform specific
@@ -292,7 +275,6 @@ void cairo_move_to(cairo_t* ctx, double x, double y)
 {
   // Add 0.5 for extra half-pixel accuracy
   ctx->path.moveTo(x+0.5, y+0.5);
-  ctx->currentPos = QPointF(x+0.5, y+0.5);
 }
 
 void cairo_line_to(cairo_t* ctx, double x, double y)
