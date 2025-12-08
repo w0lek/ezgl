@@ -699,6 +699,49 @@ void renderer::draw_text(point2d point, std::string const &text, double bound_x,
     return;
   }
 
+#ifdef EZGL_QT
+  {
+    // transform the given point
+    if(current_coordinate_system == WORLD)
+      center = m_transform(point);
+    else
+      center = point;
+
+    Painter painter(m_cairo->image);
+
+    painter.setFont(m_cairo->font);
+    painter.setPen(m_cairo->pen);
+
+    QString qtext = QString::fromStdString(text);
+    QFontMetricsF fm(painter.font());
+    QRectF br = fm.boundingRect(qtext);
+
+    // We will rotate around the desired visual text center = `center`
+    painter.translate(center.x, center.y);
+    painter.rotate(rotation_angle * 180.0 / std::numbers::pi);
+
+    // Compute offset so that text is centered at (0,0) *before* justification
+    double baseline_shift = (fm.ascent() - fm.descent()) / 2.0;
+    QPointF offset(-br.width() / 2.0, +baseline_shift);
+
+    // Apply horizontal justification
+    if (horiz_justification == justification::left) {
+
+      offset.rx() += br.width() / 2.0;       // anchor is left edge, so shift center -> left
+    } else if (horiz_justification == justification::right) {
+      offset.rx() -= br.width() / 2.0;       // anchor is right edge, so shift center -> right
+    }
+
+    // Apply vertical justification
+    if (vert_justification == justification::top) {
+      offset.ry() -= br.height() / 2.0;      // anchor at top -> move center up
+    } else if (vert_justification == justification::bottom) {
+      offset.ry() += br.height() / 2.0;       // anchor at bottom -> move center down
+    }
+
+    painter.drawText(offset, qtext);
+  }
+#else
   // save the current state to undo the rotation needed for drawing rotated text
   cairo_save(m_cairo);
 
@@ -741,12 +784,7 @@ void renderer::draw_text(point2d point, std::string const &text, double bound_x,
   // move to the reference point, perform the rotation, and draw the text
   cairo_move_to(m_cairo, ref_point.x, ref_point.y);
   cairo_rotate(m_cairo, rotation_angle);
-#ifdef EZGL_QT
-  {
-  Painter painter(m_cairo->image);
-  cairo_show_text(m_cairo, text.c_str(), painter);
-  }
-#else
+
   cairo_show_text(m_cairo, text.c_str());
 #endif
 

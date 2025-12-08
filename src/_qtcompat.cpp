@@ -234,12 +234,12 @@ void cairo_scale(cairo_t* ctx, double sx, double sy)
   ctx->transform.value().scale(sx, sy);
 }
 
-void cairo_rotate(cairo_t* ctx, double angle)
-{
-  const double angleDegrees = angle * 180.0 / std::numbers::pi;
-  assert(ctx->transform.has_value());
-  ctx->transform.value().rotate(angleDegrees);
-}
+// void cairo_rotate(cairo_t* ctx, double angle)
+// {
+//   const double angleDegrees = angle * 180.0 / std::numbers::pi;
+//   assert(ctx->transform.has_value());
+//   ctx->transform.value().rotate(angleDegrees);
+// }
 // QTransform specific
 
 void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents)

@@ -272,7 +272,7 @@ void cairo_show_text(cairo_t* ctx, const char* utf8, Painter& painter);
 void cairo_save(cairo_t* ctx);
 void cairo_restore(cairo_t* ctx);
 void cairo_scale(cairo_t* ctx, double sx, double sy);
-void cairo_rotate(cairo_t* ctx, double angle);
+// void cairo_rotate(cairo_t* ctx, double angle);
 // QTransform specific
 
 
