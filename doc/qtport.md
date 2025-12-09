@@ -1,3 +1,11 @@
+Components:
+[GTK-Cairo-drawing-primitives]
+[GTK-Cairo-drawing-text]
+[GTK_input_processing (keyboard press/mouse move/press)]
+[]
+
+
+
 **Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
 
 we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
