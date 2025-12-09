@@ -3,6 +3,7 @@ Components:
 [GTK-Cairo-drawing-primitives]->[QPainter]
 [GTK-Cairo-drawing-text]->[QPainter]
 [GTK-Cairo-drawing-camera-transform]
+[GTK vs QT benchmark on many different primitive types including text drawing]
 [GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling + callbacks as a slots]
 
 []
