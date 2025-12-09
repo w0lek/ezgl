@@ -42,6 +42,7 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
 |----------|----------|-----------|
 | void cairo_save(cairo_t* ctx); | void cairo_save(cairo_t* ctx); | void Painter::save()
-void cairo_save(cairo_t* ctx);
-void cairo_restore(cairo_t* ctx);
-void cairo_scale(cairo_t* ctx, double sx, double sy);
+void cairo_restore(cairo_t* ctx); | void cairo_restore(cairo_t* ctx); | void Painter::restore
+void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t* ctx, double sx, double sy); | void Painter::scale(double sx, double sy) |
+
+**Text specific**
