@@ -26,8 +26,7 @@ using gpointer = void*;
 using gboolean = int;
 using gint = int;
 
-// tmp solution to track lifetime
-class Application : public QApplication {
+class Application final : public QApplication {
 public:
   Application(int& argc, char** argv): QApplication(argc, argv) {
     qInfo() << "Application()";
@@ -35,8 +34,12 @@ public:
   virtual ~Application() {
     qInfo() << "~Application()";
   }
+
+  bool eventFilter(QObject* obj, QEvent* event) override final;
+  bool notify(QObject* receiver, QEvent* event) override final;
 };
 
+// tmp solution to track lifetime
 class Image : public QImage {
 public:
   Image(const QString& str): QImage(str) {
@@ -52,7 +55,7 @@ public:
 };
 // tmp solution to track lifetime
 
-class DrawingAreaWidget : public QWidget {
+class DrawingAreaWidget final : public QWidget {
   Q_OBJECT
 public:
   explicit DrawingAreaWidget(QWidget* parent = nullptr);
@@ -61,6 +64,9 @@ public:
 
 protected:
   void paintEvent(QPaintEvent* event) override final;
+  void mousePressEvent(QMouseEvent* event) override final;
+  void mouseMoveEvent(QMouseEvent* event) override final;
+  void keyPressEvent(QKeyEvent* event) override final;
 
 private:
   Image* m_image{nullptr};
@@ -156,13 +162,8 @@ private:
 
 // cairo fake types
 struct cairo_t {
-  enum DIRTY {
-    PEN,
-    BRUSH,
-    FONT
-  };
 public:
-  cairo_t(Image* image): image(image) {
+  cairo_t(Image* image): surface(image) {
     qInfo() << "~~~ cairo_t()";
   }
   ~cairo_t() {
@@ -193,7 +194,7 @@ public:
   }
 
   QPainter::RenderHints renderHints;
-  Image* image{nullptr};
+  Image* surface{nullptr};
   QColor color;
   Pen pen;
   QBrush brush = QBrush(Qt::SolidPattern);

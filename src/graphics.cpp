@@ -467,7 +467,7 @@ void renderer::draw_line(point2d start, point2d end)
 
 #ifdef EZGL_QT
   {
-    Painter painter(m_cairo->image);
+    Painter painter(m_cairo->surface);
     cairo_stroke(m_cairo, painter);
   }
 #else
@@ -592,7 +592,7 @@ void renderer::fill_poly(std::vector<point2d> const &points)
   cairo_close_path(m_cairo);
 #ifdef EZGL_QT
   {
-  Painter painter(m_cairo->image);
+  Painter painter(m_cairo->surface);
   cairo_fill(m_cairo, painter);
   }
 #else
@@ -707,7 +707,7 @@ void renderer::draw_text(point2d point, std::string const &text, double bound_x,
     else
       center = point;
 
-    Painter painter(m_cairo->image);
+    Painter painter(m_cairo->surface);
 
     painter.setFont(m_cairo->font);
     painter.setPen(m_cairo->pen);
@@ -827,7 +827,7 @@ void renderer::draw_rectangle_path(point2d start, point2d end, bool fill_flag)
   // actual drawing
 #ifdef EZGL_QT
   {
-  Painter painter(m_cairo->image);
+  Painter painter(m_cairo->surface);
   if(fill_flag)
     cairo_fill(m_cairo, painter);
   else
@@ -922,7 +922,7 @@ void renderer::draw_arc_path(point2d center,
   // actual drawing
 #ifdef EZGL_QT
   {
-  Painter painter(m_cairo->image);
+  Painter painter(m_cairo->surface);
   if(fill_flag)
     cairo_fill(m_cairo, painter);
   else
@@ -993,7 +993,7 @@ void renderer::draw_surface(surface *p_surface, point2d point, double scale_fact
 
 #ifdef EZGL_QT
   {
-  Painter painter(m_cairo->image);
+  Painter painter(m_cairo->surface);
 
   // Create a source for painting from the surface
   cairo_set_source_surface(m_cairo, p_surface, top_left.x, top_left.y, painter);

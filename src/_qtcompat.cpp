@@ -1,5 +1,8 @@
 #include <ezgl/_qtcompat.hpp>
 
+#include <QMouseEvent>
+#include <QKeyEvent>
+
 #ifdef EZGL_QT
 
 DrawingAreaWidget::DrawingAreaWidget(QWidget* parent): QWidget(parent)
@@ -37,8 +40,24 @@ void DrawingAreaWidget::paintEvent(QPaintEvent* event)
   painter.setRenderHint(QPainter::Antialiasing);
   painter.drawImage(rect(), *m_image, m_image->rect());
   }
-  m_image->save("my_image.png", "PNG");
+  //m_image->save("my_image.png", "PNG");
 }
+
+void DrawingAreaWidget::mousePressEvent(QMouseEvent* event)
+{
+  qDebug() << "Mouse press at" << event->pos();
+}
+
+void DrawingAreaWidget::mouseMoveEvent(QMouseEvent* event)
+{
+  qDebug() << "Mouse move at" << event->pos();
+}
+
+void DrawingAreaWidget::keyPressEvent(QKeyEvent* event)
+{
+  qDebug() << "Key pressed:" << event->key();
+}
+
 
 // gtk wrapper
 QWidget* GTK_WIDGET(QObject* obj) {
@@ -101,6 +120,38 @@ Application* gtk_application_new(const char* appName, int& argc, char** argv)
   Application* app = new Application(argc, argv);
   app->setApplicationName(appName);
   return app;
+}
+
+bool Application::eventFilter(QObject* obj, QEvent* event)
+{
+  switch (event->type()) {
+  case QEvent::MouseButtonPress: {
+    auto* e = static_cast<QMouseEvent*>(event);
+    qDebug() << "Global mouse press:" << e->globalPosition();
+    return false;
+  }
+  case QEvent::MouseMove: {
+    auto* e = static_cast<QMouseEvent*>(event);
+    qDebug() << "Global mouse move:" << e->globalPosition();
+    return false;
+  }
+  case QEvent::KeyPress: {
+    auto* e = static_cast<QKeyEvent*>(event);
+    qDebug() << "Global key press:" << e->key();
+    return false;
+  }
+  }
+  return QObject::eventFilter(obj, event);
+}
+
+bool Application::notify(QObject* receiver, QEvent* event) {
+  if (event->type() == QEvent::MouseButtonPress) {
+    qDebug() << "Mouse press caught in QApplication, to reciever" << receiver;
+  }
+  if (event->type() == QEvent::KeyPress) {
+    qDebug() << "Key press caught in QApplication, to reciever" << receiver;
+  }
+  return QApplication::notify(receiver, event);
 }
 
 int Painter::counter = 0;
