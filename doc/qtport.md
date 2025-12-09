@@ -8,6 +8,13 @@ Replacing shema:
 cairo_t -> PainterContext
 cairo_surface_t -> QImage
 cairo_... -> cairo_... + QPainter;
+
+cairo:
+  draw geometry primitives
+  draw text
+
+cairo draws onto surface(image), than this surface attached to widget render area.
+
 </strike>
 
 - GTK/Cairo to Qt **Structures** mapping
