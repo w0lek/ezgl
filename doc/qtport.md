@@ -1,12 +1,12 @@
 Components:
 [gtk_main_window/gtk_app]->[QApplication]
+[gtk_main_window + cairo_drawing_surface]->[QWindow + QDrawableArea widget]
 [GTK-Cairo-drawing-primitives]->[QPainter]
 [GTK-Cairo-drawing-text]->[QPainter]
 [GTK-Cairo-drawing-camera-transform]
-[GTK vs QT benchmark on many different primitive types including text drawing]
-[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling + callbacks as a slots]
-
-[]
+[GTK vs Qt benchmark on many different primitive types including text drawing]
+[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
+[GTK widgets fabric]->[QWidgets fabric]
 
 
 
