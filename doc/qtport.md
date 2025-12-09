@@ -19,7 +19,8 @@ cairo draws onto surface(image), than this surface attached to widget render are
 
 </strike>
 
-- GTK/Cairo to Qt **Structures** mapping
+## GTK/Cairo to Qt **Structures** mapping
+- ### Primitives (lines, rectangle, path, arc, circle ...)
 
 | | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final (Qt) | Role |
 |-|-|-|-|-|
@@ -46,3 +47,7 @@ void cairo_restore(cairo_t* ctx); | void cairo_restore(cairo_t* ctx); | void Pai
 void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t* ctx, double sx, double sy); | void Painter::scale(double sx, double sy) |
 
 **Text specific**
+| Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
+|----------|----------|-----------|
+| void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents); | <code>void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents)<br>{<br>&nbsp;&nbsp;QString text = QString::fromUtf8(utf8);<br>&nbsp;&nbsp;QFontMetricsF fm(ctx->font);<br><br>&nbsp;&nbsp;// QRectF is given in logical coords, origin at baseline (like Cairo)<br>&nbsp;&nbsp;QRectF br = fm.boundingRect(text);<br><br>&nbsp;&nbsp;extents->x_bearing = br.x();<br>&nbsp;&nbsp;extents->y_bearing = br.y();<br>&nbsp;&nbsp;extents->width&nbsp;&nbsp;&nbsp;&nbsp;= br.width();<br>&nbsp;&nbsp;extents->height&nbsp;&nbsp;&nbsp;= br.height();<br><br>&nbsp;&nbsp;// Advance: how much the current point moves along the baseline<br>&nbsp;&nbsp;extents->x_advance = fm.horizontalAdvance(text);<br>&nbsp;&nbsp;extents->y_advance = 0.0; // Qt horizontal layout, so y-advance is 0<br>}</code> |
+ 
