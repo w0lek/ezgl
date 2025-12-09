@@ -275,22 +275,22 @@ void cairo_scale(cairo_t* ctx, double sx, double sy);
 
 
 // text
-typedef struct {
+struct cairo_text_extents_t {
   double x_bearing;
   double y_bearing;
   double width;
   double height;
   double x_advance;
   double y_advance;
-} cairo_text_extents_t;
+};
 
-typedef struct {
+struct cairo_font_extents_t {
   double ascent;
   double descent;
   double height;
   double max_x_advance;
   double max_y_advance;
-} cairo_font_extents_t;
+};
 
 void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents);
 void cairo_font_extents(cairo_t* ctx, cairo_font_extents_t* extents);
