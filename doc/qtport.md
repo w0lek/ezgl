@@ -1,7 +1,7 @@
 Components:
 [gtk_main_window/gtk_app]->[QApplication]
 [GTK-Cairo-drawing-primitives]->[QPainter]
-[GTK-Cairo-drawing-text]
+[GTK-Cairo-drawing-text]->[QPainter]
 [GTK-Cairo-drawing-camera-transform]
 [GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling + callbacks as a slots]
 
