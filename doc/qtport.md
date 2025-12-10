@@ -45,16 +45,16 @@ cairo draws onto surface(image), than this surface attached to widget render are
 || Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
 |-|-|-|-|
 | | void cairo_fill(cairo_t* ctx); | void cairo_fill(cairo_t* ctx, Painter&); | void Painter::fill(); |
-| void cairo_stroke(cairo_t* ctx); | void cairo_stroke(cairo_t* ctx, Painter&); | void Painter::stroke(); |
-| void cairo_paint(cairo_t* ctx); | void cairo_paint(cairo_t* ctx, Painter&); | void Painter::paint(); |
-| void cairo_set_source_surface(cairo_t* cairo, cairo_surface_t* surface, double x, double y); | void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y, Painter&); | void Painter::setSourceSurface(QImage* surface, double x, double y); |
+| | void cairo_stroke(cairo_t* ctx); | void cairo_stroke(cairo_t* ctx, Painter&); | void Painter::stroke(); |
+| | void cairo_paint(cairo_t* ctx); | void cairo_paint(cairo_t* ctx, Painter&); | void Painter::paint(); |
+| | void cairo_set_source_surface(cairo_t* cairo, cairo_surface_t* surface, double x, double y); | void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y, Painter&); | void Painter::setSourceSurface(QImage* surface, double x, double y); |
 
 **QTransform specific**
-| Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
-|----------|----------|-----------|
-| void cairo_save(cairo_t* ctx); | void cairo_save(cairo_t* ctx); | void Painter::save()
-void cairo_restore(cairo_t* ctx); | void cairo_restore(cairo_t* ctx); | void Painter::restore
-void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t* ctx, double sx, double sy); | void Painter::scale(double sx, double sy) |
+| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
+|-|-|-|-|
+| | void cairo_save(cairo_t* ctx); | void cairo_save(cairo_t* ctx); | void Painter::save()
+| | void cairo_restore(cairo_t* ctx); | void cairo_restore(cairo_t* ctx); | void Painter::restore
+| | void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t* ctx, double sx, double sy); | void Painter::scale(double sx, double sy) |
 
 **Text specific**
 | | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) | Role |
