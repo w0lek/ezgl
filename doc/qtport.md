@@ -85,7 +85,7 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_new_path(cairo_t* ctx); | | void Painter::newPath();
 | | void cairo_close_path(cairo_t* ctx); | | void Painter::closePath();
 | | void cairo_move_to(cairo_t* ctx, double x, double y); | <code>void cairo_move_to(cairo_t* ctx,double x,double y){<br>&nbsp;&nbsp;// Add 0.5 for extra half-pixel accuracy<br>&nbsp;&nbsp;ctx->path.moveTo(x+0.5,y+0.5);<br>}</code> | void Painter::moveTo(double x, double y)
-| | void cairo_line_to(cairo_t* ctx, double x, double y); | | Painter::lineTo()
+| | void cairo_line_to(cairo_t* ctx, double x, double y); | | Painter::lineTo(double x, double y)
 | | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arc(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arcNegative(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
