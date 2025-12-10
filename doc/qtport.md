@@ -104,10 +104,10 @@ for example HIDE_GTK_EVENTS, HIDE_GTK_UI_WIDGETS, HIDE_CAIRO:
 3. Make the EZGL project buildable.
 4. Unhide a single component and put all effort and focus into implementing all the required API for it. For instance, we can start the port by implementing Cairo: remove the HIDE_CAIRO macro and map/implement all required Cairo API.
 
-**Note:** Cairo requires some Application(QApplication) class and target Widget(QWidget) is implemented, so here will be a bit more work aoutside the Cairo migration scope.
+**Note:** Cairo requires that an Application (QApplication) class and a target Widget (QWidget) are implemented, so there will be some additional work outside the core Cairo-migration scope.
 
-4.1 map types 1 to 1 whenever it's possible.
-for instance:
+4.1 Map types 1 to 1 whenever possible.
+For instance:
 ```code
 #ifdef EZGL_QT
 // ...
@@ -117,14 +117,15 @@ using cairo_surface_t = QImage;
 // ...
 #endif
 ```
-Here in the code we continue using cairo_surface_t name in Qt application, this allow to keep existed API signature the same. This is temprorary solution, but it allows to get MVP asap. 
-Put all mapping types into a separate file, let's call it:
+Here in the code we continue using the cairo_surface_t name in the Qt application. This allows us to keep the existing API signatures unchanged. It is a temporary solution, but it helps us reach an MVP as quickly as possible. 
+
+It makes sense to put all type mappings into a separate translation unit, let's call it:
 
 ```bash
 _qtcompat.cpp
 _qtcompat.h
 ```
-4.2 If quick type mapping is not possible, add Qt implementation, separated to GTK impl.
+4.2 If quick type mapping is not possible, add a Qt implementation, separate from the GTK implementation.
 For example:
 
 ```code
@@ -182,18 +183,19 @@ flowchart TD
 </div> 
 
 
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization (like batching primitives or use OpenGL FrameBufferObject as a surface target device for QPainter to get OpenGL HW acceleration), so we basically copy cairo->QPainter API 1 to 1.
-This step will not be redundant, since the rest drawing techinc optimization could be run on top of that API, without big re-write.
-We don't use QPainter directly but subclass it and reimplement API which is in use (because we will needed when we have stage of render optimization: not immediate drawing, but grouping by style and batch render).
+- initial idea is to get a cairo-like QPainter implementation at the initial stage without advanced render optimization (such as batching primitives or using an OpenGL FrameBufferObject as a surface target device for QPainter to get OpenGL HW acceleration), so we basically copy the cairo → QPainter API 1 to 1.
+**Note**: This step will not be redundant, since the remaining drawing-technology optimizations can be built on top of that API without major rewrites.
 
 **Future optimization:**
-  - batching primitives to draw batch with shared style.
-  We collect all objects and stored it in container, sort by style. Draw primitives same type and style in single draw call. (QPainter::drawLines() for lines, and we could try implement batch rendering of filled rectangles by using QPainterPath)
+  - batching primitives to draw batches with a shared style.
+We collect all objects and store them in a container, then sort them by style.
+Primitives of the same type and style are drawn in a single draw call (QPainter::drawLines() for lines, for filled rectangles we can try batching using QPainterPath)
 
-- when QImage is used as a target for rendering it's actually SW renderer, where the videocard is not accelerate the rendering process. To get benefit of using HW acceleration we need change QImage render target device to QOpenGLFrameBuferObject.
-**Note**: QPainter will use same API, the restriction is using OpenGL is:
-1. We need initilize GL context
-2. The OpenGL calls must be called inside the QOpenGLWidget::paintEvent call, so we need to have ability to store render objects in container (this part will be done on a batching optimization)
+- when a QImage is used as the rendering target, it is actually a software renderer, meaning the video card does not accelerate the rendering process. To benefit from hardware acceleration, we need to change the QImage render target to a QOpenGLFramebufferObject.
+
+**Note**: QPainter will use the same API. The restrictions when using OpenGL are:
+1. We need to initialize an OpenGL context.
+2. All OpenGL calls must be made inside QOpenGLWidget::paintEvent(), so we must be able to store render objects in a container (this part will be handled during batching optimization).
 
 ```mermaid
 flowchart TD
@@ -285,3 +287,17 @@ flowchart TD
 | | void cairo_surface_destroy(cairo_surface_t* surface); | | OBSOLETE (QImage will not be raw pointer)
 | | void cairo_destroy(cairo_t* cairo); | | OBSOLETE (Painter will not be raw pointer)
 
+# Cairo Migration Roadmap
+
+```mermaid
+flowchart TD
+ezgl_frame_buildable_without_gtk[buildable without GTK/Cairo] -->
+  basic_qapp[Basic QApplication] -->
+  basic_window[Basic Window] -->
+  basic_render_area_widget[Basic RenderAreaWidget] -->
+  cairo_draw_primitives[Cairo draw geometric primitives] -->
+  cairo_draw_text[Cairo draw text] -->
+  camera_translate_zoom[Camera: Translate/Zoom] -->
+  draw_example_app[EZGL Qt Example application] -->
+  stress_test_benchmark[Stress test benchmark GTKvs QT on different primitive types and styles]
+ ```
