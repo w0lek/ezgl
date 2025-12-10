@@ -48,11 +48,11 @@ flowchart TD
 
   subgraph Component [Components]
     component_scene
-  component_app
-  component_window
-  component_ui_widgets
-  component_connections
-  component_log
+    component_app
+    component_window
+    component_ui_widgets
+    component_connections
+    component_log
   end
   
   subgraph Gtk [GTK]
@@ -291,7 +291,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-ezgl_frame_buildable_without_gtk[buildable without GTK/Cairo] -->
+  ezgl_frame_buildable_without_gtk[buildable without GTK/Cairo] -->
   basic_qapp[Basic QApplication] -->
   basic_window[Basic Window] -->
   basic_render_area_widget[Basic RenderAreaWidget] -->
@@ -300,4 +300,13 @@ ezgl_frame_buildable_without_gtk[buildable without GTK/Cairo] -->
   camera_translate_zoom[Camera: Translate/Zoom] -->
   draw_example_app[EZGL Qt Example application] -->
   stress_test_benchmark[Stress test benchmark GTKvs QT on different primitive types and styles]
+
+  subgraph status [Done]
+    ezgl_frame_buildable_without_gtk
+    basic_qapp
+    basic_window
+    basic_render_area_widget
+    cairo_draw_primitives
+    cairo_draw_text
+  end
  ```
