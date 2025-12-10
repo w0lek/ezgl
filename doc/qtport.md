@@ -95,7 +95,7 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_set_line_cap(cairo_t* ctx, cairo_line_cap_t cap); | | void Painter::setLineCap(Qt::PenCapStyle cap);
 | | void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b); | | void Painter::setColor(double r, double g, double b) 
 | | void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a); | | void Painter::setColor(double r, double g, double b, double a)
-| | void cairo_surface_destroy(QImage* surface); | | OBSOLETE (QImage will not be raw pointer)
+| | void cairo_surface_destroy(cairo_surface_t* surface); | | OBSOLETE (QImage will not be raw pointer)
 | | void cairo_destroy(cairo_t* cairo); | | OBSOLETE (Painter will not be raw pointer)
 
 ## QPainter SW render optimization
