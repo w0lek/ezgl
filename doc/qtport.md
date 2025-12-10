@@ -15,7 +15,7 @@ Components:
 ```mermaid
 flowchart TD
   %% gtk
-  gtk_app[gtk_app]
+  gtk_app[GtkApplication]
   gtk_window[gtk_main_window]
   cairo_surface_t[cairo_surface_t]
   gtk_widgets[GTK Widgets]
@@ -52,7 +52,80 @@ flowchart TD
   
  ```
 
+# rrr
 
+```mermaid
+flowchart TD
+  cairo
+  text
+  geometry
+  
+  cairo -->|draw| geometry
+  cairo -->|draw| text
+  geometry --> surface
+  text --> surface
+
+  surface -->|used| widget
+  
+ ```
+ 
+<div style="display: flex; gap: 20px;">
+
+```mermaid
+flowchart TD
+  cairo_t
+  text
+  geometry
+  cairo_surface_t
+  widget[GTK Widget]
+  
+  cairo_t -->|draw API| geometry
+  cairo_t -->|draw API| text
+  geometry --> cairo_surface_t
+  text --> cairo_surface_t
+
+  cairo_surface_t -->|used| widget
+  widget --> screen
+ ```
+```mermaid
+flowchart TD
+  qpainter[QPainter]
+  text
+  geometry
+  qimage[QImage]
+  
+  qpainter -->|draw API| geometry
+  qpainter -->|draw API| text
+  
+  geometry --> qimage
+  text --> qimage
+ 
+  qimage -->|used| qwidget[QWidget::paintEvent]
+  qwidget --> screen
+ ```
+
+  ```mermaid
+flowchart TD
+  qpainter[QPainter]
+  text
+  geometry
+  qimage[QImage]
+  qfbo[QOpenGLFrameBufferObject]
+  qglwidget[QOpenGLWidget::paintEvent]
+  
+  qpainter -->|draw API| geometry
+  qpainter -->|draw API| text
+  
+  geometry --> qfbo
+  text --> qfbo
+  
+  qfbo -->|used| qglwidget  
+  qfbo -->|used| qimage
+  qimage --> export[Export As A File]
+  qglwidget --> screen
+ ```
+ 
+</div> 
 
 ## Goal:
 - seamless incremental migration
