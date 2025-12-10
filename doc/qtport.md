@@ -1,23 +1,9 @@
+# EZGL Qt migration plan
 
 ## Goal:
 - to have seamless incremental migration, where is possible to validate result (compare with original GTK approach at each stage)
 - perform GTK to Qt migration for each component individually
-    
-## Steps:
-
-1. #define EZGL_QT macro, and hide all gtk/cairo headers in all source code
-2. For each component from the flow chart, let's hide it's implementation under it's own unique macro.
-for example HIDE_GTK_UI_WIDGETS:
-```cmake
-    target_compile_definitions(
-        ${PROJECT_NAME}
-        PUBLIC
-        EZGL_QT
-        HIDE_GTK_EVENTS
-        HIDE_GTK_UI_WIDGETS
-        HIDE_CAIRO  
-    )
-```
+Below is flow chart, where EZGL is splited into a components.
 
 ```mermaid
 flowchart TD
@@ -89,15 +75,46 @@ flowchart TD
   end
 ```
 
+
+## Idea:
+- try keep API as close to original as possible, due to this map 1 to 1 is preferable if possible. Put all mapping code to separate file, as this is temprorary(intermediate) solution.
+- if direct type mapping is not possible, add proper Qt implementation, or if implementing feature is complex and could be posprone (not required for the main flow, like export scene to pdf etc), wrap it with macro and hide.
+- idea is to get buildable and runnable project asasp, where the migration of each individual component will be easy to test (using EZGL basic application from example)
+    
+## Steps:
+
+1. #define EZGL_QT macro, and hide all gtk/cairo headers in all source code
+2. For each component from the flow chart, let's hide it's implementation under it's own unique macro.
+for example HIDE_GTK_EVENTS, HIDE_GTK_UI_WIDGETS, HIDE_CAIRO:
+```cmake
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC
+        EZGL_QT
+        HIDE_GTK_EVENTS
+        HIDE_GTK_UI_WIDGETS
+        HIDE_CAIRO 
+        # ...
+    )
+```
+
+
+
 3. make a project buildable
-4. unhide single component, for example remove HIDE_CAIRO macro, and implement all required API needed for Cairo.
-**Note:** Cairo requires some Application class and target Widget is implemented, so here will be a bit more work aoutside the Cairo migration scope.
+4. unhide single component, and put all effort and focus to implement all required API needed for it. For instance we could start porting from implementing cairo by removing HIDE_CAIRO macro, and map/implement all required cairo API.
+
+**Note:** Cairo requires some Application(QApplication) class and target Widget(QWidget) is implemented, so here will be a bit more work aoutside the Cairo migration scope.
+
 4.1 map types 1 to 1 whenever it's possible.
 for instance:
 ```code
+#ifdef EZGL_QT
+// ...
 #include<QImage>
-
+// ...
 using cairo_surface_t = QImage;
+// ...
+#endif
 ```
 Here in the code we continue using cairo_surface_t name in Qt application, this allow to keep existed API signature the same. This is temprorary solution, but it allows to get MVP asap. 
 Put all mapping types into a separate file, let's call it:
@@ -109,21 +126,37 @@ _qtcompat.h
 4.2 If quick type mapping is not possible, add Qt implementation, separated to GTK impl.
 For example:
 
+```code
+void renderer::draw_text(point2d point, std::string const &text, double bound_x, double bound_y) {
+// common impl
+#ifdef EZGL_QT
+// qt impl
+#else 
+// gtk impl
+#endif 
 
-
-
-
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
-- apply SW render optimization, and HW render optimization if needed after the Qt port is done
-- 
-**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
-
-we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
-
+// common impl
+```
+So here, API remains the same, but implementation is different based on the selected toolkit (GTK or Qt).
 
 
 
 ## Cairo -> QPainter
+
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization (like batching primitives or use OpenGL FrameBufferObject as a surface target device for QPainter to get OpenGL HW acceleration), so we basically copy cairo->QPainter API 1 to 1.
+This step will not be redundant, since the rest drawing techinc optimization could be run on top of that API, without big re-write.
+We don't use QPainter directly but subclass it and reimplement API which is in use (because we will needed when we have stage of render optimization: not immediate drawing, but grouping by style and batch render).
+
+**Future optimization:**
+  - batching primitives to draw batch with shared style.
+  We collect all objects and stored it in container, sort by style. Draw primitives same type and style in single draw call. (QPainter::drawLines() for lines, and we could try implement batch rendering of filled rectangles by using QPainterPath)
+
+- when QImage is used as a target for rendering it's actually SW renderer, where the videocard is not accelerate the rendering process. To get benefit of using HW acceleration we need change QImage render target device to QOpenGLFrameBuferObject.
+**Note**: QPainter will use same API, the restriction is using OpenGL is:
+1. We need initilize GL context
+2. We are limited at a time when we need execute all opengl calls. The OpenGL calls must be called inside the QOpenGLWidget::paintEvent call.
+
+**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
  
 <div style="display: flex; gap: 20px;">
 
