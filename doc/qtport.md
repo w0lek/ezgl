@@ -103,6 +103,9 @@ flowchart TD
   qimage -->|used| qwidget[QWidget::paintEvent]
   qwidget --> screen
  ```
+ 
+</div> 
+
 
   ```mermaid
 flowchart TD
@@ -125,8 +128,6 @@ flowchart TD
   qglwidget --> screen
  ```
  
-</div> 
-
 ## Goal:
 - seamless incremental migration
 - migrate each individual component, with validating result
