@@ -7,9 +7,16 @@
 
 1. #define EZGL_QT macro, and hide all gtk/cairo headers in all source code
 2. For each component from the flow chart, let's hide it's implementation under it's own unique macro.
-for example:
-```code
-
+for example HIDE_GTK_UI_WIDGETS:
+```cmake
+    target_compile_definitions(
+        ${PROJECT_NAME}
+        PUBLIC
+        EZGL_QT
+        HIDE_GTK_EVENTS
+        HIDE_GTK_UI_WIDGETS
+        HIDE_CAIRO  
+    )
 ```
 
 ```mermaid
@@ -82,7 +89,10 @@ flowchart TD
   end
 ```
 
-- map types 1 to 1 whenever it's possible.
+3. make a project buildable
+4. unhide single component, for example remove HIDE_CAIRO macro, and implement all required API needed for Cairo.
+**Note:** Cairo requires some Application class and target Widget is implemented, so here will be a bit more work aoutside the Cairo migration scope.
+4.1 map types 1 to 1 whenever it's possible.
 for instance:
 ```code
 #include<QImage>
@@ -96,6 +106,9 @@ Put all mapping types into a separate file, let's call it:
 _qtcompat.cpp
 _qtcompat.h
 ```
+4.2 If quick type mapping is not possible, add Qt implementation, separated to GTK impl.
+For example:
+
 
 
 
