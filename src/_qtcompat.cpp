@@ -383,7 +383,7 @@ void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t
   ctx->font.setWeight(weight);
 }
 
-void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset)
+void cairo_set_dash(cairo_t* ctx, const double* pattern, int count, double offset)
 {
   if (pattern == nullptr || count == 0) {
     ctx->pen.setSolid();

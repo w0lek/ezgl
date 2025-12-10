@@ -305,7 +305,7 @@ void cairo_line_to(cairo_t* ctx, double x, double y);
 void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2);
 void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2);
 void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
-void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
+void cairo_set_dash(cairo_t* ctx, const double* pattern, int count, double offset);
 void cairo_set_font_size(cairo_t* ctx, int size);
 void cairo_set_line_width(cairo_t* ctx, int width);
 void cairo_set_line_cap(cairo_t* ctx, cairo_line_cap_t cap);
