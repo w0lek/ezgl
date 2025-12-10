@@ -10,6 +10,23 @@ Components:
 [GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
 [GTK widgets fabric]->[QWidgets fabric]
 
+```mermaid
+flowchart TD
+  %% gtk
+  gtk_app[gtk_app]
+  gtk_main_window[gtk_main_window]
+  cairo_surface_t[cairo_surface_t]
+
+  %% qt
+  qapp[QApplication]
+  qwidget[QWidget]
+  qimage[QImage]
+  qfbo[QOpenGLFramebufferObject]
+
+  gtk_app --> qapp
+  
+```
+
 ## tttt
 ```mermaid
 flowchart TD
