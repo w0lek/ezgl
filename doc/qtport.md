@@ -15,7 +15,7 @@ we need Intermediate (Qt-compat layer) to keep API close to original as much as 
 [GTK-Cairo-drawing-primitives]->[QPainter]
 [GTK-Cairo-drawing-text]->[QPainter]
 [GTK-Cairo-drawing-camera-transform]
-[GTK vs Qt benchmark on many different primitive types including text drawing]
+<strike>[GTK vs Qt benchmark on many different primitive types including text drawing]</strike>
 +[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
 +[GTK widgets fabric]->[QWidgets fabric]
 
@@ -23,6 +23,9 @@ we need Intermediate (Qt-compat layer) to keep API close to original as much as 
 
 ```mermaid
 flowchart TD
+  %% components
+  component_scene[Scene]
+
   %% gtk
   gtk_app[GtkApplication]
   gtk_window[gtk_main_window]
@@ -44,7 +47,9 @@ flowchart TD
   component0[App] --> gtk_app --> qapp
   component1[Window] --> gtk_window --> qwindow
   component2[Drawing surface] --> cairo_surface_t --> qimage
-  component3[Drawing actor] --> cairo --> qpainter
+  component3[Drawing instrument] --> cairo --> qpainter
+  component_scene --> component2
+  component_scene --> component3
   component4[standart UI Widgets] --> gtk_ui_widgets --> qwidgets
   component5[connections] --> g_signals --> qconnect
   component6[Logger] --> g_logs --> qlogs
