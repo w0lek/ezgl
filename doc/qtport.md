@@ -1,8 +1,9 @@
 # EZGL Qt migration plan
 
 ## Goal:
-- to have seamless incremental migration, where is possible to validate result (compare with original GTK approach at each stage)
-- perform GTK to Qt migration for each component individually
+- to have a seamless incremental migration, where it is possible to validate the result (compare with the original GTK approach at each stage)
+- to perform the GTK-to-Qt migration for each component individually
+  
 Below is flow chart, where EZGL is splited into a components.
 
 ```mermaid
@@ -77,14 +78,14 @@ flowchart TD
 
 
 ## Idea:
-- try keep API as close to original as possible, due to this map 1 to 1 is preferable if possible. Put all mapping code to separate file, as this is temprorary(intermediate) solution.
-- if direct type mapping is not possible, add proper Qt implementation, or if implementing feature is complex and could be posprone (not required for the main flow, like export scene to pdf etc), wrap it with macro and hide.
-- idea is to get buildable and runnable project asasp, where the migration of each individual component will be easy to test (using EZGL basic application from example)
+- try to keep the API as close to the original as possible, because of this, a 1-to-1 mapping is preferable whenever possible. Put all mapping code into a separate file, as this is a temporary (intermediate) solution.
+- If direct type mapping is not possible, add a proper Qt implementation. If implementing a feature is complex and can be postponed (not required for the main flow, e.g. exporting the scene to PDF), wrap it with a macro and hide it.
+- to get a buildable and runnable project ASAP, where the migration of each individual component will be easy to test (using the EZGL basic application from the examples).
     
 ## Steps:
 
-1. #define EZGL_QT macro, and hide all gtk/cairo headers in all source code
-2. For each component from the flow chart, let's hide it's implementation under it's own unique macro.
+1. Define the EZGL_QT macro and hide all GTK/Cairo headers in all source files.
+2. For each component from the flow chart, hide its implementation under its own unique macro.
 for example HIDE_GTK_EVENTS, HIDE_GTK_UI_WIDGETS, HIDE_CAIRO:
 ```cmake
     target_compile_definitions(
@@ -100,8 +101,8 @@ for example HIDE_GTK_EVENTS, HIDE_GTK_UI_WIDGETS, HIDE_CAIRO:
 
 
 
-3. make a project buildable
-4. unhide single component, and put all effort and focus to implement all required API needed for it. For instance we could start porting from implementing cairo by removing HIDE_CAIRO macro, and map/implement all required cairo API.
+3. Make the EZGL project buildable.
+4. Unhide a single component and put all effort and focus into implementing all the required API for it. For instance, we can start the port by implementing Cairo: remove the HIDE_CAIRO macro and map/implement all required Cairo API.
 
 **Note:** Cairo requires some Application(QApplication) class and target Widget(QWidget) is implemented, so here will be a bit more work aoutside the Cairo migration scope.
 
