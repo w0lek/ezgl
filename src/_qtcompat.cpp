@@ -302,14 +302,14 @@ void cairo_font_extents(cairo_t* ctx, cairo_font_extents_t* extents)
 }
 // text
 
-int cairo_image_surface_get_width(QImage* image)
+int cairo_image_surface_get_width(cairo_surface_t* surface)
 {
-  return image->width();
+  return surface->width();
 }
 
-int cairo_image_surface_get_height(QImage* image)
+int cairo_image_surface_get_height(cairo_surface_t* surface)
 {
-  return image->height();
+  return surface->height();
 }
 
 void cairo_new_path(cairo_t* ctx)
@@ -429,7 +429,7 @@ void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a)
   ctx->setColor(c);
 }
 
-void cairo_surface_destroy(QImage* surface) {
+void cairo_surface_destroy(cairo_surface_t* surface) {
   g_debug("~~~cairo_surface_destroy");
   delete surface;
 }

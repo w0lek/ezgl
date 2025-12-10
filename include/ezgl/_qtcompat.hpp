@@ -296,8 +296,8 @@ void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* ex
 void cairo_font_extents(cairo_t* ctx, cairo_font_extents_t* extents);
 // text
 
-int cairo_image_surface_get_width(QImage* image);
-int cairo_image_surface_get_height(QImage* image);
+int cairo_image_surface_get_width(cairo_surface_t* image);
+int cairo_image_surface_get_height(cairo_surface_t* image);
 void cairo_new_path(cairo_t* ctx);
 void cairo_close_path(cairo_t* ctx);
 void cairo_move_to(cairo_t* ctx, double x, double y);
@@ -311,7 +311,7 @@ void cairo_set_line_width(cairo_t* ctx, int width);
 void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap);
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b);
 void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
-void cairo_surface_destroy(QImage* surface);
+void cairo_surface_destroy(cairo_surface_t* surface);
 void cairo_destroy(cairo_t* cairo);
 // cairo wrapper
 
