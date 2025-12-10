@@ -41,10 +41,10 @@ cairo draws onto surface(image), than this surface attached to widget render are
 
 - GTK/Cairo to Qt **API** mapping
 
-**QPainter specific**
-| Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
-|----------|----------|-----------|
-| void cairo_fill(cairo_t* ctx); | void cairo_fill(cairo_t* ctx, Painter&); | void Painter::fill(); |
+**QPainter specific (immediate drawing calls)**
+|| Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
+|-|-|-|-|
+| | void cairo_fill(cairo_t* ctx); | void cairo_fill(cairo_t* ctx, Painter&); | void Painter::fill(); |
 | void cairo_stroke(cairo_t* ctx); | void cairo_stroke(cairo_t* ctx, Painter&); | void Painter::stroke(); |
 | void cairo_paint(cairo_t* ctx); | void cairo_paint(cairo_t* ctx, Painter&); | void Painter::paint(); |
 | void cairo_set_source_surface(cairo_t* cairo, cairo_surface_t* surface, double x, double y); | void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y, Painter&); | void Painter::setSourceSurface(QImage* surface, double x, double y); |
@@ -62,3 +62,24 @@ void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t
 | 1 | cairo_text_extents_t | <code>struct cairo_text_extents_t {<br>&nbsp;&nbsp;double x_bearing;<br>&nbsp;&nbsp;double y_bearing;<br>&nbsp;&nbsp;double width;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double x_advance;<br>&nbsp;&nbsp;double y_advance;<br>};</code> | See row below. | Describes how text is positioned <br> and how much space it occupies
 | 2 | void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents); | <code>void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents)<br>{<br>&nbsp;&nbsp;QString text = QString::fromUtf8(utf8);<br>&nbsp;&nbsp;QFontMetricsF fm(ctx->font);<br><br>&nbsp;&nbsp;// QRectF is given in logical coords, origin at baseline (like Cairo)<br>&nbsp;&nbsp;QRectF br = fm.boundingRect(text);<br><br>&nbsp;&nbsp;extents->x_bearing = br.x();<br>&nbsp;&nbsp;extents->y_bearing = br.y();<br>&nbsp;&nbsp;extents->width&nbsp;&nbsp;&nbsp;&nbsp;= br.width();<br>&nbsp;&nbsp;extents->height&nbsp;&nbsp;&nbsp;= br.height();<br><br>&nbsp;&nbsp;// Advance: how much the current point moves along the baseline<br>&nbsp;&nbsp;extents->x_advance = fm.horizontalAdvance(text);<br>&nbsp;&nbsp;extents->y_advance = 0.0; // Qt horizontal layout, so y-advance is 0<br>}</code> | <code>class TextExtents {<br>&nbsp;&nbsp;public:<br>&nbsp;&nbsp;TextExtents(const QFont& font, const char* utf8) {<br>&nbsp;&nbsp;&nbsp;&nbsp;QString text = QString::fromUtf8(utf8);<br>&nbsp;&nbsp;&nbsp;&nbsp;QFontMetricsF fm(font);<br>&nbsp;&nbsp;&nbsp;&nbsp;QRectF br = fm.boundingRect(text);<br>&nbsp;&nbsp;&nbsp;&nbsp;x_bearing = br.x();<br>&nbsp;&nbsp;&nbsp;&nbsp;y_bearing = br.y();<br>&nbsp;&nbsp;&nbsp;&nbsp;width&nbsp;&nbsp;&nbsp;&nbsp;= br.width();<br>&nbsp;&nbsp;&nbsp;&nbsp;height&nbsp;&nbsp;&nbsp;= br.height();<br>&nbsp;&nbsp;&nbsp;&nbsp;x_advance = fm.horizontalAdvance(text);<br>&nbsp;&nbsp;&nbsp;&nbsp;y_advance = 0.0;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;double x_bearing;<br>&nbsp;&nbsp;double y_bearing;<br>&nbsp;&nbsp;double width;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double x_advance;<br>&nbsp;&nbsp;double y_advance;<br>};</code> | 
 | 3 | cairo_font_extents_t | <code>struct cairo_font_extents_t {<br>&nbsp;&nbsp;double ascent;<br>&nbsp;&nbsp;double descent;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double max_x_advance;<br>&nbsp;&nbsp;double max_y_advance;<br>};</code> | <code>class FontMetrics : public QFontMetricsF {<br>&nbsp;&nbsp;public:<br>&nbsp;&nbsp;int maxHorizontalAdvance();<br>&nbsp;&nbsp;int maxVerticalAdvance();<br>};</code> |  Font size properties 
+
+**Generic Cairo**
+| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) | Role |
+|-|-|-|-|-|
+| | int cairo_image_surface_get_width(QImage* image);
+| | int cairo_image_surface_get_height(QImage* image);
+| | void cairo_new_path(cairo_t* ctx);
+| | void cairo_close_path(cairo_t* ctx);
+| | void cairo_move_to(cairo_t* ctx, double x, double y);
+| | void cairo_line_to(cairo_t* ctx, double x, double y);
+| | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2);
+| | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2);
+| | void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
+| | void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
+| | void cairo_set_font_size(cairo_t* ctx, int size);
+| | void cairo_set_line_width(cairo_t* ctx, int width);
+| | void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap);
+| | void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b);
+| | void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
+| | void cairo_surface_destroy(QImage* surface);
+| | void cairo_destroy(cairo_t* cairo);
