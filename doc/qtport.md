@@ -1,16 +1,25 @@
 
+## Goal:
+- seamless incremental migration
+- migrate each individual component, with validating result
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
+- apply SW render optimization, and HW render optimization if needed after the Qt port is done
+- 
+**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
 
-Components:
+we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
+
+## Components:
 [gtk_main_window/gtk_app]->[QApplication]
 [gtk_main_window + cairo_drawing_surface]->[QWindow + QDrawableArea widget]
 [GTK-Cairo-drawing-primitives]->[QPainter]
 [GTK-Cairo-drawing-text]->[QPainter]
 [GTK-Cairo-drawing-camera-transform]
 [GTK vs Qt benchmark on many different primitive types including text drawing]
-[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
-[GTK widgets fabric]->[QWidgets fabric]
++[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
++[GTK widgets fabric]->[QWidgets fabric]
 
-## tttt
+## Modules
 
 ```mermaid
 flowchart TD
@@ -18,56 +27,31 @@ flowchart TD
   gtk_app[GtkApplication]
   gtk_window[gtk_main_window]
   cairo_surface_t[cairo_surface_t]
-  gtk_widgets[GTK Widgets]
-  cairo_txt[Cairo drawing text]
-  cairo_geom[Cairo drawing geometry]
-
+  cairo[Cairo]
+  gtk_ui_widgets[GTK UI Widgets]
+  g_signals[g_signals]
+  g_logs(g_info,g_debug)
+  
   %% qt
   qapp[QApplication]
   qimage[QImage]
-  qwidget[QWidget]
+  qwindow[QWindow]
   qwidgets[QWidgets]
-  qfbo[QOpenGLFramebufferObject]
+  qpainter[QPainter]
+  qconnect[QObject::connect]
+  qlogs[QInfo,QDebug]
 
-  gtk_app --> qapp
-  gtk_window --> qwidget
-  cairo_surface_t --> qimage
-  qimage --> qfbo 
-  gtk_widgets --> qwidgets
+  component0[App] --> gtk_app --> qapp
+  component1[Window] --> gtk_window --> qwindow
+  component2[] --> cairo_surface_t --> qimage
+  component3 --> cairo --> qpainter
+  component4 --> gtk_ui_widgets --> qwidgets
+  component5 --> g_signals --> qconnect
+  component6[Logger] --> g_logs --> qlogs
 ```
 
-## tttt
-```mermaid
-flowchart TD
-  gtk[GTK]
-  widgets[Widgets]
-  cairo[Cairo]
-  text[Text]
-  geom[Geometry]
-  
-  gtk --> widgets
-  gtk --> cairo
-  cairo -->geom
-  cairo --> text
-  
- ```
 
-# rrr
-
-```mermaid
-flowchart TD
-  cairo
-  text
-  geometry
-  
-  cairo -->|draw| geometry
-  cairo -->|draw| text
-  geometry --> surface
-  text --> surface
-
-  surface -->|used| widget
-  
- ```
+## Cairo -> QPainter
  
 <div style="display: flex; gap: 20px;">
 
@@ -128,15 +112,7 @@ flowchart TD
   qglwidget --> screen
  ```
  
-## Goal:
-- seamless incremental migration
-- migrate each individual component, with validating result
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
-- apply SW render optimization, and HW render optimization if needed after the Qt port is done
 
-**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
-
-we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
 
 ## GTK CAIRO -> QPainter mapping/porting
 
