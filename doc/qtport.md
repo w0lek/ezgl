@@ -141,7 +141,7 @@ So here, API remains the same, but implementation is different based on the sele
 
 
 
-## Cairo -> QPainter
+## Cairo -> QPainter migration
 
 <div style="display: flex; gap: 20px;">
 
