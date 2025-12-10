@@ -143,21 +143,6 @@ So here, API remains the same, but implementation is different based on the sele
 
 ## Cairo -> QPainter
 
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization (like batching primitives or use OpenGL FrameBufferObject as a surface target device for QPainter to get OpenGL HW acceleration), so we basically copy cairo->QPainter API 1 to 1.
-This step will not be redundant, since the rest drawing techinc optimization could be run on top of that API, without big re-write.
-We don't use QPainter directly but subclass it and reimplement API which is in use (because we will needed when we have stage of render optimization: not immediate drawing, but grouping by style and batch render).
-
-**Future optimization:**
-  - batching primitives to draw batch with shared style.
-  We collect all objects and stored it in container, sort by style. Draw primitives same type and style in single draw call. (QPainter::drawLines() for lines, and we could try implement batch rendering of filled rectangles by using QPainterPath)
-
-- when QImage is used as a target for rendering it's actually SW renderer, where the videocard is not accelerate the rendering process. To get benefit of using HW acceleration we need change QImage render target device to QOpenGLFrameBuferObject.
-**Note**: QPainter will use same API, the restriction is using OpenGL is:
-1. We need initilize GL context
-2. We are limited at a time when we need execute all opengl calls. The OpenGL calls must be called inside the QOpenGLWidget::paintEvent call.
-
-**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
- 
 <div style="display: flex; gap: 20px;">
 
 ```mermaid
@@ -196,7 +181,20 @@ flowchart TD
 </div> 
 
 
-  ```mermaid
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization (like batching primitives or use OpenGL FrameBufferObject as a surface target device for QPainter to get OpenGL HW acceleration), so we basically copy cairo->QPainter API 1 to 1.
+This step will not be redundant, since the rest drawing techinc optimization could be run on top of that API, without big re-write.
+We don't use QPainter directly but subclass it and reimplement API which is in use (because we will needed when we have stage of render optimization: not immediate drawing, but grouping by style and batch render).
+
+**Future optimization:**
+  - batching primitives to draw batch with shared style.
+  We collect all objects and stored it in container, sort by style. Draw primitives same type and style in single draw call. (QPainter::drawLines() for lines, and we could try implement batch rendering of filled rectangles by using QPainterPath)
+
+- when QImage is used as a target for rendering it's actually SW renderer, where the videocard is not accelerate the rendering process. To get benefit of using HW acceleration we need change QImage render target device to QOpenGLFrameBuferObject.
+**Note**: QPainter will use same API, the restriction is using OpenGL is:
+1. We need initilize GL context
+2. The OpenGL calls must be called inside the QOpenGLWidget::paintEvent call, so we need to have ability to store render objects in container (this part will be done on a batching optimization)
+
+```mermaid
 flowchart TD
   qpainter[QPainter]
   text
@@ -216,23 +214,12 @@ flowchart TD
   qimage --> export[Export As A File]
   qglwidget --> screen
  ```
- 
 
 
-## GTK CAIRO -> QPainter mapping/porting
 
-<span style="color:red">There are two main parts cairo_t and 
-cairo_surface_t.
-Replacing shema:
-cairo_t -> PainterContext
-cairo_surface_t -> QImage
-cairo_... -> cairo_... + QPainter;
-cairo:
-  draw geometry primitives
-  draw text
-</span>
+## GTK CAIRO -> QPainter API mapping/porting
 
-cairo draws onto surface(image), than this surface attached to widget render area.
+
 
 # GTK/Cairo to Qt mapping
 ## enum
@@ -297,17 +284,3 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_surface_destroy(cairo_surface_t* surface); | | OBSOLETE (QImage will not be raw pointer)
 | | void cairo_destroy(cairo_t* cairo); | | OBSOLETE (Painter will not be raw pointer)
 
-## QPainter SW render optimization
-<span style="color:red">
-QPainter when drawing into target device as QImage is software renderer.
-To make SW renderer optimal, we could do batch. QPainter has batch function for lines QPainter::drawLines(), where we could group lines by style(color + width + cap).
-To optimize rendering many rectangles (filled or stroked) we could try to imitate drawing multiple shapes with QPainterPath. So we group several rectangle by similar style and draw it with one draw call.
-</span>
-
-  ## QPainter HW render optimization
-
-<span style="color:red">
-    Note: batching optimization we did for SW render will be usefull here too.
-  By changing target render device for QPainter from QImage to FBO, we could get HW accelerated drawing.
-  The only thing to refactor here is to render objects in specific stage (when gl context is active), also we need do gl initialization.
-</span>
