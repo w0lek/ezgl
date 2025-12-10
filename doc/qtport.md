@@ -80,11 +80,11 @@ cairo draws onto surface(image), than this surface attached to widget render are
 **Rest of Cairo**
 | | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) | Role |
 |-|-|-|-|-|
-| | int cairo_image_surface_get_width(cairo_surface_t* surface); | <code>int cairo_image_surface_get_width(cairo_surface_t* surface){return surface->width();}</code> | int QImage::width()</code>;
+| | int cairo_image_surface_get_width(cairo_surface_t* surface); | <code>int cairo_image_surface_get_width(cairo_surface_t* surface){<br>&nbsp;&nbsp;return surface->width();<br>}</code> | int QImage::width()</code>;
 | | int cairo_image_surface_get_height(cairo_surface_t* surface); | | int QImage::height();
 | | void cairo_new_path(cairo_t* ctx); | | void Painter::newPath();
 | | void cairo_close_path(cairo_t* ctx); | | void Painter::closePath();
-| | void cairo_move_to(cairo_t* ctx, double x, double y); | <code>void cairo_move_to(cairo_t* ctx,double x,double y){<br>&nbsp;&nbsp;// Add 0.5 for extra half-pixel accuracy<br>&nbsp;&nbsp;ctx->path.moveTo(x+0.5,y+0.5);<br>}</code> | void Painter::moveTo(double x, double y)
+| | void cairo_move_to(cairo_t* ctx, double x, double y); | <code>void cairo_move_to(cairo_t* ctx, double x, double y){<br>&nbsp;&nbsp;// Add 0.5 for extra half-pixel accuracy<br>&nbsp;&nbsp;ctx->path.moveTo(x+0.5,y+0.5);<br>}</code> | void Painter::moveTo(double x, double y)
 | | void cairo_line_to(cairo_t* ctx, double x, double y); | | Painter::lineTo(double x, double y)
 | | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arc(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arcNegative(double xc, double yc, double radius, double angle1, double angle2)
