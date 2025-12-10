@@ -42,6 +42,10 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | CAIRO_LINE_CAP_BUTT | #define CAIRO_LINE_CAP_BUTT	Qt::FlatCap | Qt::FlatCap
 | | CAIRO_LINE_CAP_ROUND | #define CAIRO_LINE_CAP_ROUND Qt::RoundCap | Qt::RoundCap
 | | CAIRO_LINE_CAP_SQUARE | #define CAIRO_LINE_CAP_SQUARE	Qt::SquareCap | Qt::SquareCap
+| | cairo_font_slant_t | using cairo_font_slant_t = QFont::Style; | QFont::Style
+| | CAIRO_FONT_SLANT_NORMAL | #define CAIRO_FONT_SLANT_NORMAL QFont::StyleNormal | QFont::StyleNormal
+| | CAIRO_FONT_SLANT_ITALIC | #define CAIRO_FONT_SLANT_ITALIC QFont::StyleItalic | QFont::StyleItalic
+| | CAIRO_FONT_SLANT_OBLIQUE | #define CAIRO_FONT_SLANT_OBLIQUE QFont::StyleOblique | QFont::StyleOblique
 
 ## GTK/Cairo to Qt **Structures** mapping
 - ### Primitives (lines, rectangle, path, arc, circle ...)
