@@ -13,7 +13,7 @@ Components:
 ## Goal:
 - seamless incremental migration
 - migrate each individual component, with validating result
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
 - apply SW render optimization, and HW render optimization if needed after the Qt port is done
 
 **Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
@@ -78,8 +78,8 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_close_path(cairo_t* ctx); | | void Painter::closePath();
 | | void cairo_move_to(cairo_t* ctx, double x, double y); | <code>void cairo_move_to(cairo_t* ctx,double x,double y){<br>&nbsp;&nbsp;// Add 0.5 for extra half-pixel accuracy<br>&nbsp;&nbsp;ctx->path.moveTo(x+0.5,y+0.5);<br>}</code> | void Painter::moveTo(double x, double y)
 | | void cairo_line_to(cairo_t* ctx, double x, double y); | | Painter::lineTo()
-| | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2);
-| | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2);
+| | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arc(double xc, double yc, double radius, double angle1, double angle2)
+| | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arcNegative(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
 | | void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
 | | void cairo_set_font_size(cairo_t* ctx, int size);
@@ -87,7 +87,7 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap);
 | | void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b);
 | | void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
-| | void cairo_surface_destroy(QImage* surface);
+| | void cairo_surface_destroy(QImage* surface); | | OBSOLETE (QImage object will be not a pointer)
 | | void cairo_destroy(cairo_t* cairo);
 
 ## QPainter SW render optimization
