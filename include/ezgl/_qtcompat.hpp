@@ -308,7 +308,7 @@ void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t
 void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
 void cairo_set_font_size(cairo_t* ctx, int size);
 void cairo_set_line_width(cairo_t* ctx, int width);
-void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap);
+void cairo_set_line_cap(cairo_t* ctx, cairo_line_cap_t cap);
 void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b);
 void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
 void cairo_surface_destroy(cairo_surface_t* surface);

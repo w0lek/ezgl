@@ -407,7 +407,7 @@ void cairo_set_line_width(cairo_t* ctx, int width)
   ctx->pen.setWidth(width == 0 ? 1.0 : width);
 }
 
-void cairo_set_line_cap(cairo_t* ctx, Qt::PenCapStyle cap) {
+void cairo_set_line_cap(cairo_t* ctx, cairo_line_cap_t cap) {
   ctx->pen.setCapStyle(cap);
 }
 
