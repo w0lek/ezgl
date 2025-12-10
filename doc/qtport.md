@@ -89,8 +89,8 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arc(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2); | | void Painter::arcNegative(double xc, double yc, double radius, double angle1, double angle2)
 | | void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
-| | void cairo_set_dash(cairo_t* ctx, const qreal* pattern, int count, qreal offset);
-| | void cairo_set_font_size(cairo_t* ctx, int size);
+| | void cairo_set_dash(cairo_t* ctx, const double* pattern, int count, double offset); | | void Painter::setDash(const std::vector<double>& pattern, double offset);
+| | void cairo_set_font_size(cairo_t* ctx, int size); | | void Painter::setFontSize(int size);
 | | void cairo_set_line_width(cairo_t* ctx, int width); | | void Painter::setLineWidth(int width)
 | | void cairo_set_line_cap(cairo_t* ctx, cairo_line_cap_t cap); | | void Painter::setLineCap(Qt::PenCapStyle cap);
 | | void cairo_set_source_rgb(cairo_t* ctx, double r, double g, double b); | | void Painter::setColor(double r, double g, double b) 
