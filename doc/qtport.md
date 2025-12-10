@@ -10,6 +10,24 @@ Components:
 [GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
 [GTK widgets fabric]->[QWidgets fabric]
 
+## tttt
+```mermaid
+flowchart TD
+  gtk[GTK]
+  widgets[Widgets]
+  cairo[Cairo]
+  text[Text]
+  geom[Geometry]
+  
+  gtk --> widgets
+  gtk --> cairo
+  cairo -->geom
+  cairo --> text
+  
+ ```
+
+
+
 ## Goal:
 - seamless incremental migration
 - migrate each individual component, with validating result
