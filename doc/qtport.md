@@ -25,6 +25,13 @@ we need Intermediate (Qt-compat layer) to keep API close to original as much as 
 flowchart TD
   %% components
   component_scene[Scene]
+  component_app[Application]
+  component_window[Window]
+  component_draw_surface[Drawing surface]
+  component_draw_instrument[Drawing instrument]
+  component_ui_widgets[UI Widgets]
+  component_connections[Connections]
+  component_log[Logger]
 
   %% gtk
   gtk_app[GtkApplication]
@@ -44,15 +51,15 @@ flowchart TD
   qconnect[QObject::connect/signal/slots]
   qlogs[QInfo,QDebug]
 
-  component0[App] --> gtk_app --> qapp
-  component1[Window] --> gtk_window --> qwindow
-  component2[Drawing surface] --> cairo_surface_t --> qimage
-  component3[Drawing instrument] --> cairo --> qpainter
-  component_scene --> component2
-  component_scene --> component3
-  component4[standart UI Widgets] --> gtk_ui_widgets --> qwidgets
-  component5[connections] --> g_signals --> qconnect
-  component6[Logger] --> g_logs --> qlogs
+  component_app --> gtk_app --> qapp
+  component_window --> gtk_window --> qwindow
+  component_draw_surface --> cairo_surface_t --> qimage
+  component_draw_instrument --> cairo --> qpainter
+  component_scene --> component_draw_surface
+  component_scene --> component_draw_instrument
+  component_ui_widgets --> gtk_ui_widgets --> qwidgets
+  component_connections --> g_signals --> qconnect
+  component_log --> g_logs --> qlogs
 ```
 
 
