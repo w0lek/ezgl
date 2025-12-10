@@ -60,6 +60,37 @@ flowchart TD
   component_ui_widgets --> gtk_ui_widgets --> qwidgets
   component_connections --> g_signals --> qconnect
   component_log --> g_logs --> qlogs
+
+  subgraph Component [Components]
+    component_scene[Scene]
+  component_app[Application]
+  component_window[Window]
+  component_draw_surface[Drawing surface]
+  component_draw_instrument[Drawing instrument]
+  component_ui_widgets[UI Widgets]
+  component_connections[Connections]
+  component_log[Logger]
+  end
+  
+  subgraph Gtk [GTK]
+    gtk_app
+    gtk_window
+    cairo_surface_t
+    cairo
+    gtk_ui_widgets
+    g_signals
+    g_logs
+  end
+
+  subgraph Qt [Qt equivalent]
+    qimage
+    qapp
+    qwindow
+    qpainter
+    qwidgets
+    qconnect
+    qlogs
+  end
 ```
 
 
