@@ -1,15 +1,16 @@
 
 ## Goal:
-- seamless incremental migration
-- migrate each individual component, with validating result
-- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
-- apply SW render optimization, and HW render optimization if needed after the Qt port is done
-- 
-**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
+- to have seamless incremental migration, where is possible to validate result (compare with original GTK approach at each stage)
+- perform GTK to Qt migration for each component individually
+    
+## Steps:
 
-we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
+1. #define EZGL_QT macro, and hide all gtk/cairo headers in all source code
+2. For each component from the flow chart, let's hide it's implementation under it's own unique macro.
+for example:
+```code
 
-## Components
+```
 
 ```mermaid
 flowchart TD
@@ -80,6 +81,33 @@ flowchart TD
     qlogs
   end
 ```
+
+- map types 1 to 1 whenever it's possible.
+for instance:
+```code
+#include<QImage>
+
+using cairo_surface_t = QImage;
+```
+Here in the code we continue using cairo_surface_t name in Qt application, this allow to keep existed API signature the same. This is temprorary solution, but it allows to get MVP asap. 
+Put all mapping types into a separate file, let's call it:
+
+```bash
+_qtcompat.cpp
+_qtcompat.h
+```
+
+
+
+
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization, so we basically copy cairo->QPainter API 1 to 1.
+- apply SW render optimization, and HW render optimization if needed after the Qt port is done
+- 
+**Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
+
+we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
+
+
 
 
 ## Cairo -> QPainter
