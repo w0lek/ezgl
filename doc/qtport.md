@@ -9,17 +9,7 @@
 
 we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
 
-## Components:
-[gtk_main_window/gtk_app]->[QApplication]
-[gtk_main_window + cairo_drawing_surface]->[QWindow + QDrawableArea widget]
-[GTK-Cairo-drawing-primitives]->[QPainter]
-[GTK-Cairo-drawing-text]->[QPainter]
-[GTK-Cairo-drawing-camera-transform]
-<strike>[GTK vs Qt benchmark on many different primitive types including text drawing]</strike>
-+[GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
-+[GTK widgets fabric]->[QWidgets fabric]
-
-## Modules
+## Components
 
 ```mermaid
 flowchart TD
@@ -62,14 +52,12 @@ flowchart TD
   component_log --> g_logs --> qlogs
 
   subgraph Component [Components]
-    component_scene[Scene]
-  component_app[Application]
-  component_window[Window]
-  component_draw_surface[Drawing surface]
-  component_draw_instrument[Drawing instrument]
-  component_ui_widgets[UI Widgets]
-  component_connections[Connections]
-  component_log[Logger]
+    component_scene
+  component_app
+  component_window
+  component_ui_widgets
+  component_connections
+  component_log
   end
   
   subgraph Gtk [GTK]
