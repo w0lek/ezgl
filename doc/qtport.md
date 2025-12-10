@@ -29,7 +29,7 @@ flowchart TD
   cairo_surface_t[cairo_surface_t]
   cairo[Cairo]
   gtk_ui_widgets[GTK UI Widgets]
-  g_signals[g_signals]
+  g_signals[g_signals/callbacks]
   g_logs(g_info,g_debug)
   
   %% qt
@@ -38,15 +38,15 @@ flowchart TD
   qwindow[QWindow]
   qwidgets[QWidgets]
   qpainter[QPainter]
-  qconnect[QObject::connect]
+  qconnect[QObject::connect/signal/slots]
   qlogs[QInfo,QDebug]
 
   component0[App] --> gtk_app --> qapp
   component1[Window] --> gtk_window --> qwindow
-  component2[] --> cairo_surface_t --> qimage
-  component3 --> cairo --> qpainter
-  component4 --> gtk_ui_widgets --> qwidgets
-  component5 --> g_signals --> qconnect
+  component2[Drawing surface] --> cairo_surface_t --> qimage
+  component3[Drawing actor] --> cairo --> qpainter
+  component4[standart UI Widgets] --> gtk_ui_widgets --> qwidgets
+  component5[connections] --> g_signals --> qconnect
   component6[Logger] --> g_logs --> qlogs
 ```
 
