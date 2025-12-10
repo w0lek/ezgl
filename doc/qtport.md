@@ -35,7 +35,13 @@ cairo:
 
 cairo draws onto surface(image), than this surface attached to widget render area.
 
-
+## GTK/Cairo to Qt **enum** mapping
+| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final (Qt) | Role |
+|-|-|-|-|-|
+| | cairo_line_cap_t | using cairo_line_cap_t = Qt::PenCapStyle; | Qt::PenCapStyle
+| | CAIRO_LINE_CAP_BUTT | #define CAIRO_LINE_CAP_BUTT	Qt::FlatCap | Qt::FlatCap
+| | CAIRO_LINE_CAP_ROUND | #define CAIRO_LINE_CAP_ROUND Qt::RoundCap | Qt::RoundCap
+| | CAIRO_LINE_CAP_SQUARE | #define CAIRO_LINE_CAP_SQUARE	Qt::SquareCap | Qt::SquareCap
 
 ## GTK/Cairo to Qt **Structures** mapping
 - ### Primitives (lines, rectangle, path, arc, circle ...)
