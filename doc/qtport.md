@@ -1,3 +1,5 @@
+
+
 Components:
 [gtk_main_window/gtk_app]->[QApplication]
 [gtk_main_window + cairo_drawing_surface]->[QWindow + QDrawableArea widget]
@@ -8,7 +10,11 @@ Components:
 [GTK_input_processing (keyboard press/mouse move/press)]->[Qt events handling, g_callbacks to a slots]
 [GTK widgets fabric]->[QWidgets fabric]
 
-
+## Goal:
+- seamless incremental migration
+- migrate each individual component, with validating result
+- initial idea is to get cairo-like QPainter implementation at initial stage without advanced render optimization
+- apply SW render optimization, and HW render optimization if needed after the Qt port is done
 
 **Note:** Intermediate result mostly keeps the API (function signatures) stable to minimize the code diff, and provide easy way to compare GTK/Qt code side by side without switching editor context.
 
@@ -29,7 +35,7 @@ cairo:
 
 cairo draws onto surface(image), than this surface attached to widget render area.
 
-</strike>
+
 
 ## GTK/Cairo to Qt **Structures** mapping
 - ### Primitives (lines, rectangle, path, arc, circle ...)
@@ -71,7 +77,7 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_new_path(cairo_t* ctx);
 | | void cairo_close_path(cairo_t* ctx);
 | | void cairo_move_to(cairo_t* ctx, double x, double y); | <code>void cairo_move_to(cairo_t* ctx,double x,double y){<br>&nbsp;&nbsp;// Add 0.5 for extra half-pixel accuracy<br>&nbsp;&nbsp;ctx->path.moveTo(x+0.5,y+0.5);<br>}</code> | void Painter::moveTo(double x, double y)
-| | void cairo_line_to(cairo_t* ctx, double x, double y);
+| | void cairo_line_to(cairo_t* ctx, double x, double y); | | Painter::lineTo()
 | | void cairo_arc(cairo_t* cr, double xc, double yc, double radius, double angle1, double angle2);
 | | void cairo_arc_negative(cairo_t* ctx, double xc, double yc, double radius, double angle1, double angle2);
 | | void cairo_select_font_face(cairo_t* ctx, const char* family, cairo_font_slant_t slant, cairo_font_weight_t weight);
@@ -83,3 +89,18 @@ cairo draws onto surface(image), than this surface attached to widget render are
 | | void cairo_set_source_rgba(cairo_t* ctx, double r, double g, double b, double a);
 | | void cairo_surface_destroy(QImage* surface);
 | | void cairo_destroy(cairo_t* cairo);
+
+## QPainter SW render optimization
+<span style="color:red">
+QPainter when drawing into target device as QImage is software renderer.
+To make SW renderer optimal, we could do batch. QPainter has batch function for lines QPainter::drawLines(), where we could group lines by style(color + width + cap).
+To optimize rendering many rectangles (filled or stroked) we could try to imitate drawing multiple shapes with QPainterPath. So we group several rectangle by similar style and draw it with one draw call.
+</span>
+
+  ## QPainter HW render optimization
+
+<span style="color:red">
+    Note: batching optimization we did for SW render will be usefull here too.
+  By changing target render device for QPainter from QImage to FBO, we could get HW accelerated drawing.
+  The only thing to refactor here is to render objects in specific stage (when gl context is active), also we need do gl initialization.
+</span>
