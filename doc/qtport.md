@@ -20,7 +20,7 @@ Components:
 
 we need Intermediate (Qt-compat layer) to keep API close to original as much as possible to provide smooth port process
 
-## GTK CAIRO -> QPainter mapping
+## GTK CAIRO -> QPainter mapping/porting
 
 <span style="color:red">There are two main parts cairo_t and 
 cairo_surface_t.
