@@ -465,7 +465,37 @@ QObject::connect(drawing_area_widget, &DrawingAreaWidget::sizeChanged, this, [](
 ## GTK Widgets to Qt Widgets
 TODO
 
+## ETA
+### milestone 1: EZGL to Qt
+| Component | ETA (days) | Comment |
+| - | - | - |
+| Scene | 5 | cairo and cairo_surface |
+| Application class | 1 |  |
+| Window class | 1 |  |
+| Drawing Surface class | 1 |  |
+| UI Widgets | 5 |  |
+| Connections | 2 | Callbacks, g_signal_connect |
+| Logs | 1 | g_log | 
+| Stress Benchmark | 1 | Write example benchmark application to stresstest GTK vs Qt with all primitives types
+| Move out GTK | 2 | Removing commented sections of code responsible to GTK
+| Polish | 3 | Final code cleanup |
+| Code comments | 3 |
+| Total: | 25 
 
+### milestone 2: Vpr to Qt
+| Component | ETA (days) | Comment |
+| - | - | - |
+| Move VPR to Qt | 4? |
+| Code comments | 1 | 
+| Total:| 5
+
+### milestone 3: Render Optimization
+| Component | ETA (days) | Comment |
+| - | - | - |
+| Batch optimization | 1 | This task could be performed out of Qt migration scope
+| OpenGL draw optimization | 3 | This task could be performed out of Qt migration scope
+| Total:| 4
+  
 ## Cairo Migration Roadmap
 
 ```mermaid
