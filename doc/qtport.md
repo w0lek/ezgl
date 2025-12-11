@@ -468,6 +468,7 @@ QObject::connect(drawing_area_widget, &DrawingAreaWidget::sizeChanged, this, [](
 | GObject | QObject | |
 | GtkGrid | QGridLayout | |
 | GtkWidget | QWidget | |
+| GtkWidget(label) | QLabel | |
 | GtkButton | QPushButton | |
 | GtkComboBoxText | QComboBox | |
 | GtkDialog | QDialog | |
