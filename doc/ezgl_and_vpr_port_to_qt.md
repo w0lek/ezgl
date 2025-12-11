@@ -537,5 +537,7 @@ flowchart TD
  ```
 ![qpainter.png](https://raw.githubusercontent.com/bucketio/img7/main/2025/12/11/1765470810652-7d652e40-0b0b-48ae-907d-d591c2368dd6.png 'qpainter.png')
 
+![ezgl_gtk.png](https://raw.githubusercontent.com/bucketio/img0/main/2025/12/11/1765470944447-8858b3bd-0d2c-47cf-981c-fad6ac68a782.png 'ezgl_gtk.png')
+
  
 
