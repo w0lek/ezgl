@@ -184,6 +184,7 @@ void renderer::draw_text(point2d point, std::string const &text, double bound_x,
 #endif 
 
 // common impl
+}
 ```
 So here, API remains the same, but implementation is different based on the selected toolkit (GTK or Qt).
 
