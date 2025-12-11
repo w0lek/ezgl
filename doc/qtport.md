@@ -1,4 +1,4 @@
-# EZGL Qt migration plan
+# EZGL/Vpr migration to Qt plan
 
 ## Goal:
 - to have a seamless incremental migration, where it is possible to validate the result (compare with the original GTK approach at each stage)
@@ -463,7 +463,19 @@ QObject::connect(drawing_area_widget, &DrawingAreaWidget::sizeChanged, this, [](
 ```
 
 ## GTK Widgets to Qt Widgets
-TODO
+| GTK | Qt | Comment |
+| - | - | - |
+| GObject | QObject | |
+| GtkGrid | QGridLayout | |
+| GtkWidget | QWidget | |
+| GtkButton | QPushButton | |
+| GtkComboBoxText | QComboBox | |
+| GtkDialog | QDialog | |
+| GtkApplication | QApplication | |
+| GdkWindow | QWindow | |
+
+**Note:**
+If Qt equivalent miss some functionality, we subclass it and implement missing functionality.
 
 ## ETA
 ### milestone 1: EZGL to Qt
