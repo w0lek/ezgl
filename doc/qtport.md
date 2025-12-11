@@ -411,7 +411,27 @@ void renderer::draw_line(point2d start, point2d end)
  }
 ```
 ## GTK Events to Qt events
-TODO
+### g_signals_connect -> QObject::connect
+| GTK | Qt | 
+| - | - |
+|   g_signal_connect(main_canvas, "button_press_event", G_CALLBACK(press_mouse), application); | QObject::connect(main_canvas, &Canvas::mouseButtonPress, application, &Application::onMouseButtonPress) |
+| g_signal_connect(zoom_fit_button, "clicked", G_CALLBACK(press_zoom_fit), application); | QObject::connect(zoom_fit_button, &QPushButton::clicked, application, &Application::press_zoom_fit);
+
+### QObject::connect to callback
+```code
+void customZoomFitPressCallbackFn(Application* app, const QString& msg) {
+  /* custom logic here */
+  app->print_msg("run **custom** zoomFitPressCallbackFn");
+  app->press_zoom_fit();
+}
+QObject::connect(zoom_fit_button, &QPushButton::clicked, application, [&application](){
+  customZoomFitPressCallbackFn(application, "zoom_fit_button clicked");
+});
+```
+### override virtual interface in QWidget
+```code
+
+```
 
 ## GTK Widgets to Qt Widgets
 TODO
