@@ -296,14 +296,10 @@ GObject *application::get_object(gchar const *name) const
   return object;
 }
 
-#ifdef HIDE_GTK_EVENT
-int application::run(setup_callback_fn initial_setup_user_callback)
-#else // HIDE_GTK_EVENT
 int application::run(setup_callback_fn initial_setup_user_callback,
     mouse_callback_fn mouse_press_user_callback,
     mouse_callback_fn mouse_move_user_callback,
     key_callback_fn key_press_user_callback)
-#endif // HIDE_GTK_EVENT
 {
 #ifdef EZGL_QT
   startup();
@@ -314,11 +310,9 @@ int application::run(setup_callback_fn initial_setup_user_callback,
     return 0;
 
   initial_setup_callback = initial_setup_user_callback;
-#ifndef HIDE_GTK_EVENT
   mouse_press_callback = mouse_press_user_callback;
   mouse_move_callback = mouse_move_user_callback;
   key_press_callback = key_press_user_callback;
-#endif // #ifndef HIDE_GTK_EVENT
 
   if(first_run) {
     // set the first_run flag to false

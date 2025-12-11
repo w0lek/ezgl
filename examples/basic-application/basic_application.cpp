@@ -29,6 +29,11 @@
 #include "ezgl/application.hpp"
 #include "ezgl/graphics.hpp"
 
+#ifdef EZGL_QT
+#include <QMouseEvent>
+#include <QKeyEvent>
+#endif
+
 //FUNCTION DECLARATIONS
 
 /**
@@ -70,16 +75,20 @@ void create_dialog_button_cbk(GtkWidget *widget, ezgl::application *application)
 void create_mssg_button_cbk(GtkWidget* widget, ezgl::application *application);
 void dialog_cbk(GtkDialog* self, gint response_id, ezgl::application* app);
 
-#ifndef HIDE_GTK_EVENT
 /**
  * EVENT CALLBACK FUNCTIONS
  * 
  * These functions run whenever their corresponding event (key press, mouse move, or mouse click) occurs.
  */
+#ifdef EZGL_QT
+void act_on_mouse_press(ezgl::application *application, QMouseEvent *event);
+void act_on_mouse_move(ezgl::application *application, QMouseEvent *event);
+void act_on_key_press(ezgl::application *application, QKeyEvent *event);
+#else
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_mouse_move(ezgl::application *application, GdkEventButton *event, double x, double y);
 void act_on_key_press(ezgl::application *application, GdkEventKey *event, char *key_name);
-#endif // #ifndef HIDE_GTK_EVENT
+#endif
 
 static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
 
@@ -130,11 +139,7 @@ int main(int argc, char **argv)
   // connect added widgets to their callback functions.
   // Those callbacks are optional, so we can pass nullptr if
   // we don't need to take any action on those events
-#ifdef EZGL_QT
-  return application.run(initial_setup);
-#else
   return application.run(initial_setup, act_on_mouse_press, act_on_mouse_move, act_on_key_press);
-#endif
 }
 
 /**
@@ -663,12 +668,50 @@ void dialog_cbk(GtkDialog* self, gint response_id, ezgl::application* app){
   gtk_widget_destroy(GTK_WIDGET(self));
 }
 
-#ifndef HIDE_GTK_EVENT
 /**
  * Function to handle mouse press event
  * The current mouse position in the main canvas' world coordinate system is returned
  * A pointer to the application and the entire GDK event are also returned
  */
+#ifdef EZGL_QT
+void act_on_mouse_press(ezgl::application *application, QMouseEvent *event)
+{
+  application->update_message("Mouse Clicked");
+
+  std::cout << "User clicked the ";
+
+  switch (event->button()) {
+  case Qt::LeftButton:
+    std::cout << "left ";
+    break;
+  case Qt::MiddleButton:
+    std::cout << "middle ";
+    break;
+  case Qt::RightButton:
+    std::cout << "right ";
+    break;
+  default:
+    std::cout << "unhandled ";
+    break;
+  }
+
+  std::cout << "mouse button at coordinates (" << event->pos().x() << "," << event->pos().y() << ") ";
+
+  Qt::KeyboardModifiers keyMods = event->modifiers();
+
+  if ((keyMods & Qt::ControlModifier) && (keyMods & Qt::ShiftModifier)) {
+    std::cout << "with control and shift pressed ";
+  }
+  else if (keyMods & Qt::ControlModifier) {
+    std::cout << "with control pressed ";
+  }
+  else if (keyMods & Qt::ShiftModifier) {
+    std::cout << "with shift pressed ";
+  }
+
+  std::cout << std::endl;
+}
+#else // EZGL_QT
 void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, double x, double y)
 {
   application->update_message("Mouse Clicked");
@@ -693,26 +736,43 @@ void act_on_mouse_press(ezgl::application *application, GdkEventButton *event, d
 
   std::cout << std::endl;
 }
+#endif // EZGL_QT
 
 /**
  * Function to handle mouse move event
  * The current mouse position in the main canvas' world coordinate system is returned
  * A pointer to the application and the entire GDK event are also returned
  */
+#ifdef EZGL_QT
+void act_on_mouse_move(ezgl::application */*application*/, QMouseEvent *event)
+{
+  std::cout << "Mouse move at coordinates (" << event->pos().x() << "," << event->pos().y() << ") "<< std::endl;
+}
+#else
 void act_on_mouse_move(ezgl::application */*application*/, GdkEventButton */*event*/, double x, double y)
 {
   std::cout << "Mouse move at coordinates (" << x << "," << y << ") "<< std::endl;
 }
+#endif
 
 /**
  * Function to handle keyboard press event
  * The name of the key pressed is returned (0-9, a-z, A-Z, Up, Down, Left, Right, Shift_R, Control_L, space, Tab, ...)
  * A pointer to the application and the entire GDK event are also returned
  */
+#ifdef EZGL_QT
+void act_on_key_press(ezgl::application *application, QKeyEvent *event)
+{
+  application->update_message("Key Pressed");
+
+  std::cout << event->text().toStdString() <<" key is pressed" << std::endl;
+}
+#else
 void act_on_key_press(ezgl::application *application, GdkEventKey */*event*/, char *key_name)
 {
   application->update_message("Key Pressed");
 
   std::cout << key_name <<" key is pressed" << std::endl;
 }
-#endif // #ifndef HIDE_GTK_EVENT
+#endif
+

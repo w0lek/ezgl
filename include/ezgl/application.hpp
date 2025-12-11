@@ -68,17 +68,22 @@ using setup_callback_fn = void (*)(application *app, bool new_window);
  */
 using button_callback_fn = void (*)(GtkWidget *widget, application *app);
 
-#ifndef HIDE_GTK_EVENT
 /**
  * The signature of a user-defined callback function for mouse events
  */
+#ifdef EZGL_QT
+using mouse_callback_fn = void (*)(application *app, QMouseEvent *event);
+#else
 using mouse_callback_fn = void (*)(application *app, GdkEventButton *event, double x, double y);
-
+#endif
 /**
  * The signature of a user-defined callback function for keyboard events
  */
+#ifdef EZGL_QT
+using key_callback_fn = void (*)(application *app, QKeyEvent *event);
+#else
 using key_callback_fn = void (*)(application *app, GdkEventKey *event, char *key_name);
-#endif // #ifndef HIDE_GTK_EVENT
+#endif
 
 /**
  * The signature of a user-defined callback function for the combo-box "changed" signal
@@ -469,9 +474,6 @@ public:
    */
   void flush_drawing();
 
-#ifdef HIDE_GTK_EVENT
-  int run(setup_callback_fn initial_setup_user_callback);
-#else // HIDE_GTK_EVENT
   /**
    * Run the application.
    *
@@ -493,7 +495,6 @@ public:
       mouse_callback_fn mouse_press_user_callback,
       mouse_callback_fn mouse_move_user_callback,
       key_callback_fn key_press_user_callback);
-#endif // HIDE_GTK_EVENT
 
   /**
    * Destructor.
@@ -630,7 +631,7 @@ static void startup(GtkApplication *gtk_app, gpointer user_data);
 public:
   // The user-defined initial setup callback function
   setup_callback_fn initial_setup_callback;
-#ifndef HIDE_GTK_EVENT
+
   // The user-defined callback function for handling mouse press
   mouse_callback_fn mouse_press_callback;
 
@@ -639,7 +640,6 @@ public:
 
   // The user-defined callback function for handling keyboard press
   key_callback_fn key_press_callback;
-#endif // #ifndef HIDE_GTK_EVENT
 };
 
 /**
