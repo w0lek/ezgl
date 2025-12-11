@@ -593,10 +593,8 @@ private:
   GtkBuilder *m_builder;
 #endif // HIDE_GTK_BUILDER
 
-#ifndef HIDE_GTK_EVENT
   // The function to call when the application is starting up.
   connect_g_objects_fn m_register_callbacks;
-#endif // HIDE_GTK_EVENT
 
   // The collection of canvases added to the application.
   std::map<std::string, std::unique_ptr<canvas>> m_canvases;
