@@ -3,10 +3,56 @@
 ## Goal:
 - to have a seamless incremental migration, where it is possible to validate the result (compare with the original GTK approach at each stage)
 - to perform the GTK-to-Qt migration for each component individually
-  
-Below is flow chart, where EZGL is splited into a components.
 
 ```mermaid
+---
+title: Qt port flow
+---
+flowchart TD
+  split_to_components[Split app to components]
+  isolate_components[Isolate each component with unique macro]
+  do_we_have_component{Do we have component to port?}
+  select_component[Select component to port]
+  unhide_selected_component_code[Unhide selected component code by removing it's macro]
+  port[Port selected component to Qt]
+  map1to1[Map GTK/Cairo --> Qt types 1-to-1 whenever is possible]
+  qtimpl[Add proper Qt implementation under #ifdef EZGL_QT]
+  compile{Compiled?}
+  validate{Visual result ok?}
+  fix_and_polish[Fix and Polish]
+  cleanup_api[Cleanup API by remove types mapping layer]
+  drop_gtk[Drop GTK support or move it to separate project]
+
+  split_to_components --> isolate_components
+  isolate_components --> do_we_have_component
+  do_we_have_component -->|YES| select_component
+  do_we_have_component -->|NO| cleanup_api
+
+  select_component --> unhide_selected_component_code
+  
+  unhide_selected_component_code --> port 
+  
+  port --> map1to1
+  port --> qtimpl
+
+  map1to1 --> compile
+  qtimpl --> compile
+
+  compile-->|YES| validate  
+  compile-->|NO| port
+  
+  validate -->|YES| do_we_have_component
+  validate -->|NO| fix_and_polish
+  
+  fix_and_polish --> validate
+
+  cleanup_api -->|OPTIONALLY| drop_gtk
+```
+
+```mermaid
+---
+title: EZGL components
+---
 flowchart TD
   %% components
   component_scene[Scene]
@@ -148,6 +194,9 @@ So here, API remains the same, but implementation is different based on the sele
 <div style="display: flex; gap: 20px;">
 
 ```mermaid
+---
+title: GTK
+---
 flowchart TD
   cairo_t
   text
@@ -164,6 +213,9 @@ flowchart TD
   widget --> screen
  ```
 ```mermaid
+---
+title: Qt
+---
 flowchart TD
   qpainter[QPainter]
   text
@@ -187,6 +239,18 @@ flowchart TD
 **Note**: This step will not be redundant, since the remaining drawing-technology optimizations can be built on top of that API without major rewrites.
 
 **Future optimization:**
+```mermaid
+---
+title: Optimizations
+---
+flowchart TD
+  qpainter[QPainter API]
+  batching[QPainter API + batch]
+  opengl[QPainter API + batch + OpenGL]
+  
+  qpainter --> batching --> opengl
+```
+
   - batching primitives to draw batches with a shared style.
 We collect all objects and store them in a container, then sort them by style.
 Primitives of the same type and style are drawn in a single draw call (QPainter::drawLines() for lines, for filled rectangles we can try batching using QPainterPath)
@@ -198,6 +262,9 @@ Primitives of the same type and style are drawn in a single draw call (QPainter:
 2. All OpenGL calls must be made inside QOpenGLWidget::paintEvent(), so we must be able to store render objects in a container (this part will be handled during batching optimization).
 
 ```mermaid
+---
+title: Qt+OpenGL
+---
 flowchart TD
   qpainter[QPainter]
   text
@@ -290,6 +357,9 @@ flowchart TD
 # Cairo Migration Roadmap
 
 ```mermaid
+---
+title: Cairo Qt migration Progress
+---
 flowchart TD
   ezgl_frame_buildable_without_gtk[buildable without GTK/Cairo] -->
   basic_qapp[Basic QApplication] -->
@@ -299,7 +369,7 @@ flowchart TD
   cairo_draw_text[Cairo draw text] -->
   camera_translate_zoom[Camera: Translate/Zoom] -->
   draw_example_app[EZGL Qt Example application] -->
-  stress_test_benchmark[Stress test benchmark GTKvs QT on different primitive types and styles]
+  stress_test_benchmark[Stress test benchmark GTK vs Qt on different primitive types and styles]
 
   subgraph status [Done]
     ezgl_frame_buildable_without_gtk
@@ -311,34 +381,3 @@ flowchart TD
   end
  ```
 
-```mermaid
-flowchart TD
-  split_to_components[Split app to components]
-  do_we_have_component{Do we have component to port?}
-  select_component[Select component to port]
-  port[Port selected component to Qt]
-  map1to1[Map GTK/Cairo --> Qt types 1-to-1 whenever is possible]
-  qtimpl[Add proper Qt implementation under #ifdef EZGL_QT]
-  compile{Compiled?}
-  validate{Visual result ok?}
-  fix_and_polish[Fix and Polish]
-
-  split_to_components -->|NO| do_we_have_component
-  do_we_have_component -->|YES| select_component
-
-  select_component --> port 
-  
-  port --> map1to1
-  port --> qtimpl
-
-  map1to1 --> compile
-  qtimpl --> compile
-
-  compile-->|YES| validate  
-  compile-->|NO| port
-  
-  validate -->|YES| select_component
-  validate -->|NO| fix_and_polish
-  
-  fix_and_polish --> validate
-```
