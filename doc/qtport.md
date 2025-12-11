@@ -410,8 +410,11 @@ void renderer::draw_line(point2d start, point2d end)
   m_painter.stroke();
  }
 ```
+## GTK Events to Qt events
+TODO
 
 ## GTK Widgets to Qt Widgets
+TODO
 
 
 ## Cairo Migration Roadmap
