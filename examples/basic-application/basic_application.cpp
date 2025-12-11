@@ -175,7 +175,7 @@ void draw_main_canvas(ezgl::renderer *g)
 void initial_setup(ezgl::application *application, bool /*new_window*/)
 {
 #ifdef EZGL_QT
-
+  TODO;
 #else
   // Update the status bar message
   application->update_message("EZGL Application");

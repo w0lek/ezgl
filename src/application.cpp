@@ -210,7 +210,6 @@ application::application(application::settings s)
 #endif
 
 #ifdef EZGL_QT
-  // m_application = new QApplication(argc, argv);
   m_window = new QWidget;
   QVBoxLayout* layout = new QVBoxLayout;
   layout->setContentsMargins(0,0,0,0);
