@@ -124,7 +124,7 @@ flowchart TD
 
 
 ## Idea:
-- try to keep the API as close to the original as possible, because of this, a 1-to-1 mapping is preferable whenever possible. Put all mapping code into a separate file, as this is a temporary (intermediate) solution.
+- try to keep the API as close to the original as possible, because of this, a 1-to-1 mapping is preferable whenever possible. Put all mapping code into a separate file, as this is a temporary (R&D phase) solution.
 - If direct type mapping is not possible, add a proper Qt implementation. If implementing a feature is complex and can be postponed (not required for the main flow, e.g. exporting the scene to PDF), wrap it with a macro and hide it.
 - to get a buildable and runnable project ASAP, where the migration of each individual component will be easy to test (using the EZGL basic application from the examples).
     
@@ -294,7 +294,7 @@ flowchart TD
 
 # GTK/Cairo to Qt mapping
 ## enum
-| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final (Qt) | Role |
+| | Current (GTK-Cairo) | R&D (Qt-compat layer) | Final (Qt) | Role |
 |-|-|-|-|-|
 | | cairo_line_cap_t | using cairo_line_cap_t = Qt::PenCapStyle; | Qt::PenCapStyle
 | | CAIRO_LINE_CAP_BUTT | #define CAIRO_LINE_CAP_BUTT	Qt::FlatCap | Qt::FlatCap
@@ -307,13 +307,13 @@ flowchart TD
 
 ## Drawing Primitives (lines, rectangle, path, arc, circle ...)
 
-| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final (Qt) | Role |
+| | Current (GTK-Cairo) | R&D (Qt-compat layer) | Final (Qt) | Role |
 |-|-|-|-|-|
 | | cairo_t | <code>struct cairo_t {<br>public:<br>&nbsp;&nbsp;QPainter::RenderHints renderHints;<br>&nbsp;&nbsp;QImage* surface;<br>&nbsp;&nbsp;QColor color;<br>&nbsp;&nbsp;QPen pen;<br>&nbsp;&nbsp;QBrush brush;<br>&nbsp;&nbsp;QPainterPath path;<br>&nbsp;&nbsp;QFont font;<br>&nbsp;&nbsp;std::optional&lt;QTransform&gt; transform;<br>};</code> | <code>struct PainterContext {<br>public:<br>&nbsp;&nbsp;QPainter::RenderHints renderHints;<br><strike>&nbsp;&nbsp;QImage* surface;</strike>// will be part of DrawableAreaWidget<br>&nbsp;&nbsp;QColor color;<br>&nbsp;&nbsp;QPen pen;<br>&nbsp;&nbsp;QBrush brush;<br><strike>&nbsp;&nbsp;QPainterPath path;</strike> // -> becomes local to render call scope<br>&nbsp;&nbsp;QFont font;<strike><br>&nbsp;&nbsp;std::optional&lt;QTransform&gt; transform;</strike> // -> becomes local to render call scope<br>};</code> | Drawing object and context
 | | cairo_surface_t | QImage | | Surface to draw on |
 
 **QPainter specific (immediate drawing calls)**
-|| Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
+|| Current (GTK-Cairo) | R&D (Qt-compat layer) | Final(Qt) |
 |-|-|-|-|
 | | void cairo_fill(cairo_t* ctx); | void cairo_fill(cairo_t* ctx, Painter&); | void Painter::fill(); |
 | | void cairo_stroke(cairo_t* ctx); | void cairo_stroke(cairo_t* ctx, Painter&); | void Painter::stroke(); |
@@ -321,21 +321,21 @@ flowchart TD
 | | void cairo_set_source_surface(cairo_t* cairo, cairo_surface_t* surface, double x, double y); | void cairo_set_source_surface(cairo_t* cairo, QImage* surface, double x, double y, Painter&); | void Painter::setSourceSurface(QImage* surface, double x, double y); |
 
 **QTransform specific**
-| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) |
+| | Current (GTK-Cairo) | R&D (Qt-compat layer) | Final(Qt) |
 |-|-|-|-|
 | | void cairo_save(cairo_t* ctx); | void cairo_save(cairo_t* ctx); | void Painter::save()
 | | void cairo_restore(cairo_t* ctx); | void cairo_restore(cairo_t* ctx); | void Painter::restore
 | | void cairo_scale(cairo_t* ctx, double sx, double sy); | void cairo_scale(cairo_t* ctx, double sx, double sy); | void Painter::scale(double sx, double sy) |
 
 **Text specific**
-| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) | Role |
+| | Current (GTK-Cairo) | R&D (Qt-compat layer) | Final(Qt) | Role |
 |-|-|-|-|-|
 | | cairo_text_extents_t | <code>struct cairo_text_extents_t {<br>&nbsp;&nbsp;double x_bearing;<br>&nbsp;&nbsp;double y_bearing;<br>&nbsp;&nbsp;double width;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double x_advance;<br>&nbsp;&nbsp;double y_advance;<br>};</code> | See row below. | Describes how text is positioned <br> and how much space it occupies
 | | void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents); | <code>void cairo_text_extents(cairo_t* ctx, const char* utf8, cairo_text_extents_t* extents)<br>{<br>&nbsp;&nbsp;QString text = QString::fromUtf8(utf8);<br>&nbsp;&nbsp;QFontMetricsF fm(ctx->font);<br><br>&nbsp;&nbsp;// QRectF is given in logical coords, origin at baseline (like Cairo)<br>&nbsp;&nbsp;QRectF br = fm.boundingRect(text);<br><br>&nbsp;&nbsp;extents->x_bearing = br.x();<br>&nbsp;&nbsp;extents->y_bearing = br.y();<br>&nbsp;&nbsp;extents->width&nbsp;&nbsp;&nbsp;&nbsp;= br.width();<br>&nbsp;&nbsp;extents->height&nbsp;&nbsp;&nbsp;= br.height();<br><br>&nbsp;&nbsp;// Advance: how much the current point moves along the baseline<br>&nbsp;&nbsp;extents->x_advance = fm.horizontalAdvance(text);<br>&nbsp;&nbsp;extents->y_advance = 0.0; // Qt horizontal layout, so y-advance is 0<br>}</code> | <code>class TextExtents {<br>&nbsp;&nbsp;public:<br>&nbsp;&nbsp;TextExtents(const QFont& font, const char* utf8) {<br>&nbsp;&nbsp;&nbsp;&nbsp;QString text = QString::fromUtf8(utf8);<br>&nbsp;&nbsp;&nbsp;&nbsp;QFontMetricsF fm(font);<br>&nbsp;&nbsp;&nbsp;&nbsp;QRectF br = fm.boundingRect(text);<br>&nbsp;&nbsp;&nbsp;&nbsp;x_bearing = br.x();<br>&nbsp;&nbsp;&nbsp;&nbsp;y_bearing = br.y();<br>&nbsp;&nbsp;&nbsp;&nbsp;width&nbsp;&nbsp;&nbsp;&nbsp;= br.width();<br>&nbsp;&nbsp;&nbsp;&nbsp;height&nbsp;&nbsp;&nbsp;= br.height();<br>&nbsp;&nbsp;&nbsp;&nbsp;x_advance = fm.horizontalAdvance(text);<br>&nbsp;&nbsp;&nbsp;&nbsp;y_advance = 0.0;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;double x_bearing;<br>&nbsp;&nbsp;double y_bearing;<br>&nbsp;&nbsp;double width;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double x_advance;<br>&nbsp;&nbsp;double y_advance;<br>};</code> | 
 | | cairo_font_extents_t | <code>struct cairo_font_extents_t {<br>&nbsp;&nbsp;double ascent;<br>&nbsp;&nbsp;double descent;<br>&nbsp;&nbsp;double height;<br>&nbsp;&nbsp;double max_x_advance;<br>&nbsp;&nbsp;double max_y_advance;<br>};</code> | <code>class FontMetrics : public QFontMetricsF {<br>&nbsp;&nbsp;public:<br>&nbsp;&nbsp;int maxHorizontalAdvance();<br>&nbsp;&nbsp;int maxVerticalAdvance();<br>};</code> |  Font size properties 
 
 **Rest of Cairo**
-| | Current (GTK-Cairo) | Intermediate (Qt-compat layer) | Final(Qt) | Role |
+| | Current (GTK-Cairo) | R&D (Qt-compat layer) | Final(Qt) | Role |
 |-|-|-|-|-|
 | | int cairo_image_surface_get_width(cairo_surface_t* surface); | <code>int cairo_image_surface_get_width(cairo_surface_t* surface){<br>&nbsp;&nbsp;return surface->width();<br>}</code> | int QImage::width()</code>;
 | | int cairo_image_surface_get_height(cairo_surface_t* surface); | | int QImage::height();
@@ -355,7 +355,7 @@ flowchart TD
 | | void cairo_surface_destroy(cairo_surface_t* surface); | | OBSOLETE (QImage will not be raw pointer)
 | | void cairo_destroy(cairo_t* cairo); | | OBSOLETE (Painter will not be raw pointer)
 
-**Note**: moving from intermediate to final doesn't require significant code change:
+**Note**: moving from R&D phase to final doesn't require significant code change:
 Example:
 
 ## Original code
@@ -374,7 +374,7 @@ Example:
   cairo_stroke(m_cairo);
 ```
 
-## Intermediate code (contains cairo structure mapping)
+## R&D code (contains cairo structure mapping)
 
 ```code
 void renderer::draw_line(point2d start, point2d end)
