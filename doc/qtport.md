@@ -354,6 +354,63 @@ flowchart TD
 | | void cairo_surface_destroy(cairo_surface_t* surface); | | OBSOLETE (QImage will not be raw pointer)
 | | void cairo_destroy(cairo_t* cairo); | | OBSOLETE (Painter will not be raw pointer)
 
+**Note**: moving from intermediate to final doesn't require significant code change:
+Example:
+
+## Original code
+```code
+  // ...
+
+#ifdef EZGL_USE_X11
+  if(!transparency_flag && x11_display != nullptr) {
+    XDrawLine(x11_display, x11_drawable, x11_context, start.x, start.y, end.x, end.y);
+    return;
+  }
+#endif
+
+  cairo_move_to(m_cairo, start.x, start.y);
+  cairo_line_to(m_cairo, end.x, end.y);
+  cairo_stroke(m_cairo);
+```
+
+## Intermediate code (contains cairo structure mapping)
+
+```code
+void renderer::draw_line(point2d start, point2d end)
+{
+  // ...
+
+#ifdef EZGL_USE_X11
+  if(!transparency_flag && x11_display != nullptr) {
+    XDrawLine(x11_display, x11_drawable, x11_context, start.x, start.y, end.x, end.y);
+    return;
+  }
+#endif
+
+  cairo_move_to(m_cairo, start.x, start.y);
+  cairo_line_to(m_cairo, end.x, end.y);
+
+#ifdef EZGL_QT
+  {
+    Painter painter(m_cairo->surface);
+    cairo_stroke(m_cairo, painter);
+  }
+#else
+  cairo_stroke(m_cairo);
+#endif
+}
+```
+## Final code
+```code
+void renderer::draw_line(point2d start, point2d end)
+{
+  //...
+  m_painter.moveTo(start);
+  m_painter.lineTo(end);
+  m_painter.stroke();
+ }
+```
+
 # Cairo Migration Roadmap
 
 ```mermaid
