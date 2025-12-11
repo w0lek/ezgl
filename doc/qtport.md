@@ -411,7 +411,10 @@ void renderer::draw_line(point2d start, point2d end)
  }
 ```
 
-# Cairo Migration Roadmap
+## GTK Widgets to Qt Widgets
+
+
+## Cairo Migration Roadmap
 
 ```mermaid
 ---
@@ -424,7 +427,7 @@ flowchart TD
   basic_render_area_widget[Basic RenderAreaWidget] -->
   cairo_draw_primitives[Cairo draw geometric primitives] -->
   cairo_draw_text[Cairo draw text] -->
-  camera_translate_zoom[Camera: Translate/Zoom] -->
+  drawing_area[Drawing area: Resize/Translate/Zoom] -->
   draw_example_app[EZGL Qt Example application] -->
   stress_test_benchmark[Stress test benchmark GTK vs Qt on different primitive types and styles]
 
