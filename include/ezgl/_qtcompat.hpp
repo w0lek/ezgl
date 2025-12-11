@@ -263,7 +263,9 @@ using cairo_font_weight_t = QFont::Weight;
 // QPainter specific
 void cairo_fill(cairo_t* ctx, Painter&);
 void cairo_stroke(cairo_t* ctx, Painter&);
+[[deprecated("OBSOLETE")]]
 void cairo_paint(cairo_t* ctx, Painter&);
+[[deprecated("OBSOLETE")]]
 void cairo_set_source_surface(cairo_t* cairo, Image* surface, double x, double y, Painter&);
 // QPainter specific
 

@@ -310,3 +310,35 @@ flowchart TD
     cairo_draw_text
   end
  ```
+
+```mermaid
+flowchart TD
+  split_to_components[Split app to components]
+  do_we_have_component{Do we have component to port?}
+  select_component[Select component to port]
+  port[Port selected component to Qt]
+  map1to1[Map GTK/Cairo --> Qt types 1-to-1 whenever is possible]
+  qtimpl[Add proper Qt implementation under #ifdef EZGL_QT]
+  compile{Compiled?}
+  validate{Visual result ok?}
+  fix_and_polish[Fix and Polish]
+
+  split_to_components -->|NO| do_we_have_component
+  do_we_have_component -->|YES| select_component
+
+  select_component --> port 
+  
+  port --> map1to1
+  port --> qtimpl
+
+  map1to1 --> compile
+  qtimpl --> compile
+
+  compile-->|YES| validate  
+  compile-->|NO| port
+  
+  validate -->|YES| select_component
+  validate -->|NO| fix_and_polish
+  
+  fix_and_polish --> validate
+```
