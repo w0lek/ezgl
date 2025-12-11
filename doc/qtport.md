@@ -431,6 +431,34 @@ QObject::connect(zoom_fit_button, &QPushButton::clicked, application, [&applicat
 ### override virtual interface in QWidget
 ```code
 
+class DrawingAreaWidget final : public QWidget {
+// ...
+protected:
+  void paintEvent(QPaintEvent* event) override final;
+  void mousePressEvent(QMouseEvent* event) override final;
+  void mouseMoveEvent(QMouseEvent* event) override final;
+  void keyPressEvent(QKeyEvent* event) override final;
+```
+
+### custom signals
+```code
+class DrawingAreaWidget final : public QWidget {
+// ...
+signals:
+  void sizeChanged(const QSize& size);
+  
+protected:
+  void resizeEvent(QResizeEvent* event) override final {
+    emit sizeChanged(event->size());
+  }
+};
+
+// ..
+QObject::connect(drawing_area_widget, &DrawingAreaWidget::sizeChanged, this, [](const QSize& size) {
+  qInfo() << "DrawingAreaWidget got new size" << size;
+});
+// ..
+  
 ```
 
 ## GTK Widgets to Qt Widgets
