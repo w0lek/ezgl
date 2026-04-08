@@ -33,6 +33,10 @@
 #include "ezgl/qt/rhi_canvas_widget.hpp"
 #include "ezgl/qt/rhi_renderer.hpp"   // full type needed for unique_ptr destruction
 #endif
+#ifdef EZGL_OGL
+#include "ezgl/qt/ogl_canvas_widget.hpp"
+#include "ezgl/qt/ogl_renderer.hpp"   // full type needed for unique_ptr destruction
+#endif
 #else // EZGL_QT
 #include <gtk/gtk.h>
 #endif // EZGL_QT
@@ -426,6 +430,27 @@ void canvas::end_deferred_redraw_cycle()
 }
 #endif
 
+#if defined(EZGL_QT) && defined(EZGL_OGL)
+void canvas::ogl_begin_deferred_redraw_cycle()
+{
+  if (!m_ogl_widget)
+    return;
+
+  m_ogl_defer_redraw = true;
+  m_ogl_pending_redraw = false;
+}
+
+void canvas::ogl_end_deferred_redraw_cycle()
+{
+  if (!m_ogl_widget || !m_ogl_defer_redraw)
+    return;
+
+  m_ogl_defer_redraw = false;
+  if (m_ogl_pending_redraw || !m_ogl_has_drawn_frame || m_ogl_renderer)
+    redraw();
+}
+#endif
+
 int canvas::width() const
 {
   return gtk_widget_get_allocated_width(m_drawing_area);
@@ -442,6 +467,31 @@ void canvas::initialize(GtkWidget *drawing_area)
   g_return_if_fail(drawing_area != nullptr);
 
   m_drawing_area = drawing_area;
+
+#if defined(EZGL_QT) && defined(EZGL_OGL)
+  // ---- OGL path: OglWidget takes over from DrawingAreaWidget ----------------
+  if (OglWidget* ow = qobject_cast<OglWidget*>(drawing_area)) {
+    m_ogl_widget = ow;
+
+    ow->setPreResizeCallback([this]() {
+      // Nothing to end on the OGL path; kept for API symmetry.
+    });
+    ow->setResizeCallback([this](int w, int h) {
+      m_camera.update_widget(w, h);
+      if (m_ogl_defer_redraw) {
+        m_ogl_pending_redraw = true;
+      } else {
+        redraw();
+      }
+    });
+
+    if (ow->width() > 0 && ow->height() > 0)
+      m_camera.update_widget(ow->width(), ow->height());
+
+    g_info("canvas::initialize using OGL path.");
+    return;
+  }
+#endif // EZGL_QT && EZGL_OGL
 
 #if defined(EZGL_QT) && defined(EZGL_RHI)
   // ---- RHI path: RhiCanvasWidget takes over from DrawingAreaWidget ----------
@@ -537,6 +587,34 @@ void canvas::initialize(GtkWidget *drawing_area)
 
 void canvas::redraw()
 {
+#if defined(EZGL_QT) && defined(EZGL_OGL)
+  if (m_ogl_widget) {
+    using namespace std::placeholders;
+    QColor bg(m_background_color.red,
+               m_background_color.green,
+               m_background_color.blue,
+               m_background_color.alpha);
+
+    if (!m_ogl_renderer) {
+      m_ogl_renderer = std::make_unique<ogl_renderer>(
+          m_ogl_widget,
+          std::bind(&camera::world_to_screen, &m_camera, _1),
+          &m_camera,
+          bg);
+    } else {
+      m_ogl_renderer->begin_frame();
+    }
+
+    m_draw_callback(m_ogl_renderer.get());
+    m_ogl_renderer->flush();  // uploads geometry + MVP, calls widget->update()
+    m_ogl_defer_redraw = false;
+    m_ogl_pending_redraw = false;
+    m_ogl_has_drawn_frame = true;
+    g_info("The canvas will be redrawn (OGL path).");
+    return;
+  }
+#endif // EZGL_QT && EZGL_OGL
+
 #if defined(EZGL_QT) && defined(EZGL_RHI)
   if (m_rhi_widget) {
     using namespace std::placeholders;
@@ -589,6 +667,13 @@ void canvas::redraw()
 
 void canvas::redraw_camera_only()
 {
+#if defined(EZGL_QT) && defined(EZGL_OGL)
+  if (m_ogl_widget && m_ogl_renderer) {
+    m_ogl_renderer->flush_mvp_only();
+    g_info("The canvas MVP will be updated (camera-only OGL path).");
+    return;
+  }
+#endif
 #if defined(EZGL_QT) && defined(EZGL_RHI)
   if (m_rhi_widget && m_rhi_renderer) {
     // Geometry unchanged — only push a new world→NDC MVP to the widget.
@@ -597,7 +682,7 @@ void canvas::redraw_camera_only()
     return;
   }
 #endif
-  // No cached GPU geometry yet, or non-RHI path: fall back to full redraw.
+  // No cached GPU geometry yet, or non-GPU path: fall back to full redraw.
   redraw();
 }
 

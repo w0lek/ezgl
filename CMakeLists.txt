@@ -17,6 +17,13 @@ find_package(PkgConfig REQUIRED)
 # --------------------------------------------------------------------------
 option(EZGL_USE_RHI "Enable Qt RHI GPU renderer (requires Qt >= 6.7)" ON)
 
+# --------------------------------------------------------------------------
+# EZGL_USE_OGL — opt-in OpenGL 3.3 Core renderer via QOpenGLWidget.
+# Works on any Qt 6.x with OpenGL support (no Qt 6.7 requirement).
+# When both EZGL_USE_OGL and EZGL_USE_RHI are ON, OGL takes priority.
+# --------------------------------------------------------------------------
+option(EZGL_USE_OGL "Enable OpenGL 3.3 Core GPU renderer (requires Qt >= 6.2 with OpenGL)" ON)
+
 set(USE_QT 1)
 if(USE_QT)
     # Enable Qt automatic code generation
@@ -24,7 +31,7 @@ if(USE_QT)
     set(CMAKE_AUTOUIC ON)
     set(CMAKE_AUTORCC ON)
 
-    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Xml Svg)
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Xml Svg OpenGL OpenGLWidgets)
 
     if(NOT Qt6_FOUND)
       message(FATAL_ERROR "EZGL: Failed to find required Qt library (on debian/ubuntu try 'sudo apt-get install qt6-base-dev' to install)")
@@ -100,7 +107,9 @@ if(USE_QT)
         Qt6::Gui
         Qt6::Widgets
         Qt6::Xml
-        Qt6::Svg)
+        Qt6::Svg
+        Qt6::OpenGL
+        Qt6::OpenGLWidgets)
 
     # QT_MIGRATION_TODO, ASSERT_QT_MIGRATION_TODO
     target_compile_definitions(
@@ -241,6 +250,20 @@ if(USE_QT)
                 "ezgl: EZGL_USE_RHI=ON but Qt ${Qt6_VERSION} < 6.7 — "
                 "QRhiWidget unavailable.  Falling back to deferred_renderer.")
         endif()
+    endif()
+
+    # ---- OpenGL 3.3 Core renderer (optional, Qt >= 6.2) ---------------------
+    if(EZGL_USE_OGL)
+        message(STATUS "ezgl: Enabling OpenGL 3.3 Core renderer (Qt ${Qt6_VERSION})")
+
+        target_sources(${PROJECT_NAME} PRIVATE
+            include/ezgl/qt/ogl_canvas_widget.hpp
+            include/ezgl/qt/ogl_renderer.hpp
+            src/qt/ogl_canvas_widget.cpp
+            src/qt/ogl_renderer.cpp
+        )
+
+        target_compile_definitions(${PROJECT_NAME} PUBLIC EZGL_OGL)
     endif()
 
 else(USE_QT)

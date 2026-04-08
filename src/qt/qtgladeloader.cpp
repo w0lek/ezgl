@@ -6,6 +6,9 @@
 #ifdef EZGL_RHI
 #include "ezgl/qt/rhi_canvas_widget.hpp"
 #endif
+#ifdef EZGL_OGL
+#include "ezgl/qt/ogl_canvas_widget.hpp"
+#endif
 
 #include <QFile>
 #include <QWidget>
@@ -340,9 +343,11 @@ QWidget* QtGladeLoader::buildGtkBox(const QDomElement& objEl, QWidget* parent)
 
 QWidget* QtGladeLoader::buildGtkDrawingArea(const QDomElement& objEl, QWidget* parent)
 {
-  // Create the canvas with its final parent so QRhiWidget never exists as a
-  // transient top-level widget before layouts and visibility are applied.
-#ifdef EZGL_RHI
+  // Create the canvas with its final parent.
+  // Priority: OGL (works on any Qt6) → RHI (Qt 6.7+) → QPainter fallback.
+#ifdef EZGL_OGL
+  QWidget* w = new ezgl::OglWidget(parent);
+#elif defined(EZGL_RHI)
   QWidget* w = new ezgl::RhiCanvasWidget(parent);
 #else
   QWidget* w = new ezgl::DrawingAreaWidget(parent);

@@ -29,6 +29,9 @@
 #ifdef EZGL_RHI
 #include "ezgl/qt/rhi_canvas_widget.hpp"
 #endif
+#ifdef EZGL_OGL
+#include "ezgl/qt/ogl_canvas_widget.hpp"
+#endif
 #else // EZGL_QT
 #include <cairo.h>
 #include <cairo-pdf.h>
@@ -46,6 +49,9 @@ namespace ezgl {
 class renderer;
 #if defined(EZGL_QT) && defined(EZGL_RHI)
 class rhi_renderer;
+#endif
+#if defined(EZGL_QT) && defined(EZGL_OGL)
+class ogl_renderer;
 #endif
 
 /**
@@ -197,6 +203,17 @@ private:
   bool m_rhi_has_drawn_frame = false;
 #endif
 
+#ifdef EZGL_OGL
+  // Non-owning pointer to the OGL drawing widget (set when EZGL_OGL is active).
+  OglWidget *m_ogl_widget = nullptr;
+  // Owning OGL renderer — created on first redraw(), reused across frames.
+  std::unique_ptr<ogl_renderer> m_ogl_renderer;
+  // Coalesce startup/show redraws so large geometry is uploaded once.
+  bool m_ogl_defer_redraw = false;
+  bool m_ogl_pending_redraw = false;
+  bool m_ogl_has_drawn_frame = false;
+#endif
+
 #ifdef EZGL_QT
   // Renders the canvas into an off-screen QImage; shared by print_pdf/print_svg/print_png.
   QImage render_to_image(int surface_width, int surface_height);
@@ -213,6 +230,10 @@ private:
 #ifdef EZGL_RHI
   void begin_deferred_redraw_cycle();
   void end_deferred_redraw_cycle();
+#endif
+#ifdef EZGL_OGL
+  void ogl_begin_deferred_redraw_cycle();
+  void ogl_end_deferred_redraw_cycle();
 #endif
 };
 }

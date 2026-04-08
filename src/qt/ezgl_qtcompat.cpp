@@ -5,6 +5,9 @@
 #ifdef EZGL_RHI
 #include <ezgl/qt/rhi_canvas_widget.hpp>
 #endif
+#ifdef EZGL_OGL
+#include <ezgl/qt/ogl_canvas_widget.hpp>
+#endif
 #include <ezgl/callback.hpp>
 
 #include <QPainter>
@@ -103,8 +106,12 @@ Application* gtk_application_new(const char* appName, int& argc, char** argv)
 // }
 
 bool Application::notify(QObject* obj, QEvent* event) {
-    // Accept events from either widget type (QPainter path or RHI path).
+    // Accept events from any canvas widget type (OGL, RHI, or QPainter).
     QWidget* w = qobject_cast<ezgl::DrawingAreaWidget*>(obj);
+#ifdef EZGL_OGL
+    if (!w)
+      w = qobject_cast<ezgl::OglWidget*>(obj);
+#endif
 #ifdef EZGL_RHI
     if (!w)
       w = qobject_cast<ezgl::RhiCanvasWidget*>(obj);
