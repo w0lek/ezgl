@@ -167,6 +167,14 @@ public:
     void set_mvp_only(const QMatrix4x4& world_to_ndc,
                       const rectangle&  visible_world);
 
+    /**
+     * Update the camera MVP and overlay image without re-uploading tile geometry.
+     * Call after pan/zoom to refresh text/arc overlay rendered by QPainter.
+     */
+    void set_mvp_and_overlay(const QMatrix4x4& world_to_ndc,
+                             const rectangle&  visible_world,
+                             const QImage&     overlay);
+
     /** Register a callback invoked on every resize (mirrors DrawingAreaWidget). */
     void setResizeCallback(std::function<void(int,int)> cb);
 

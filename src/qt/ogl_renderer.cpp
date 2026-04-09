@@ -428,6 +428,8 @@ void ogl_renderer::draw_line(point2d start, point2d end)
         renderer::draw_line(start, end);
         return;
     }
+    if (m_skip_tile_writes)
+        return;
 
     const OglStyleIndex style_index = current_style_index();
 
@@ -450,6 +452,8 @@ void ogl_renderer::fill_rectangle(point2d start, point2d end)
         renderer::fill_rectangle(start, end);
         return;
     }
+    if (m_skip_tile_writes)
+        return;
     const point2d p0{std::min(start.x, end.x), std::min(start.y, end.y)};
     const point2d p1{std::max(start.x, end.x), std::max(start.y, end.y)};
     append_fill_rect_to_tiles(p0, p1, current_style_index());
@@ -473,6 +477,8 @@ void ogl_renderer::draw_rectangle(point2d start, point2d end)
         renderer::draw_rectangle(start, end);
         return;
     }
+    if (m_skip_tile_writes)
+        return;
 
     const point2d p0{std::min(start.x, end.x), std::min(start.y, end.y)};
     const point2d p1{std::max(start.x, end.x), std::max(start.y, end.y)};
@@ -535,6 +541,54 @@ void ogl_renderer::flush()
 void ogl_renderer::flush_mvp_only()
 {
     m_ogl_widget->set_mvp_only(compute_mvp(), get_visible_world());
+    m_ogl_widget->update();
+}
+
+// ---- begin_overlay_frame ---------------------------------------------------
+
+void ogl_renderer::begin_overlay_frame()
+{
+    if (m_overlay_painter.isActive())
+        m_overlay_painter.end();
+
+    const int w = std::max(1, m_ogl_widget->width());
+    const int h = std::max(1, m_ogl_widget->height());
+    if (m_overlay.width() != w || m_overlay.height() != h)
+        m_overlay = QImage(w, h, QImage::Format_ARGB32_Premultiplied);
+
+    m_overlay.fill(Qt::transparent);
+
+    m_overlay_painter.begin(&m_overlay);
+    m_overlay_painter.setAntialias(false);
+    m_overlay_painter.setSmoothPixmap(false);
+
+    // Reset renderer state so the draw callback sees clean defaults.
+    current_coordinate_system = WORLD;
+    rotation_angle             = 0.0;
+    horiz_justification        = justification::center;
+    vert_justification         = justification::center;
+    current_color              = {0, 0, 0, 255};
+    current_line_width         = 0;
+    current_line_cap           = line_cap::butt;
+    current_line_dash          = line_dash::none;
+    set_color(current_color);
+    set_line_width(current_line_width);
+    set_line_cap(current_line_cap);
+    set_line_dash(current_line_dash);
+
+    m_skip_tile_writes = true;
+}
+
+// ---- flush_overlay_and_mvp -------------------------------------------------
+
+void ogl_renderer::flush_overlay_and_mvp()
+{
+    m_skip_tile_writes = false;
+
+    if (m_overlay_painter.isActive())
+        m_overlay_painter.end();
+
+    m_ogl_widget->set_mvp_and_overlay(compute_mvp(), get_visible_world(), m_overlay);
     m_ogl_widget->update();
 }
 

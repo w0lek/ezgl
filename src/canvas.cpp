@@ -669,16 +669,24 @@ void canvas::redraw_camera_only()
 {
 #if defined(EZGL_QT) && defined(EZGL_OGL)
   if (m_ogl_widget && m_ogl_renderer) {
-    m_ogl_renderer->flush_mvp_only();
-    g_info("The canvas MVP will be updated (camera-only OGL path).");
+    // Re-render the overlay (text, arcs, screen-space primitives) with the
+    // updated camera transform, then push overlay + new MVP to the widget.
+    // Tile vertex data on the GPU is left unchanged.
+    m_ogl_renderer->begin_overlay_frame();
+    m_draw_callback(m_ogl_renderer.get());
+    m_ogl_renderer->flush_overlay_and_mvp();
+    g_info("The canvas MVP+overlay will be updated (camera-only OGL path).");
     return;
   }
 #endif
 #if defined(EZGL_QT) && defined(EZGL_RHI)
   if (m_rhi_widget && m_rhi_renderer) {
-    // Geometry unchanged — only push a new world→NDC MVP to the widget.
-    m_rhi_renderer->flush_mvp_only();
-    g_info("The canvas MVP will be updated (camera-only RHI path).");
+    // Re-render the overlay with the updated camera transform, then push
+    // overlay + new MVP to the widget. Tile vertex data is left unchanged.
+    m_rhi_renderer->begin_overlay_frame();
+    m_draw_callback(m_rhi_renderer.get());
+    m_rhi_renderer->flush_overlay_and_mvp();
+    g_info("The canvas MVP+overlay will be updated (camera-only RHI path).");
     return;
   }
 #endif

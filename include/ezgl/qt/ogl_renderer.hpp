@@ -67,6 +67,19 @@ public:
      */
     void flush_mvp_only();
 
+    /**
+     * Reset only the overlay painter for a camera-only redraw pass.
+     * Tile geometry writes are suppressed until flush_overlay_and_mvp().
+     * Call before re-invoking the draw callback to refresh overlay text/arcs.
+     */
+    void begin_overlay_frame();
+
+    /**
+     * Push the freshly re-rendered overlay and a new MVP to OglWidget.
+     * Tile vertex data on the GPU is unchanged.
+     */
+    void flush_overlay_and_mvp();
+
 private:
     static constexpr int kTileGridDimension = 256;
 
@@ -135,6 +148,9 @@ private:
 
     OglWidget*                    m_ogl_widget;
     QColor                        m_bg_color;
+
+    /** When true, WORLD-space tile writes are suppressed (overlay-only pass). */
+    bool                          m_skip_tile_writes = false;
 
     // Scene tiling metadata and CPU-side tile batches.
     rectangle                     m_scene_bounds;

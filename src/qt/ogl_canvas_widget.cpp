@@ -318,6 +318,17 @@ void OglWidget::set_mvp_only(const QMatrix4x4& world_to_ndc,
     // m_frame_dirty intentionally not set — vertex data is reused.
 }
 
+void OglWidget::set_mvp_and_overlay(const QMatrix4x4& world_to_ndc,
+                                     const rectangle&  visible_world,
+                                     const QImage&     overlay)
+{
+    m_pending_mvp           = world_to_ndc;
+    m_pending_visible_world = visible_world;
+    m_pending_overlay       = overlay;
+    m_mvp_dirty             = true;
+    // m_frame_dirty intentionally not set — tile vertex data is reused.
+}
+
 void OglWidget::setResizeCallback(std::function<void(int,int)> cb)
 {
     m_resize_cb = std::move(cb);
