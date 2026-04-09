@@ -349,9 +349,9 @@ struct TestCase {
 
 static const TestCase TESTS[] = {
     { "solid   ",       draw_solid,                           1'000, "draw_solid.png"    },
-    // { "variadic rects   ", draw_rectangles_variadic,         1'000, "bench_rects_variadic.png"    },
+    //{ "variadic rects   ", draw_rectangles_variadic,         1'000'000, "bench_rects_variadic.png"    },
     // { "variadic lines   ", draw_lines_variadic,         1'000, "bench_lines_variadic.png"    },
-    // { "solid lines   ",       draw_lines_solid,               1'000'000, "draw_solid_lines.png"    },
+    //{ "solid lines   ",       draw_lines_solid,               10'000'000, "draw_solid_lines.png"    },
     // { "solid rects   ",       draw_rectangles_solid,          1'000'000, "draw_solid_rects.png"    },
     // { "solid rects   ",       fill_rectangles_solid,          1'000'000, "draw_solid_rects.png"    },
     // { "variadic   ",       draw_variadic,               1'000, "bench_variadic.png"    },
