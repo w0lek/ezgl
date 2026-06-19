@@ -128,8 +128,8 @@ get_filename_component(_ezgl_qt_prefix "${Qt6_DIR}/../../.." ABSOLUTE)
 # format is versioned and tracks Qt; a stray older qsb on PATH can silently
 # emit shaders this Qt's RHI rejects at load time.
 find_program(EZGL_QSB_EXECUTABLE
-    NAMES qsb
-    HINTS "${_ezgl_qt_prefix}/bin"
+    NAMES qsb qsb-qt6
+    HINTS "${_ezgl_qt_prefix}/bin" "/usr/lib64/qt6/bin"
     NO_DEFAULT_PATH
     DOC "Path to the Qt Shader Baker executable (qsb)")
 
@@ -139,7 +139,7 @@ if(NOT EZGL_QSB_EXECUTABLE)
         "Install via aqt (https://github.com/miurahr/aqtinstall):\n"
         "  pip install aqtinstall\n"
         "  aqt install-qt linux desktop 6.9.3 linux_gcc_64 -m qtshadertools\n"
-        "Searched: ${_ezgl_qt_prefix}/bin/qsb (derived from Qt6_DIR=${Qt6_DIR})")
+        "Searched: ${_ezgl_qt_prefix}/bin and /usr/lib64/qt6/bin (derived from Qt6_DIR=${Qt6_DIR})")
 endif()
 
 set(EZGL_RHI_SHADER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/ezgl_rhi_shaders")
