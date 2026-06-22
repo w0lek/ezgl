@@ -128,8 +128,8 @@ get_filename_component(_ezgl_qt_prefix "${Qt6_DIR}/../../.." ABSOLUTE)
 # format is versioned and tracks Qt; a stray older qsb on PATH can silently
 # emit shaders this Qt's RHI rejects at load time.
 find_program(EZGL_QSB_EXECUTABLE
-    NAMES qsb
-    HINTS "${_ezgl_qt_prefix}/bin"
+    NAMES qsb qsb-qt6
+    HINTS "${_ezgl_qt_prefix}/bin" "/usr/lib64/qt6/bin"
     NO_DEFAULT_PATH
     DOC "Path to the Qt Shader Baker executable (qsb)")
 
@@ -139,7 +139,7 @@ if(NOT EZGL_QSB_EXECUTABLE)
         "Install via aqt (https://github.com/miurahr/aqtinstall):\n"
         "  pip install aqtinstall\n"
         "  aqt install-qt linux desktop 6.9.3 linux_gcc_64 -m qtshadertools\n"
-        "Searched: ${_ezgl_qt_prefix}/bin/qsb (derived from Qt6_DIR=${Qt6_DIR})")
+        "Searched: ${_ezgl_qt_prefix}/bin and /usr/lib64/qt6/bin (derived from Qt6_DIR=${Qt6_DIR})")
 endif()
 
 set(EZGL_RHI_SHADER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/ezgl_rhi_shaders")
@@ -183,18 +183,15 @@ math(EXPR _ezgl_shader_last_index "${_ezgl_shader_count} - 1")
 foreach(_ezgl_shader_index RANGE ${_ezgl_shader_last_index})
     list(GET EZGL_RHI_SHADER_SOURCES ${_ezgl_shader_index} _ezgl_shader_src)
     list(GET EZGL_RHI_SHADER_OUTPUTS ${_ezgl_shader_index} _ezgl_shader_out)
-    # --qt6 alone bakes GLSL 100es/120/150 + HLSL 50 + MSL 12. We add
-    # GLSL 330 explicitly so QRhi can pick a variant that supports the
-    # `layout(location = N)` qualifier on vertex inputs — without it the
-    # GLSL 150 variant strips the qualifiers and QRhi has to resolve
-    # attributes by name, which silently aliases the two `vec2 inMin/
-    # inMax` inputs of fill_rect (and the equivalent inputs in the thick
-    # / dashed line vertex shaders), producing stray-quad artefacts in
-    # the headless RHI readback.
+    # Do not bake GLSL 100es/120 variants: fill_rect.vert and arrow.vert use
+    # gl_VertexIndex plus integer operations, which require GLSL 130+ or
+    # GLSL ES 300+. Include GLSL 410 to match the requested GL 4.1 context,
+    # and GLSL 330 so explicit vertex input locations are available on common
+    # desktop GL contexts.
     add_custom_command(
         OUTPUT "${_ezgl_shader_out}"
         COMMAND "${EZGL_QSB_EXECUTABLE}"
-                --glsl "100 es,120,150,330"
+                --glsl "300 es,130,330,410"
                 --hlsl 50 --msl 12
                 -o "${_ezgl_shader_out}"
                 "${CMAKE_CURRENT_SOURCE_DIR}/shaders/${_ezgl_shader_src}"
