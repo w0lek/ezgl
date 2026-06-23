@@ -119,9 +119,6 @@ void application::init()
   QWidget *window = find_widget(m_window_id.c_str());
   window->show();
 
-  // Setup the default callbacks for the mouse and key events
-  register_default_events_callbacks(this);
-
   if(m_register_callbacks != nullptr) {
     m_register_callbacks(this);
   } else {
@@ -382,17 +379,6 @@ void application::schedule_initial_callback(std::function<void()> callback)
   // exec() begins pumping, even if the platform plugin (e.g. offscreen)
   // never delivers input events.
   QMetaObject::invokeMethod(this, std::move(callback), Qt::QueuedConnection);
-}
-
-void application::register_default_events_callbacks(ezgl::application *application)
-{
-  // Get a pointer to the main window GUI object by using its name.
-  std::string main_window_id = application->get_main_window_id();
-  QWidget *window = application->find_widget(main_window_id.c_str());
-
-  // Get a pointer to the main canvas GUI object by using its name.
-  std::string main_canvas_id = application->get_main_canvas_id();
-  QWidget *main_canvas = application->find_widget(main_canvas_id.c_str());
 }
 
 void application::register_default_buttons_callbacks(ezgl::application *application)

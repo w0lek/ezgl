@@ -679,9 +679,6 @@ private:
   // Called during application activation to setup the default callbacks for the prebuilt buttons
   static void register_default_buttons_callbacks(application *application);
 
-  // Called during application activation to setup the default callbacks for the mouse and key events
-  static void register_default_events_callbacks(application *application);
-
 public:
   // The user-defined initial setup callback function
   setup_callback_fn initial_setup_callback{nullptr};
