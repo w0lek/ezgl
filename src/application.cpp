@@ -224,19 +224,19 @@ bool application::notify(QObject* obj, QEvent* event)
 
     switch (event->type()) {
     case QEvent::KeyPress:
-        consumed = press_key(w, static_cast<QKeyEvent*>(event), this);
+        consumed = press_key(static_cast<QKeyEvent*>(event), this, w);
         break;
     case QEvent::MouseButtonPress:
-        consumed = press_mouse(w, static_cast<QMouseEvent*>(event), this);
+        consumed = press_mouse(static_cast<QMouseEvent*>(event), this, w);
         break;
     case QEvent::MouseButtonRelease:
-        consumed = release_mouse(w, static_cast<QMouseEvent*>(event), this);
+        consumed = release_mouse(static_cast<QMouseEvent*>(event), this, w);
         break;
     case QEvent::MouseMove:
-        consumed = move_mouse(w, static_cast<QMouseEvent*>(event), this);
+        consumed = move_mouse(static_cast<QMouseEvent*>(event), this, w);
         break;
     case QEvent::Wheel:
-        consumed = scroll_mouse(w, static_cast<QWheelEvent*>(event), this);
+        consumed = scroll_mouse(static_cast<QWheelEvent*>(event), this, w);
         break;
     default:
         break;
@@ -417,14 +417,14 @@ void application::register_default_buttons_callbacks(ezgl::application *applicat
   };
 
   const bool skip_notfound_report = true;
-  connect_if_present("ZoomFitButton", [application](){ press_zoom_fit(nullptr, application); });
-  connect_if_present("ZoomInButton",  [application](){ press_zoom_in(nullptr, application); }, skip_notfound_report);
-  connect_if_present("ZoomOutButton", [application](){ press_zoom_out(nullptr, application); }, skip_notfound_report);
-  connect_if_present("UpButton",      [application](){ press_up(nullptr, application); }, skip_notfound_report);
-  connect_if_present("DownButton",    [application](){ press_down(nullptr, application); }, skip_notfound_report);
-  connect_if_present("LeftButton",    [application](){ press_left(nullptr, application); }, skip_notfound_report);
-  connect_if_present("RightButton",   [application](){ press_right(nullptr, application); }, skip_notfound_report);
-  connect_if_present("ProceedButton", [application](){ press_proceed(nullptr, application); });
+  connect_if_present("ZoomFitButton", [application](){ press_zoom_fit(application); });
+  connect_if_present("ZoomInButton",  [application](){ press_zoom_in(application); }, skip_notfound_report);
+  connect_if_present("ZoomOutButton", [application](){ press_zoom_out(application); }, skip_notfound_report);
+  connect_if_present("UpButton",      [application](){ press_up(application); }, skip_notfound_report);
+  connect_if_present("DownButton",    [application](){ press_down(application); }, skip_notfound_report);
+  connect_if_present("LeftButton",    [application](){ press_left(application); }, skip_notfound_report);
+  connect_if_present("RightButton",   [application](){ press_right(application); }, skip_notfound_report);
+  connect_if_present("ProceedButton", [application](){ press_proceed(application); });
 
   // Connect the window's close (X button) to press_proceed so that closing
   // the window exits the event loop. Qt quits the event loop automatically
@@ -439,7 +439,7 @@ void application::register_default_buttons_callbacks(ezgl::application *applicat
 
     QObject::connect(application, &QApplication::lastWindowClosed,
                      application, [application](){
-      press_proceed(nullptr, application);
+      press_proceed(application);
     });
   }
 }
