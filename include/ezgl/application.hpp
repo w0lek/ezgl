@@ -577,7 +577,22 @@ public:
    */
   SwitchButton* find_switch_button(const char *name) const;
 
+  /**
+   * Hide a named widget in the loaded UI.
+   *
+   * Does nothing if no widget with that name exists.
+   *
+   * @param widgetName The objectName of the widget to hide.
+   */
   void hide_widget(const std::string& widgetName);
+
+  /**
+   * Show a named widget in the loaded UI.
+   *
+   * Does nothing if no widget with that name exists.
+   *
+   * @param widgetName The objectName of the widget to show.
+   */
   void show_widget(const std::string& widgetName);
 
   /**
@@ -612,6 +627,20 @@ public:
   void schedule_initial_callback(std::function<void()> callback);
 
 protected:
+  /**
+   * Intercept event delivery to route canvas input to the ezgl callbacks.
+   *
+   * When the receiver is an ezgl canvas widget (DrawingAreaWidget or
+   * RhiCanvasWidget), key, mouse, and wheel events are dispatched to the
+   * corresponding ezgl handlers (press_key, press_mouse, etc.). If a handler
+   * consumes the event, delivery stops and true is returned; otherwise, and for
+   * all other receivers, the event falls through to QApplication::notify.
+   *
+   * @param receiver The object the event is being delivered to.
+   * @param event The event being delivered.
+   * @return True if the event was consumed by an ezgl handler, otherwise the
+   *         result of the base-class implementation.
+   */
   bool notify(QObject* receiver, QEvent* event) override;
 
 private:
