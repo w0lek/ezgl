@@ -109,6 +109,13 @@ public:
     m_renderer_type = t;
   }
 
+  /**
+   * Get the currently selected rendering backend type.
+   *
+   * @return The active renderer_type.
+   *
+   * @see ezgl::renderer_type for the available backend types.
+   */
   renderer_type get_renderer_type() const
   {
     return m_renderer_type;
@@ -196,8 +203,13 @@ private:
   // Renders the canvas into an off-screen QImage; shared by print_pdf/print_svg/print_png.
   QImage render_to_image(int surface_width, int surface_height);
 
-  void begin_deferred_redraw_cycle();
-  void end_deferred_redraw_cycle();
+  /// Suspend redrawing on the active backend; no-op if no backend is active.
+  /// @see render_backend::suspend_redraw
+  void suspend_redraw();
+
+  /// Resume redrawing on the active backend, flushing any pending redraw; no-op
+  /// if no backend is active. @see render_backend::suspend_redraw
+  void resume_redraw();
 };
 }
 

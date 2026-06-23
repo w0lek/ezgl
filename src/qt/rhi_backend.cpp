@@ -45,10 +45,10 @@ void rhi_backend::redraw()
     m_draw_callback(m_renderer.get());
     m_renderer->flush();
 
-    m_defer_redraw        = false;
-    m_pending_redraw      = false;
-    m_pending_camera_only = false;
-    m_has_drawn_frame     = true;
+    m_is_redraw_suspended        = false;
+    m_is_redraw_requested        = false;
+    m_is_camera_update_requested = false;
+    m_has_drawn_frame            = true;
     q_debug("The canvas will be redrawn (RHI path).");
 }
 
@@ -56,30 +56,30 @@ void rhi_backend::redraw_camera_only()
 {
     if (m_renderer && m_has_drawn_frame) {
         m_renderer->flush_mvp_only();
-        m_pending_redraw      = false;
-        m_pending_camera_only = false;
-        m_has_drawn_frame     = true;
+        m_is_redraw_requested        = false;
+        m_is_camera_update_requested = false;
+        m_has_drawn_frame            = true;
         q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
         return;
     }
     redraw();
 }
 
-void rhi_backend::begin_deferred_redraw_cycle()
+void rhi_backend::suspend_redraw()
 {
-    m_defer_redraw        = true;
-    m_pending_redraw      = false;
-    m_pending_camera_only = false;
+    m_is_redraw_suspended        = true;
+    m_is_redraw_requested        = false;
+    m_is_camera_update_requested = false;
 }
 
-void rhi_backend::end_deferred_redraw_cycle()
+void rhi_backend::resume_redraw()
 {
-    if (!m_defer_redraw)
+    if (!m_is_redraw_suspended)
         return;
-    m_defer_redraw = false;
-    if (m_pending_redraw || !m_has_drawn_frame)
+    m_is_redraw_suspended = false;
+    if (m_is_redraw_requested || !m_has_drawn_frame)
         redraw();
-    else if (m_pending_camera_only)
+    else if (m_is_camera_update_requested)
         redraw_camera_only();
     else if (m_renderer)
         redraw();
@@ -92,12 +92,12 @@ void rhi_backend::on_resize(int w, int h)
     m_last_h = h;
 
     const bool can_reuse_geometry = size_changed && m_renderer && m_has_drawn_frame;
-    if (m_defer_redraw) {
+    if (m_is_redraw_suspended) {
         if (can_reuse_geometry)
-            m_pending_camera_only = true;
+            m_is_camera_update_requested = true;
         else {
-            m_pending_redraw      = true;
-            m_pending_camera_only = false;
+            m_is_redraw_requested        = true;
+            m_is_camera_update_requested = false;
         }
     } else if (can_reuse_geometry) {
         redraw_camera_only();

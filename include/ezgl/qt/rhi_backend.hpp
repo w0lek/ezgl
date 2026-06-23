@@ -16,26 +16,27 @@ class rhi_renderer;
  * @brief Qt RHI GPU-backed @ref render_backend implementation. Lifecycle
  * wrapper around @ref rhi_renderer.
  *
- * Owns a persistent @ref rhi_renderer plus the deferred-redraw scheduling
- * state (defer / pending flags) that previously lived in @c canvas. Calls
- * @ref rhi_renderer::flush() for full redraws and
- * @ref rhi_renderer::flush_mvp_only() for camera-only redraws.
+ * Owns a persistent @ref rhi_renderer plus the redraw-suspension scheduling
+ * state (the suspend flag and pending-redraw flags). Full redraws go through
+ * @ref rhi_renderer::flush() — the heavy path: it re-runs the draw callback and
+ * re-uploads scene geometry to the GPU. Camera-only redraws go through
+ * @ref rhi_renderer::flush_mvp_only(), which is cheap: it only updates the MVP
+ * transform on the GPU and reuses the existing geometry buffers.
  *
- * @par Defer / pending flag state machine
+ * @par Suspend / pending flag state machine
  * @code
- *   begin_deferred_redraw_cycle();   // m_defer_redraw = true
- *     redraw();                      // m_pending_redraw = true (no flush yet)
- *     redraw_camera_only();          // m_pending_camera_only = true
+ *   suspend_redraw();        // m_is_redraw_suspended = true
+ *     on_resize(w, h);       // sets m_is_redraw_requested or m_is_camera_update_requested
+ *                            //   (no flush while redrawing is suspended)
  *     ...
- *   end_deferred_redraw_cycle();     // m_defer_redraw = false; if any
- *                                    // pending, flush once (full beats
- *                                    // camera-only — if both set, full wins).
+ *   resume_redraw();         // m_is_redraw_suspended = false; if any pending,
+ *                            //   flush once (full beats camera-only).
  * @endcode
  *
- * Without the defer window, @ref redraw() and @ref redraw_camera_only()
- * dispatch immediately. The first call to either also flips
- * @c m_has_drawn_frame so subsequent resize events know whether the
- * scene has been initialised.
+ * @ref redraw() and @ref redraw_camera_only() always dispatch immediately;
+ * only resize-driven redraws are deferred while redrawing is suspended. The
+ * first draw flips @c m_has_drawn_frame so subsequent resize events know
+ * whether the scene has been initialised.
  *
  * @par Headless capture
  * @ref render_to_image() never touches the on-screen widget or its
@@ -54,26 +55,34 @@ public:
                 color            background_color);
     ~rhi_backend() override;
 
-    /// Full redraw. Within a defer cycle, sets @c m_pending_redraw and
-    /// returns immediately; otherwise calls @ref rhi_renderer::flush().
+    /// Full redraw: (re)create the @ref rhi_renderer if needed, run the draw
+    /// callback, and present a GPU frame via @ref rhi_renderer::flush(). Always
+    /// flushes immediately; it is not deferred while redrawing is suspended
+    /// (@ref suspend_redraw / @ref resume_redraw) — only @ref on_resize defers.
     void redraw() override;
 
-    /// Camera-only redraw. Within a defer cycle, sets
-    /// @c m_pending_camera_only; otherwise calls
-    /// @ref rhi_renderer::flush_mvp_only(). If a full redraw is also
-    /// pending, the full redraw wins (it produces a superset of the
-    /// camera-only result).
+    /// Camera-only redraw: if a frame has already been drawn, re-present with
+    /// the new MVP via @ref rhi_renderer::flush_mvp_only(); otherwise falls back
+    /// to a full @ref redraw(). Always flushes immediately; it is not deferred
+    /// while redrawing is suspended (@ref suspend_redraw / @ref resume_redraw) —
+    /// only @ref on_resize defers.
     void redraw_camera_only() override;
 
-    /// Open a defer window: coalesce multiple @ref redraw /
-    /// @ref redraw_camera_only calls into a single GPU frame on close.
-    void begin_deferred_redraw_cycle() override;
+    /// Suspend redrawing. While suspended, @ref on_resize records a pending
+    /// redraw instead of flushing, so a burst of show/resize events during
+    /// window setup coalesces into a single GPU frame at @ref resume_redraw().
+    /// Direct redraw() / redraw_camera_only() calls are unaffected and still
+    /// flush immediately.
+    void suspend_redraw() override;
 
-    /// Close the defer window and flush any pending redraw.
-    void end_deferred_redraw_cycle() override;
+    /// Resume redrawing and, if a redraw became pending while suspended, flush
+    /// once (a pending full redraw beats a camera-only one).
+    void resume_redraw() override;
 
-    /// Resize: re-create the rhi_renderer at the new dimensions and
-    /// remember the size so the next redraw uses it.
+    /// Resize notification: record the new size; while redrawing is suspended,
+    /// mark a pending redraw (camera-only if the geometry can be reused,
+    /// otherwise a full redraw) instead of flushing; otherwise redraw
+    /// immediately.
     void on_resize(int w, int h) override;
 
     /// Animation overlay renderer. Returns an immediate renderer painting
@@ -90,10 +99,10 @@ private:
     QColor                        m_bg_color;
     std::unique_ptr<rhi_renderer> m_renderer;
 
-    bool m_defer_redraw        = false;
-    bool m_pending_redraw      = false;
-    bool m_pending_camera_only = false;
-    bool m_has_drawn_frame     = false;
+    bool m_is_redraw_suspended        = false; ///< True between suspend_redraw() and resume_redraw(); while set, resize-driven redraws are recorded as pending instead of flushed (direct redraw() still flushes immediately).
+    bool m_is_redraw_requested        = false; ///< Set by on_resize() while redrawing is suspended: a full redraw is pending, to be flushed at resume_redraw().
+    bool m_is_camera_update_requested = false; ///< Set by on_resize() while redrawing is suspended: a camera-only redraw is pending, to be flushed at resume_redraw().
+    bool m_has_drawn_frame            = false; ///< Whether at least one frame has been drawn; lets resize events tell if the scene is initialised.
 
     int m_last_w = 0;
     int m_last_h = 0;

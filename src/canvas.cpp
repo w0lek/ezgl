@@ -246,16 +246,16 @@ renderer *canvas::create_animation_renderer()
   return nullptr;
 }
 
-void canvas::begin_deferred_redraw_cycle()
+void canvas::suspend_redraw()
 {
   if (m_backend)
-    m_backend->begin_deferred_redraw_cycle();
+    m_backend->suspend_redraw();
 }
 
-void canvas::end_deferred_redraw_cycle()
+void canvas::resume_redraw()
 {
   if (m_backend)
-    m_backend->end_deferred_redraw_cycle();
+    m_backend->resume_redraw();
 }
 
 } // namespace ezgl

@@ -116,10 +116,10 @@ void insert_grid_row(QGridLayout* layout, int insert_row)
 // Initializes every registered canvas against its drawing-area widget, shows
 // the main window, and wires up callbacks: the user-supplied setup_callbacks if
 // one was provided, otherwise the default button callbacks. The user's
-// initial_setup_callback is then invoked. Canvas drawing during this routine is
-// wrapped in a deferred-redraw cycle so the scene is built once and painted a
-// single time. Finally, any status-bar message queued before the StatusBar
-// widget existed is flushed.
+// initial_setup_callback is then invoked. Canvas redrawing is suspended across
+// this routine (suspend_redraw()/resume_redraw()) so the scene is built once and
+// painted a single time. Finally, any status-bar message queued before the
+// StatusBar widget existed is flushed.
 void application::init()
 {
   for(auto &c_pair : m_canvases) {
@@ -128,7 +128,7 @@ void application::init()
   }
 
   for (auto &c_pair : m_canvases)
-    c_pair.second->begin_deferred_redraw_cycle();
+    c_pair.second->suspend_redraw();
 
   // Resolve the main parent window by id.
   QWidget *window = find_widget(m_window_id.c_str());
@@ -145,7 +145,7 @@ void application::init()
     initial_setup_callback(this, true);
 
   for (auto &c_pair : m_canvases)
-    c_pair.second->end_deferred_redraw_cycle();
+    c_pair.second->resume_redraw();
 
   // Flush any status-bar message pushed before the StatusBar widget existed.
   // See update_message() for the deferral logic.
@@ -381,12 +381,12 @@ int application::run(setup_callback_fn initial_setup_user_callback,
   } else {
     // Subsequent stage: reuse the existing window.
     for (auto &c_pair : m_canvases)
-      c_pair.second->begin_deferred_redraw_cycle();
+      c_pair.second->suspend_redraw();
     m_window->show();
     if (initial_setup_callback != nullptr)
       initial_setup_callback(this, false);
     for (auto &c_pair : m_canvases)
-      c_pair.second->end_deferred_redraw_cycle();
+      c_pair.second->resume_redraw();
     q_debug("The event loop is now resuming.");
     return exec();
   }

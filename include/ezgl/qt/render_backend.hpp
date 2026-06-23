@@ -32,7 +32,17 @@ using draw_canvas_fn = void (*)(renderer*);
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.
-enum class renderer_type { immediate, deferred, rhi };
+enum class renderer_type {
+  /// Immediate-mode QPainter: every draw call executed synchronously
+  /// (@ref immediate_backend).
+  immediate,
+  /// QPainter with the deferred_renderer path: geometry recorded each frame and
+  /// replayed in batches grouped by pen/brush style, minimising QPainter state
+  /// changes vs the immediate path (@ref deferred_backend).
+  deferred,
+  /// Qt RHI GPU-accelerated backend; the default (@ref rhi_backend).
+  rhi
+};
 
 /// MSAA sample count for the rhi backend (both on-screen QRhiWidget and the
 /// offscreen render_to_image path use it; every QRhiGraphicsPipeline must
@@ -67,13 +77,14 @@ inline constexpr const char* renderer_type_name(renderer_type t) noexcept
  * selects the right implementation at @c set_renderer_type() time and
  * routes all redraw / resize / capture requests through this interface.
  *
- * Lifecycle pattern used by callers:
+ * Lifecycle pattern used by callers (optional; RHI only — others no-op):
  * @code
- *   backend->begin_deferred_redraw_cycle();  // optional: batch
- *     ...mutate state...
- *     backend->redraw();                     // or redraw_camera_only()
- *   backend->end_deferred_redraw_cycle();    // flushes pending
+ *   backend->suspend_redraw();   // hold show/resize-driven renders
+ *     ...show or resize the window; run initial setup...
+ *   backend->resume_redraw();    // flush the single pending render once
  * @endcode
+ * A direct @ref redraw() / @ref redraw_camera_only() is NOT held while
+ * redrawing is suspended — those dispatch immediately; only @ref on_resize defers.
  */
 class render_backend {
 public:
@@ -91,13 +102,23 @@ public:
     /// fall through to a full @ref redraw because they have no cache.
     virtual void redraw_camera_only() = 0;
 
-    /// Optional batching window. Multiple @ref redraw / @ref
-    /// redraw_camera_only calls between @c begin_ / @c end_ may coalesce
-    /// into a single GPU frame. Default impl is a no-op for backends
-    /// that don't benefit from batching.
-    virtual void begin_deferred_redraw_cycle() {}
-    /// @see begin_deferred_redraw_cycle
-    virtual void end_deferred_redraw_cycle() {}
+    /// Suspend redrawing around scene setup (optional; honoured only by RHI).
+    ///
+    /// suspend_redraw()/resume_redraw() bracket "show the window + run the user's
+    /// initial setup" so the RHI path produces exactly one correct GPU frame at
+    /// the end (@ref resume_redraw), instead of several premature or redundant
+    /// ones during window construction. (On RHI, resize events fired while the
+    /// window is shown are recorded as pending and flushed once at
+    /// @ref resume_redraw; see @ref rhi_backend.)
+    ///
+    /// Why only RHI: the QPainter backends (immediate/deferred) treat these as
+    /// no-ops, because @c QWidget::update() already defers to a single coalesced
+    /// paintEvent and their CPU paint is cheap and idempotent — Qt gives them
+    /// the same coalescing for free. RHI flushes straight to the GPU, so it
+    /// relies on the explicit suspend_redraw()/resume_redraw() bracket instead.
+    virtual void suspend_redraw() {}
+    /// @see suspend_redraw
+    virtual void resume_redraw() {}
 
     /// Resize notification. Backends recreate render targets / swap chains
     /// here as needed.
