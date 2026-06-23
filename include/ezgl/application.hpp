@@ -553,8 +553,28 @@ public:
    * @return The combo box, or nullptr if no widget of that name and type exists.
    */
   QComboBox* find_combo_box(const char *name) const;
+  /**
+   * Find a named QSpinBox in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @return The spin box, or nullptr if no widget of that name and type exists.
+   */
   QSpinBox* find_spin_box(const char *name) const;
+
+  /**
+   * Find a named QCheckBox in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @return The check box, or nullptr if no widget of that name and type exists.
+   */
   QCheckBox* find_check_box(const char *name) const;
+
+  /**
+   * Find a named SwitchButton in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @return The switch button, or nullptr if no widget of that name and type exists.
+   */
   SwitchButton* find_switch_button(const char *name) const;
 
   void hide_widget(const std::string& widgetName);
