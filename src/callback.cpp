@@ -59,12 +59,12 @@ bool press_key(QKeyEvent* event, application* app, QWidget* /*sender*/)
     app->key_press_callback(app, event, keyName.toStdString());
   }
 
-  // Return false (not handled) so the event propagates to other Qt
+  // Returns false (not handled) so the event propagates to other Qt
   // widgets. This is important since we grab keyboard events for the
   // whole main window. It can have unexpected effects though, such as
-  // Enter/Space being treated as a press on any focused button. Return
-  // true (event consumed) if you want to avoid that and don't have any
-  // widgets that need keyboard events.
+  // Enter/Space being treated as a press on any focused button. To avoid
+  // that, change this to return true (consuming the event) -- but only if
+  // no other widgets need keyboard events.
   return false;
 }
 
