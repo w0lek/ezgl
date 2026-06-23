@@ -111,6 +111,15 @@ void insert_grid_row(QGridLayout* layout, int insert_row)
 
 } // namespace
 
+// Finish bringing up the GUI after the .ui file has been loaded by run().
+//
+// Initializes every registered canvas against its drawing-area widget, shows
+// the main window, and wires up callbacks: the user-supplied setup_callbacks if
+// one was provided, otherwise the default button callbacks. The user's
+// initial_setup_callback is then invoked. Canvas drawing during this routine is
+// wrapped in a deferred-redraw cycle so the scene is built once and painted a
+// single time. Finally, any status-bar message queued before the StatusBar
+// widget existed is flushed.
 void application::init()
 {
   for(auto &c_pair : m_canvases) {
