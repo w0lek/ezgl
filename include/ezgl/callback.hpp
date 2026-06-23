@@ -53,7 +53,7 @@ bool scroll_mouse(QWidget* widget, QWheelEvent* event, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return Always true, indicating the event was handled.
  */
 bool press_zoom_fit(QWidget *widget, void* data);
 
