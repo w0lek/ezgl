@@ -62,11 +62,14 @@ const bool build_ui_from_file = true;
 class application;
 
 /**
- * The signature of a function that connects QObject to functions via signals.
+ * The signature of a function that connects UI widgets to user-defined callbacks.
  *
- * @see application::get_object.
+ * The function receives the running application, from which named widgets can be
+ * retrieved and wired to Qt signals via QObject::connect.
+ *
+ * @see application::find_widget
  */
-using connect_g_objects_fn = void (*)(application *app);
+using connect_widgets_fn = void (*)(application *app);
 
 /**
  * The signature of a setup callback function
@@ -139,16 +142,16 @@ public:
     std::string application_identifier;
 
     /**
-     * Specify the function that will connect GUI objects to user-defined callbacks.
+     * Specify the function that will connect UI widgets to user-defined callbacks.
      *
-     * GUI objects (QObject instances) can be retrieved from this application object. These objects can then be
-     * connected to specific Qt signals via QObject::connect.
+     * Named widgets can be retrieved from this application object (via find_widget or the typed find_* helpers) and
+     * then connected to specific Qt signals via QObject::connect.
      *
      * If not provided, application::register_default_buttons_callbacks function will be used, which assumes that the
      * UI has QPushButton widgets named "ZoomFitButton", "ZoomInButton", "ZoomOutButton", "UpButton", "DownButton",
      * "LeftButton", "RightButton", "ProceedButton"
      */
-    connect_g_objects_fn setup_callbacks;
+    connect_widgets_fn setup_callbacks;
 
     /**
      * Create the settings structure with default values
@@ -167,7 +170,7 @@ public:
      * Create the settings structure with user-defined values
      */
     settings(std::string m_resource, std::string w_identifier, std::string c_identifier, std::string a_identifier = "ezgl.app",
-        connect_g_objects_fn s_callbacks = nullptr)
+        connect_widgets_fn s_callbacks = nullptr)
     : main_ui_resource(m_resource), window_identifier(w_identifier), canvas_identifier(c_identifier), application_identifier(a_identifier),
       setup_callbacks(s_callbacks)
     {
@@ -587,7 +590,7 @@ private:
   QWidget* m_window{nullptr};
 
   // The function to call when the application is starting up.
-  connect_g_objects_fn m_register_callbacks{nullptr};
+  connect_widgets_fn m_register_callbacks{nullptr};
 
   // The collection of canvases added to the application.
   std::map<std::string, std::unique_ptr<canvas>> m_canvases;
