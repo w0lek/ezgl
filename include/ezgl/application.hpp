@@ -546,6 +546,12 @@ public:
    * @return The line edit, or nullptr if no widget of that name and type exists.
    */
   QLineEdit* find_line_edit(const char *name) const;
+  /**
+   * Find a named QComboBox in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @return The combo box, or nullptr if no widget of that name and type exists.
+   */
   QComboBox* find_combo_box(const char *name) const;
   QSpinBox* find_spin_box(const char *name) const;
   QCheckBox* find_check_box(const char *name) const;
