@@ -160,6 +160,11 @@ void application::init()
   q_debug("application::init successful.");
 }
 
+// Construct the application from its settings, storing the UI resource path and
+// the window/canvas/application identifiers and setting the Qt application name.
+// The UI file is deliberately NOT loaded here (see the note below): the
+// constructor may run as a static initializer, before .qrc resources are
+// registered, so loading is deferred to run().
 application::application(application::settings s, int& argc, char** argv)
     : QApplication(argc, argv)
     , m_main_ui(s.main_ui_resource)
@@ -181,6 +186,10 @@ application::application(application::settings s, int& argc, char** argv)
   first_run = true;
 }
 
+// Tear down the application in an order that is safe against Qt's deferred event
+// delivery: block signals, destroy the canvases (ending active Painters) while
+// the window still exists, then delete the main window before the base-class
+// destructor runs. See the inline notes for the rationale of each step.
 application::~application()
 {
   // Block signal delivery so lastWindowClosed (and any other signal) cannot
