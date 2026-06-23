@@ -530,6 +530,14 @@ public:
    */
   canvas *get_canvas(std::string const &canvas_id) const;
 
+  /**
+   * Find a named QPushButton in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @param skip_notfound_report If true, suppress the warning emitted when no
+   *        matching widget is found.
+   * @return The button, or nullptr if no widget of that name and type exists.
+   */
   QPushButton* find_push_button(const char *name, bool skip_notfound_report = false) const;
   QLineEdit* find_line_edit(const char *name) const;
   QComboBox* find_combo_box(const char *name) const;
