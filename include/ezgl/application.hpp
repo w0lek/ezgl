@@ -539,6 +539,12 @@ public:
    * @return The button, or nullptr if no widget of that name and type exists.
    */
   QPushButton* find_push_button(const char *name, bool skip_notfound_report = false) const;
+  /**
+   * Find a named QLineEdit in the loaded UI.
+   *
+   * @param name The objectName of the widget to look up.
+   * @return The line edit, or nullptr if no widget of that name and type exists.
+   */
   QLineEdit* find_line_edit(const char *name) const;
   QComboBox* find_combo_box(const char *name) const;
   QSpinBox* find_spin_box(const char *name) const;
