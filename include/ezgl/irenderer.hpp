@@ -24,26 +24,32 @@ typedef QImage surface;
 class camera;
 class Painter;
 
+/** Coordinate space a draw call is expressed in: WORLD units or SCREEN pixels. */
 enum t_coordinate_system { WORLD, SCREEN };
 
+/** How text is anchored relative to its draw point, horizontally and vertically. */
 enum class justification { center, left, right, top, bottom };
 
+/** Font posture, mapping onto the corresponding QFont styles. */
 enum class font_slant : int {
     normal  = QFont::StyleNormal,
     italic  = QFont::StyleItalic,
     oblique = QFont::StyleOblique
 };
 
+/** Font weight, mapping onto the corresponding QFont weights. */
 enum class font_weight : int {
     normal = QFont::Normal,
     bold   = QFont::Bold
 };
 
+/** How line ends are drawn, mapping onto Qt's pen cap styles. */
 enum class line_cap : int {
     butt  = Qt::FlatCap,
     round = Qt::RoundCap
 };
 
+/** Line dash pattern: solid (none) or a repeating 5-on/3-off dash. */
 enum class line_dash : int {
     none,
     asymmetric_5_3
