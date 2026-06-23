@@ -53,7 +53,7 @@ bool scroll_mouse(QWidget* widget, QWheelEvent* event, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return Always true, indicating the event was handled.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_zoom_fit(QWidget *widget, void* data);
 
@@ -63,7 +63,7 @@ bool press_zoom_fit(QWidget *widget, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_zoom_in(QWidget *widget, void* data);
 
@@ -73,7 +73,7 @@ bool press_zoom_in(QWidget *widget, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_zoom_out(QWidget *widget, void* data);
 
@@ -83,37 +83,37 @@ bool press_zoom_out(QWidget *widget, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_up(QWidget *widget, void* data);
 
 /**
- * React to the clicked up button
+ * React to the clicked down button
  *
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_down(QWidget *widget, void* data);
 
 /**
- * React to the clicked up button
+ * React to the clicked left button
  *
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_left(QWidget *widget, void* data);
 
 /**
- * React to the clicked up button
+ * React to the clicked right button
  *
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_right(QWidget *widget, void* data);
 
@@ -123,7 +123,7 @@ bool press_right(QWidget *widget, void* data);
  * @param widget The GUI widget where this event came from.
  * @param data A pointer to any user-specified data you passed in.
  *
- * @return FALSE to allow other handlers to see this event, too. TRUE otherwise.
+ * @return false to allow other handlers to see this event, too. true otherwise.
  */
 bool press_proceed(QWidget *widget, void* data);
 }
