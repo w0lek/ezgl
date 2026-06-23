@@ -250,7 +250,7 @@ public:
   /**
    * Deletes a button by its label (displayed text)
    * 
-   * @param the text of the button to delete
+   * @param button_text_to_destroy the text of the button to delete
    * @return whether the button was found and deleted
    *
    * The function assumes that the UI has a grid named "InnerGrid"
