@@ -50,6 +50,9 @@ bool disable_event_loop = false;
 
 namespace {
 
+// Return the QGridLayout of the UI's "InnerGrid" widget, where dynamically
+// created buttons are placed. Returns nullptr if the widget is missing or its
+// layout is not a QGridLayout.
 QGridLayout* inner_grid_layout(application const* app)
 {
   QWidget* inner_grid = app->find_widget("InnerGrid");
@@ -60,6 +63,9 @@ QGridLayout* inner_grid_layout(application const* app)
   return layout;
 }
 
+// Make room for a new row at insert_row by shifting every widget at or below
+// that row down by one. Widgets above insert_row are left in place. Used to
+// open a slot before inserting a dynamically created button.
 void insert_grid_row(QGridLayout* layout, int insert_row)
 {
   return_if_fail("insert_grid_row layout", layout != nullptr);
