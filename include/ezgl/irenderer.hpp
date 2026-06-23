@@ -15,6 +15,10 @@
 
 namespace ezgl {
 
+/**
+ * An in-memory image (QImage) that can be blitted onto the canvas via
+ * draw_surface(). Name retained from the original Cairo-based ezgl API.
+ */
 typedef QImage surface;
 
 class camera;
