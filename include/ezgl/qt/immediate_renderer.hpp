@@ -46,7 +46,7 @@ public:
 
     void update_renderer(Painter* painter, QImage* surface);
 
-    immediate_renderer(Painter* painter, transform_fn transform,
+    immediate_renderer(Painter* painter, world_to_screen_fn world_to_screen,
                        camera* cam, QImage* surface);
 };
 

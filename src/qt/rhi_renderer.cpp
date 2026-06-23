@@ -338,11 +338,11 @@ static QSize physical_overlay_size(QSize logical, qreal dpr)
 }
 
 rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
-                             transform_fn     transform,
+                             world_to_screen_fn     world_to_screen,
                              camera*          cam,
                              draw_callback_fn draw_callback,
                              QColor           bg_color)
-    : irenderer(nullptr, transform, cam, nullptr)
+    : irenderer(nullptr, world_to_screen, cam, nullptr)
     , m_rhi_widget(widget)
     , m_size(clamp_size({widget->width(), widget->height()}))
     , m_overlay_dpr(widget->devicePixelRatioF())
@@ -352,7 +352,7 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
     , m_overlay_painter(&m_overlay)
     , m_overlay_deferred(std::make_unique<deferred_renderer>(
           &m_overlay_painter,
-          std::move(transform),   // move the second copy into overlay renderer
+          std::move(world_to_screen),   // move the second copy into overlay renderer
           cam,
           &m_overlay))
 {
@@ -381,11 +381,11 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
 }
 
 rhi_renderer::rhi_renderer(QSize            size,
-                             transform_fn     transform,
+                             world_to_screen_fn     world_to_screen,
                              camera*          cam,
                              draw_callback_fn draw_callback,
                              QColor           bg_color)
-    : irenderer(nullptr, transform, cam, nullptr)
+    : irenderer(nullptr, world_to_screen, cam, nullptr)
     , m_rhi_widget(nullptr)
     , m_size(clamp_size(size))
     , m_overlay_dpr(1.0) // headless: caller passes raw pixel size, no DPR scaling
@@ -394,7 +394,7 @@ rhi_renderer::rhi_renderer(QSize            size,
     , m_overlay_painter(&m_overlay)
     , m_overlay_deferred(std::make_unique<deferred_renderer>(
           &m_overlay_painter,
-          std::move(transform),
+          std::move(world_to_screen),
           cam,
           &m_overlay))
 {

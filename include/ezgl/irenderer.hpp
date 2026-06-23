@@ -63,7 +63,8 @@ enum class line_dash : int {
  */
 class irenderer {
 public:
-    using transform_fn = std::function<point2d(point2d)>;
+    /** Maps a world-coordinate point to its screen-pixel position. */
+    using world_to_screen_fn = std::function<point2d(point2d)>;
 
     virtual ~irenderer() = default;
 
@@ -149,10 +150,10 @@ public:
     static void free_surface(surface* p_surface);
 
 protected:
-    irenderer(Painter* painter, transform_fn transform, camera* cam, QImage* surface);
+    irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam, QImage* surface);
 
     Painter*            m_painter{nullptr};
-    transform_fn        m_transform;
+    world_to_screen_fn  m_world_to_screen;
     camera*             m_camera{nullptr};
     t_coordinate_system current_coordinate_system = WORLD;
     color               current_color{0, 0, 0, 255};

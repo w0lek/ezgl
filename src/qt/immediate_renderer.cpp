@@ -9,10 +9,10 @@ namespace ezgl {
 // ---- construction ----------------------------------------------------------
 
 immediate_renderer::immediate_renderer(Painter* painter,
-                                       transform_fn transform,
+                                       world_to_screen_fn world_to_screen,
                                        camera* cam,
                                        QImage* surface)
-    : irenderer(painter, std::move(transform), cam, surface)
+    : irenderer(painter, std::move(world_to_screen), cam, surface)
 {}
 
 // ---- painter update --------------------------------------------------------
