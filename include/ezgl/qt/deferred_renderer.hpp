@@ -97,32 +97,35 @@ struct DeferredPainterState {
     QFont               font;                                ///< Font for text commands.
 };
 
+/// A deferred (elliptic) arc, stroked or filled, replayed during flush.
 struct DeferredArcCommand {
-    DeferredPainterState state;
-    point2d              center;
-    double               radius_x = 0.0;
-    double               radius_y = 0.0;
-    double               start_angle = 0.0;
-    double               extent_angle = 0.0;
-    bool                 fill = false;
+    DeferredPainterState state;             ///< Painter state captured at record time.
+    point2d              center;            ///< Arc center.
+    double               radius_x = 0.0;    ///< Horizontal radius.
+    double               radius_y = 0.0;    ///< Vertical radius (== radius_x for a circle).
+    double               start_angle = 0.0; ///< Start angle, degrees CCW from +x.
+    double               extent_angle = 0.0;///< Angular sweep, degrees.
+    bool                 fill = false;      ///< True fills the wedge, false strokes the arc.
 };
 
+/// A deferred text string, replayed during flush.
 struct DeferredTextCommand {
-    DeferredPainterState state;
-    point2d              point;
-    std::string          text;
-    double               bound_x = 0.0;
-    double               bound_y = 0.0;
-    bool                 scale_font_with_camera = false;
-    double               recorded_world_scale = 1.0;
-    point2d              screen_offset_px = {0.0, 0.0};
+    DeferredPainterState state;        ///< Painter state captured at record time.
+    point2d              point;        ///< Anchor position (interpreted per state's coordinate system).
+    std::string          text;         ///< The string to draw.
+    double               bound_x = 0.0; ///< Max width; text is skipped if it exceeds this (DBL_MAX = unbounded).
+    double               bound_y = 0.0; ///< Max height; text is skipped if it exceeds this (DBL_MAX = unbounded).
+    bool                 scale_font_with_camera = false; ///< WORLD text: shrink the font as the view zooms out.
+    double               recorded_world_scale = 1.0;     ///< Camera world scale at record time, for the rescale ratio.
+    point2d              screen_offset_px = {0.0, 0.0};  ///< One-shot screen-pixel offset applied at replay.
 };
 
+/// A deferred image-surface blit, replayed during flush.
 struct DeferredSurfaceCommand {
-    DeferredPainterState state;
-    surface*             p_surface = nullptr;
-    point2d              anchor_point;
-    double               scale_factor = 1.0;
+    DeferredPainterState state;             ///< Painter state captured at record time.
+    surface*             p_surface = nullptr;///< Image to draw (not owned).
+    point2d              anchor_point;       ///< Anchor position, placed per the state's justification.
+    double               scale_factor = 1.0; ///< Uniform scale applied to the surface.
 };
 
 /**
