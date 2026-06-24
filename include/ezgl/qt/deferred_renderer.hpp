@@ -448,23 +448,37 @@ private:
                           double start_angle, double extent_angle, bool fill);
 
     // Batch vectors — maintain submission order for painter's algorithm.
-    std::vector<LineBatch>     m_line_batches;
-    std::vector<FillRectBatch> m_fill_rect_batches;
-    std::vector<DrawRectBatch> m_draw_rect_batches;
-    std::vector<FillPolyBatch> m_fill_poly_batches;
+    std::vector<LineBatch>     m_line_batches;     ///< Line batches in submission order.
+    std::vector<FillRectBatch> m_fill_rect_batches; ///< Filled-rectangle batches in submission order.
+    std::vector<DrawRectBatch> m_draw_rect_batches; ///< Rectangle-outline batches in submission order.
+    std::vector<FillPolyBatch> m_fill_poly_batches; ///< Filled-polygon batches in submission order.
 
     // Fast lookup: style key → index into the vectors above.
-    std::unordered_map<uint64_t, size_t> m_line_idx;
-    std::unordered_map<uint64_t, size_t> m_fill_rect_idx;
-    std::unordered_map<uint64_t, size_t> m_draw_rect_idx;
-    std::unordered_map<uint64_t, size_t> m_fill_poly_idx;
+    std::unordered_map<uint64_t, size_t> m_line_idx;      ///< LineStyleKey → index into m_line_batches.
+    std::unordered_map<uint64_t, size_t> m_fill_rect_idx; ///< FillStyleKey → index into m_fill_rect_batches.
+    std::unordered_map<uint64_t, size_t> m_draw_rect_idx; ///< LineStyleKey → index into m_draw_rect_batches.
+    std::unordered_map<uint64_t, size_t> m_fill_poly_idx; ///< FillStyleKey → index into m_fill_poly_batches.
+
+    /// Recorded deferred commands (arcs/text/surfaces/arrow-triangles) in
+    /// submission order; an index into this vector identifies a command in the
+    /// spatial index and query buffers below.
     std::vector<DeferredCommand>  m_commands;
-    rectangle                            m_command_index_scene_bounds;
-    double                               m_command_index_tile_width = 1.0;
-    double                               m_command_index_tile_height = 1.0;
+
+    // ---- command spatial index (world-space commands only) -----------------
+    rectangle m_command_index_scene_bounds;       ///< World rectangle the index grid spans.
+    double    m_command_index_tile_width = 1.0;   ///< Grid tile width in world units.
+    double    m_command_index_tile_height = 1.0;  ///< Grid tile height in world units.
+    /// Per-tile buckets of world-command indices (row-major over the grid); a
+    /// command is listed in every tile its bounds overlap.
     std::vector<std::vector<std::uint32_t>> m_indexed_world_command_buckets;
+    /// Indices of SCREEN-space commands, which aren't indexed by world position
+    /// and are therefore always treated as candidates during a query.
     std::vector<std::uint32_t>           m_unindexed_commands;
+    /// Per-command "last query that touched it" stamps, used to deduplicate a
+    /// command that several overlapping queried tiles all reference.
     std::vector<std::uint32_t>           m_command_query_marks;
+    /// Stamp for the in-progress query; bumped each gather (wrapping past 0
+    /// resets the marks) so a single pass needn't clear m_command_query_marks.
     std::uint32_t                        m_command_query_generation = 1;
 
     // Persistent scratch reused by replay() across frames (see ReplayCache).
