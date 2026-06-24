@@ -159,9 +159,17 @@ using DeferredOverlayCommand =
  * instead of painting immediately. This buys two things over the immediate
  * renderer: draw calls are reordered to minimise QPainter pen/brush changes,
  * and the recorded frame can be re-drawn for a new camera without re-running
- * the application's draw callback (used by @ref rhi_renderer for camera-only
- * redraws). Used directly by @ref deferred_backend, and as the overlay/fallback
- * layer owned by @ref rhi_renderer.
+ * the application's draw callback.
+ *
+ * Two very different callers use it:
+ * - @ref deferred_backend renders an *entire* frame through it — every
+ *   primitive the application draws.
+ * - @ref rhi_renderer uses it only *partially*, as an **overlay layer**: the
+ *   bulk WORLD geometry is drawn on the GPU, and only the primitives the GPU
+ *   path doesn't handle — text, arcs, surfaces, and SCREEN-coordinate
+ *   primitives — are forwarded here, painted into an off-screen QImage, and
+ *   composited on top of the GPU layers. So when this doc says "rhi", read it
+ *   as "rhi's overlay subset", not the whole scene.
  *
  * ## Two storage paths
  *
@@ -201,8 +209,10 @@ using DeferredOverlayCommand =
  *     4. draws the visible overlay commands, applying each command's captured
  *        state and any camera-dependent transform (text rescale, arrow sizing).
  * - @ref flush() = @ref replay() then @ref reset(). @ref deferred_backend
- *   re-records every frame and calls @ref flush(); @ref rhi_renderer calls
- *   @ref replay() repeatedly across camera-only updates and @ref reset() only
+ *   re-records every frame and calls @ref flush(). @ref rhi_renderer (only its
+ *   overlay subset — text/arcs/surfaces/screen-coordinate primitives, see
+ *   above) calls @ref replay() repeatedly across camera-only updates so those
+ *   overlays follow the pan/zoom without re-recording, and @ref reset() only
  *   when the scene actually changes.
  */
 class deferred_renderer : public irenderer {
@@ -249,7 +259,8 @@ public:
     // ---- Replay / flush ----------------------------------------------------
 
     // Replay all recorded batches and overlay commands to the QPainter,
-    // keeping them so they can be replayed again (e.g. rhi camera-only redraw).
+    // keeping them so they can be replayed again (e.g. rhi replaying its
+    // overlay subset on a camera-only redraw — see the class doc).
     void replay();
 
     // Discard all recorded batches and overlay commands.
