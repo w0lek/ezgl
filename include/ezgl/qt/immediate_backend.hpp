@@ -39,13 +39,33 @@ public:
     /// DrawingAreaWidget, so it is not freed here.
     ~immediate_backend() override;
 
+    // render_backend interface — group headers note the immediate-path
+    // specifics; the documented base-class contract is inherited onto each.
+
+    /// @name Clear the surface to the background color, draw the scene directly through the immediate_renderer, and request a widget repaint.
+    /// @{
     void redraw() override;
+    /// @}
+    /// @name The immediate path holds no scene cache, so fall through to a full redraw.
+    /// @{
     void redraw_camera_only() override;
+    /// @}
+    /// @name Tear down the Painter and renderer, pull a fresh surface from the DrawingAreaWidget, and redraw (w / h unused — the widget supplies the resized surface).
+    /// @{
     void on_resize(int w, int h) override;
+    /// @}
+    /// @name Return the backend's own immediate_renderer for animation overlays; the immediate path reuses it rather than creating a separate one.
+    /// @{
     renderer* create_animation_renderer() override;
+    /// @}
+    /// @name Render a fresh frame at (w, h) into a new QImage via an independent Painter and immediate_renderer.
+    /// @{
     QImage render_to_image(int w, int h) override;
+    /// @}
 
 private:
+    /// Pulls a fresh off-screen surface from the DrawingAreaWidget and rebuilds
+    /// the Painter and immediate_renderer. Called on construction and on every resize.
     void recreate_surface();
 
     QWidget*            m_drawing_area;
