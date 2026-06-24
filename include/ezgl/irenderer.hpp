@@ -532,6 +532,14 @@ protected:
     void paint_surface(surface* p_surface, const point2d& anchor, double scale_factor);
 };
 
+/**
+ * Public name for the renderer interface. Client draw callbacks take an
+ * @c ezgl::renderer* (e.g. `void draw(ezgl::renderer* g)`) without depending
+ * on the @c irenderer interface name or any concrete backend
+ * (immediate/deferred/RHI). Retained from the original Cairo-based ezgl, whose
+ * concrete @c renderer class became this abstract interface during the Qt
+ * port; the alias keeps existing client code compiling unchanged.
+ */
 using renderer = irenderer;
 
 } // namespace ezgl
