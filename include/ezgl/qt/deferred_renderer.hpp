@@ -146,6 +146,10 @@ struct DeferredArrowTriangleCommand {
     point2d              offset_c_px;
 };
 
+/// One recorded overlay command — any of the deferred command types. Stored in
+/// submission order in m_overlay_commands and dispatched with std::visit during
+/// replay. (Overlay commands can't be batched by style like lines/rects, so
+/// each is replayed individually.)
 using DeferredOverlayCommand =
     std::variant<DeferredArcCommand,
                  DeferredTextCommand,
