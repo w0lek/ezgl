@@ -6,14 +6,10 @@
 
 namespace ezgl {
 
-// ---- construction ----------------------------------------------------------
-
 immediate_renderer::immediate_renderer(Painter* painter,
                                        camera* cam)
     : irenderer(painter, cam)
 {}
-
-// ---- draw calls ------------------------------------------------------------
 
 void immediate_renderer::draw_line(const point2d& start, const point2d& end)
 {
