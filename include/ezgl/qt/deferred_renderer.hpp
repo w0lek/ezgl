@@ -295,6 +295,70 @@ private:
                                 const point2d& point,
                                 double scale_factor) const;
 
+    // ---- replay() stages ---------------------------------------------------
+    // A batch culled to only its currently-visible primitives, ready to draw.
+    struct VisibleLineBatch { LineStyleKey style;        std::vector<QLineF>    lines; };
+    struct VisibleRectBatch { FillStyleKey fill_style;
+                              LineStyleKey line_style;   std::vector<QRectF>    rects; };
+    struct VisiblePolyBatch { FillStyleKey style;        std::vector<QPolygonF> polys; };
+    // All four batch kinds after visibility culling (see cull_visible_batches).
+    struct VisibleBatches {
+        std::vector<VisibleLineBatch> lines;
+        std::vector<VisibleRectBatch> fill_rects;
+        std::vector<VisibleRectBatch> draw_rects;
+        std::vector<VisiblePolyBatch> fill_polys;
+    };
+
+    // Per-frame scratch for replay(), held as a member (see m_replay_cache) so
+    // the buffers reuse their heap storage across frames — each replay() clears
+    // and refills them instead of reallocating.
+    struct ReplayCache {
+        VisibleBatches                             visible_batches;    ///< Culled batches to draw.
+        std::vector<std::uint32_t>                 overlay_candidates; ///< Overlay indices possibly in view.
+        std::vector<const DeferredOverlayCommand*> visible_overlay;    ///< Overlay commands that passed the cull.
+
+        // Empty every buffer for a fresh frame, keeping their heap capacity.
+        void clear() {
+            visible_batches.lines.clear();
+            visible_batches.fill_rects.clear();
+            visible_batches.draw_rects.clear();
+            visible_batches.fill_polys.clear();
+            overlay_candidates.clear();
+            visible_overlay.clear();
+        }
+    };
+
+    // The stage functions below fill caller-provided output buffers (rather
+    // than returning by value) so replay() can reuse persistent scratch
+    // members across frames — each call clears its @p out and refills it,
+    // keeping the heap storage instead of reallocating it every frame.
+
+    // Stage 1a: cull each recorded batch to the primitives currently on screen.
+    void cull_visible_batches(VisibleBatches& out) const;
+    // Stage 1b: collect overlay-command indices that might be in view (the
+    // always-replayed unindexed ones plus a spatial-index query of the visible
+    // world), sorted into record order.
+    void gather_candidate_overlay_commands(std::vector<std::uint32_t>& out);
+    // Stage 1c: from the candidates, keep the commands that pass a per-command
+    // visibility test against the current camera (applies painter state while
+    // measuring text/surface extents).
+    void select_visible_overlay_commands(const std::vector<std::uint32_t>& candidates,
+                                         std::vector<const DeferredOverlayCommand*>& out);
+    // Stage 2a: paint the culled batches (one QPen/QBrush set-up per batch).
+    void draw_visible_batches(const VisibleBatches& batches);
+    // Stage 2b: paint the visible overlay commands on top, applying each
+    // command's captured state and any camera-dependent transform.
+    void draw_visible_overlay_commands(
+        const std::vector<const DeferredOverlayCommand*>& commands);
+
+    // Per-command overlay visibility helpers (world coordinates). The text one
+    // also resolves the camera-rescaled font into @p state for replay.
+    bool resolve_text_replay_state(const DeferredTextCommand& cmd, DeferredPainterState& state);
+    bool world_arc_visible(const point2d& center, double radius_x, double radius_y);
+    bool world_text_visible(const point2d& point, const std::string& text,
+                            double bound_x, double bound_y);
+    bool world_surface_visible(surface* p_surface, const point2d& point, double scale_factor);
+
     LineStyleKey current_line_style() const;
     FillStyleKey current_fill_style() const;
 
@@ -327,6 +391,9 @@ private:
     std::vector<std::uint32_t>           m_unindexed_overlay_commands;
     std::vector<std::uint32_t>           m_overlay_query_marks;
     std::uint32_t                        m_overlay_query_generation = 1;
+
+    // Persistent scratch reused by replay() across frames (see ReplayCache).
+    ReplayCache m_replay_cache;
 };
 
 } // namespace ezgl
