@@ -39,8 +39,7 @@ public:
     /// DrawingAreaWidget, so it is not freed here.
     ~immediate_backend() override;
 
-    // render_backend interface — group headers note the immediate-path
-    // specifics; the documented base-class contract is inherited onto each.
+    // render_backend interface overrides.
 
     /// @name Clear the surface to the background color, draw the scene directly through the immediate_renderer, and request a widget repaint.
     /// @{
