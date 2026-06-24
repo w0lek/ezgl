@@ -77,16 +77,24 @@ struct FillPolyBatch {
     std::vector<QPolygonF>  polys;   ///< Filled polygons collected under this style.
 };
 
+/**
+ * Snapshot of the renderer's drawing state taken when a command is recorded.
+ *
+ * Primitives with a simple style (lines, rects, polys) batch by style key, but
+ * richer commands (arcs, text, surfaces) carry a full state snapshot so flush()
+ * can restore the exact pen/brush/font/justification/rotation each was issued
+ * with — replaying them faithfully regardless of recording order.
+ */
 struct DeferredPainterState {
-    t_coordinate_system coordinate_system = WORLD;
-    color               draw_color {0, 0, 0, 255};
-    int                 line_width = 0;
-    line_cap            line_cap_style = line_cap::butt;
-    line_dash           line_dash_style = line_dash::none;
-    double              rotation_radians = 0.0;
-    justification       horiz_just = justification::center;
-    justification       vert_just = justification::center;
-    QFont               font;
+    t_coordinate_system coordinate_system = WORLD;            ///< WORLD or SCREEN at record time.
+    color               draw_color {0, 0, 0, 255};           ///< Stroke/fill color.
+    int                 line_width = 0;                      ///< Line width in pixels (0 means 1).
+    line_cap            line_cap_style = line_cap::butt;      ///< Line-cap style.
+    line_dash           line_dash_style = line_dash::none;    ///< Line-dash pattern.
+    double              rotation_radians = 0.0;              ///< Text rotation, in radians.
+    justification       horiz_just = justification::center;   ///< Horizontal text/surface anchoring.
+    justification       vert_just = justification::center;    ///< Vertical text/surface anchoring.
+    QFont               font;                                ///< Font for text commands.
 };
 
 struct DeferredArcCommand {
