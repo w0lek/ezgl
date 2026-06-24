@@ -215,14 +215,79 @@ public:
      */
     virtual void set_text_screen_offset(point2d offset_px);
 
+    /**
+     * Draw a straight line between two points, using the current color, line
+     * width, cap, and dash. Coordinates are interpreted in the current
+     * coordinate system (WORLD or SCREEN).
+     *
+     * @param start One endpoint of the line.
+     * @param end   The other endpoint of the line.
+     */
     virtual void draw_line(const point2d& start, const point2d& end) = 0;
+
+    /**
+     * Draw a rectangle outline given two opposite corners.
+     *
+     * @param start One corner of the rectangle.
+     * @param end   The opposite corner.
+     */
     virtual void draw_rectangle(const point2d& start, const point2d& end) = 0;
+
+    /**
+     * Draw a rectangle outline given one corner and its size.
+     *
+     * @param start  The origin corner of the rectangle.
+     * @param width  Width of the rectangle.
+     * @param height Height of the rectangle.
+     */
     virtual void draw_rectangle(const point2d& start, double width, double height) = 0;
+
+    /**
+     * Draw the outline of a rectangle.
+     *
+     * @param r The rectangle to draw.
+     */
     virtual void draw_rectangle(const rectangle& r) = 0;
+
+    /**
+     * Draw a filled rectangle given two opposite corners.
+     *
+     * @param start One corner of the rectangle.
+     * @param end   The opposite corner.
+     */
     virtual void fill_rectangle(const point2d& start, const point2d& end) = 0;
+
+    /**
+     * Draw a filled rectangle given one corner and its size.
+     *
+     * @param start  The origin corner of the rectangle.
+     * @param width  Width of the rectangle.
+     * @param height Height of the rectangle.
+     */
     virtual void fill_rectangle(const point2d& start, double width, double height) = 0;
+
+    /**
+     * Draw a filled rectangle.
+     *
+     * @param r The rectangle to fill.
+     */
     virtual void fill_rectangle(const rectangle& r) = 0;
+
+    /**
+     * Draw a filled polygon defined by its vertices, in order.
+     *
+     * @param points The polygon's vertices; the outline is implicitly closed
+     *               from the last vertex back to the first.
+     */
     virtual void fill_poly(const std::vector<point2d>& points) = 0;
+
+    /**
+     * Draw a filled triangle defined by its three vertices.
+     *
+     * @param a First vertex.
+     * @param b Second vertex.
+     * @param c Third vertex.
+     */
     virtual void fill_triangle(const point2d& a, const point2d& b, const point2d& c) = 0;
 
     /**
@@ -246,17 +311,96 @@ public:
     virtual void fill_arrow_pointer_triangle(const point2d& anchor_world,
                                               const point2d& dir_world,
                                               float          arrow_size_px);
+    /**
+     * Draw the outline of an elliptic arc.
+     *
+     * @param center      Center of the ellipse.
+     * @param radius_x    Horizontal radius.
+     * @param radius_y    Vertical radius.
+     * @param start_angle Angle at which the arc begins, in degrees measured
+     *                    counter-clockwise from the positive x-axis.
+     * @param extent_angle Angular sweep of the arc, in degrees; positive sweeps
+     *                     counter-clockwise, negative clockwise.
+     */
     virtual void draw_elliptic_arc(const point2d& center, double radius_x, double radius_y,
                                    double start_angle, double extent_angle) = 0;
+
+    /**
+     * Draw the outline of a circular arc.
+     *
+     * @param center      Center of the arc.
+     * @param radius      Radius of the arc.
+     * @param start_angle Angle at which the arc begins, in degrees measured
+     *                    counter-clockwise from the positive x-axis.
+     * @param extent_angle Angular sweep of the arc, in degrees; positive sweeps
+     *                     counter-clockwise, negative clockwise.
+     */
     virtual void draw_arc(const point2d& center, double radius,
                           double start_angle, double extent_angle) = 0;
+
+    /**
+     * Draw a filled elliptic arc (a pie/wedge bounded by the arc and its
+     * radii).
+     *
+     * @param center      Center of the ellipse.
+     * @param radius_x    Horizontal radius.
+     * @param radius_y    Vertical radius.
+     * @param start_angle Angle at which the arc begins, in degrees measured
+     *                    counter-clockwise from the positive x-axis.
+     * @param extent_angle Angular sweep of the arc, in degrees; positive sweeps
+     *                     counter-clockwise, negative clockwise.
+     */
     virtual void fill_elliptic_arc(const point2d& center, double radius_x, double radius_y,
                                    double start_angle, double extent_angle) = 0;
+
+    /**
+     * Draw a filled circular arc (a pie/wedge bounded by the arc and its
+     * radii).
+     *
+     * @param center      Center of the arc.
+     * @param radius      Radius of the arc.
+     * @param start_angle Angle at which the arc begins, in degrees measured
+     *                    counter-clockwise from the positive x-axis.
+     * @param extent_angle Angular sweep of the arc, in degrees; positive sweeps
+     *                     counter-clockwise, negative clockwise.
+     */
     virtual void fill_arc(const point2d& center, double radius,
                           double start_angle, double extent_angle) = 0;
+
+    /**
+     * Draw text anchored at a point. The text is positioned relative to the
+     * point according to the current horizontal and vertical justification,
+     * and uses the current color, font, and text rotation.
+     *
+     * @param point Anchor position for the text.
+     * @param text  The string to draw.
+     */
     virtual void draw_text(const point2d& point, std::string const& text) = 0;
+
+    /**
+     * Draw text anchored at a point, but only if it fits within the given
+     * bounds. If the rendered text is wider than @p bound_x or taller than
+     * @p bound_y, nothing is drawn.
+     *
+     * @param point   Anchor position for the text.
+     * @param text    The string to draw.
+     * @param bound_x Maximum text width; pass a non-finite value (or DBL_MAX)
+     *                to leave the width unbounded.
+     * @param bound_y Maximum text height; pass a non-finite value (or DBL_MAX)
+     *                to leave the height unbounded.
+     */
     virtual void draw_text(const point2d& point, std::string const& text,
                            double bound_x, double bound_y) = 0;
+
+    /**
+     * Draw a previously loaded image surface, anchored at a point according to
+     * the current justification.
+     *
+     * @param p_surface    The surface to draw (see load_png).
+     * @param anchor_point Position the surface is anchored to.
+     * @param scale_factor Uniform scale applied to the surface; 1 draws it at
+     *                     its native size.
+     */
     virtual void draw_surface(surface* p_surface, const point2d& anchor_point,
                               double scale_factor = 1) = 0;
 
