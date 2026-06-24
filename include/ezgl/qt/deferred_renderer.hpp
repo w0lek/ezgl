@@ -195,19 +195,19 @@ public:
     void draw_surface(surface* p_surface, const point2d& anchor_point,
                       double scale_factor = 1) override;
 
-    // ---- Flush all batches to the underlying QPainter, then reset ----------
+    // ---- Replay / flush ----------------------------------------------------
+
+    // Replay all recorded batches and overlay commands to the QPainter,
+    // keeping them so they can be replayed again (e.g. rhi camera-only redraw).
+    void replay();
+
+    // Discard all recorded batches and overlay commands.
+    void reset();
+
+    // Replay, then reset.
     void flush();
 
-    // ---- Methods used by rhi_renderer --------------------------------------
-
-    // Replay stored overlay commands without resetting (for camera-only update).
-    void replay_overlay();
-
-    // Discard all stored commands and batches (called at begin of new frame).
-    void clear_overlay_and_batches();
-
 protected:
-    void replay();
     void clear_deferred_primitives();
 
 private:
@@ -216,7 +216,6 @@ private:
     int clamp_overlay_tile_y(double y) const;
     void index_world_overlay_command(std::uint32_t command_index,
                                      rectangle      bounds);
-    void reset();
     DeferredPainterState capture_painter_state() const;
     void apply_painter_state(const DeferredPainterState& state);
 

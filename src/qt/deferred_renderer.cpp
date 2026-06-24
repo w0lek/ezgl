@@ -1018,18 +1018,6 @@ void deferred_renderer::flush()
     reset();
 }
 
-void deferred_renderer::replay_overlay()
-{
-    replay();
-    // Drawing commands are preserved — not reset — so the overlay can be replayed
-    // again on the next camera-only update.
-}
-
-void deferred_renderer::clear_overlay_and_batches()
-{
-    reset();
-}
-
 void deferred_renderer::clear_deferred_primitives()
 {
     reset();

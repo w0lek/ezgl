@@ -370,7 +370,7 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
     m_cmd_dashed_lines.resize(m_n_bands);
     ensure_tile_grid();
     clear_tile_geometry();
-    m_overlay_deferred->clear_overlay_and_batches();
+    m_overlay_deferred->reset();
     m_overlay.fill(Qt::transparent);
     set_painter(&m_overlay_painter);
     m_overlay_painter.setAntialias(false);
@@ -402,7 +402,7 @@ rhi_renderer::rhi_renderer(QSize            size,
     m_cmd_dashed_lines.resize(m_n_bands);
     ensure_tile_grid();
     clear_tile_geometry();
-    m_overlay_deferred->clear_overlay_and_batches();
+    m_overlay_deferred->reset();
     m_overlay.fill(Qt::transparent);
     set_painter(&m_overlay_painter);
     m_overlay_painter.setAntialias(false);
@@ -650,7 +650,7 @@ void rhi_renderer::begin_frame()
 {
     ensure_tile_grid();
     clear_tile_geometry();
-    m_overlay_deferred->clear_overlay_and_batches();
+    m_overlay_deferred->reset();
     m_skip_tile_writes = false;
 
     // End painter if still active (shouldn't normally happen).
@@ -732,7 +732,7 @@ void rhi_renderer::begin_overlay_frame()
 void rhi_renderer::render_cached_overlay()
 {
     begin_overlay_frame();
-    m_overlay_deferred->replay_overlay();
+    m_overlay_deferred->replay();
 
     if (m_overlay_painter.isActive())
         m_overlay_painter.end();
