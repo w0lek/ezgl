@@ -21,10 +21,22 @@ class immediate_renderer;
  */
 class immediate_backend final : public render_backend {
 public:
+    /**
+     * @param drawing_area     Qt widget to render into (a DrawingAreaWidget,
+     *                         which supplies the off-screen surface).
+     * @param draw_callback    Application scene-drawing callback, invoked each
+     *                         redraw.
+     * @param cam              Camera supplying the view and world→screen
+     *                         transform.
+     * @param background_color Color the surface is cleared to before each frame.
+     */
     immediate_backend(QWidget*       drawing_area,
                       draw_canvas_fn draw_callback,
                       camera*        cam,
                       color          background_color);
+
+    /// Destroys the owned Painter and renderer. The surface is owned by the
+    /// DrawingAreaWidget, so it is not freed here.
     ~immediate_backend() override;
 
     void redraw() override;
