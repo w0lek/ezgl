@@ -221,6 +221,16 @@ using DeferredOverlayCommand =
  */
 class deferred_renderer : public irenderer {
 public:
+    /**
+     * Construct a deferred renderer over the given painter and camera. The
+     * record buffers, batches, and overlay spatial index all start empty; the
+     * overlay index grid is sized lazily on first use (see
+     * @ref ensure_overlay_index_grid).
+     *
+     * @param painter Backend painter used to issue draw primitives.
+     * @param cam     Camera supplying the current view, scale, and
+     *                world→screen transform.
+     */
     deferred_renderer(Painter *painter,
                       camera *cam);
 
