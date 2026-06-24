@@ -68,25 +68,139 @@ public:
 
     virtual ~irenderer() = default;
 
+    /**
+     * Select whether subsequent draw calls interpret coordinates as WORLD
+     * units or SCREEN pixels.
+     *
+     * @param new_coordinate_system WORLD to draw in world units (mapped through
+     *                              the camera), SCREEN to draw in raw pixels.
+     */
     virtual void set_coordinate_system(t_coordinate_system new_coordinate_system);
+
+    /**
+     * Set the world-coordinate region mapped onto the canvas (i.e. the
+     * pan/zoom view). The region is adjusted to preserve the initial world
+     * aspect ratio, so the result may be larger than requested.
+     *
+     * @param new_world Desired visible region in world coordinates.
+     */
     virtual void set_visible_world(rectangle new_world);
+
+    /**
+     * @return The visible canvas area in world coordinates.
+     */
     virtual rectangle get_visible_world();
+
+    /**
+     * @return The visible canvas area in screen-pixel coordinates.
+     */
     virtual rectangle get_visible_screen() const;
+
+    /**
+     * Map a world-coordinate rectangle to its screen-pixel bounds.
+     *
+     * @param box Rectangle in world coordinates.
+     * @return The corresponding rectangle in screen-pixel coordinates.
+     */
     virtual rectangle world_to_screen(const rectangle& box);
 
+    /**
+     * Set the active draw color for subsequent strokes and fills.
+     *
+     * @param new_color RGBA color; its alpha is used as-is.
+     */
     virtual void set_color(color new_color);
+
+    /**
+     * Set the active draw color, overriding its alpha.
+     *
+     * @param new_color RGB color (its own alpha is ignored).
+     * @param alpha     Opacity to apply, 0 (transparent) to 255 (opaque).
+     */
     virtual void set_color(color new_color, uint_fast8_t alpha);
+
+    /**
+     * Set the active draw color from individual 0-255 RGBA components.
+     *
+     * @param red   Red channel, 0-255.
+     * @param green Green channel, 0-255.
+     * @param blue  Blue channel, 0-255.
+     * @param alpha Opacity, 0 (transparent) to 255 (opaque); defaults to opaque.
+     */
     virtual void set_color(uint_fast8_t red, uint_fast8_t green, uint_fast8_t blue,
                            uint_fast8_t alpha = 255);
+
+    /**
+     * Set how line ends are drawn.
+     *
+     * @param cap line_cap::butt for flat ends or line_cap::round for rounded ends.
+     */
     virtual void set_line_cap(line_cap cap);
+
+    /**
+     * Set the line dash pattern.
+     *
+     * @param dash line_dash::none for a solid line or line_dash::asymmetric_5_3
+     *             for a repeating 5-on/3-off dash.
+     */
     virtual void set_line_dash(line_dash dash);
+
+    /**
+     * Set the line width for subsequent strokes.
+     *
+     * @param width Width in pixels; a width of 0 is treated as 1.
+     */
     virtual void set_line_width(int width);
+
+    /**
+     * Set the font size for subsequent text.
+     *
+     * @param new_size Font size in pixels.
+     */
     virtual void set_font_size(double new_size);
+
+    /**
+     * Select the font face for subsequent text.
+     *
+     * @param family Font family name (e.g. "sans").
+     * @param slant  Font posture (normal, italic, or oblique).
+     * @param weight Font weight (normal or bold).
+     */
     virtual void format_font(std::string const& family, font_slant slant, font_weight weight);
+
+    /**
+     * Select the font face and size for subsequent text.
+     *
+     * @param family   Font family name (e.g. "sans").
+     * @param slant    Font posture (normal, italic, or oblique).
+     * @param weight   Font weight (normal or bold).
+     * @param new_size Font size in pixels.
+     */
     virtual void format_font(std::string const& family, font_slant slant,
                              font_weight weight, double new_size);
+
+    /**
+     * Set the rotation applied to subsequent text.
+     *
+     * @param degrees Rotation in degrees, counter-clockwise. Values outside
+     *                [-360, 360] are rejected and the call is ignored.
+     */
     virtual void set_text_rotation(double degrees);
+
+    /**
+     * Set horizontal anchoring of text relative to its draw point.
+     *
+     * @param horiz_just justification::center, ::left, or ::right;
+     *                   ::top and ::bottom are ignored.
+     */
     virtual void set_horiz_justification(justification horiz_just);
+
+    /**
+     * Set vertical anchoring of text relative to its draw point.
+     *
+     * @param vert_just justification::center, ::top, or ::bottom;
+     *                  ::left and ::right are ignored.
+     */
     virtual void set_vert_justification(justification vert_just);
 
     /**
