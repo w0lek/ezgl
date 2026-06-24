@@ -452,6 +452,12 @@ protected:
     QFont               current_font;              ///< Active font for text.
     point2d             text_screen_offset_px = {0.0, 0.0}; ///< One-shot screen offset for the next draw_text.
 
+    /// Readability cull threshold for WORLD text: a vertical text bound that
+    /// maps to fewer than this many screen pixels at the current zoom is too
+    /// small to read and the label is skipped (see
+    /// @ref deferred_renderer::world_text_visible).
+    static constexpr double MINIMAL_VISIBLE_TEXT_BOUND_Y_IN_PX = 5.0;
+
     /**
      * Test whether a rectangle lies entirely outside the visible world, used
      * to cull off-screen primitives. Always returns false in SCREEN

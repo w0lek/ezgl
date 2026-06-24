@@ -383,6 +383,13 @@ void irenderer::paint_text(const point2d& point, const std::string& text,
         (bounded_y && scaled_height > bound_y))
         return;
 
+    // Skip WORLD text whose vertical bound shrinks below the readable pixel
+    // threshold at the current zoom, matching the cull deferred_renderer
+    // applies in world_text_visible so both backends drop tiny labels alike.
+    if (current_coordinate_system == WORLD && bounded_y
+        && bound_y / world_scale.y < MINIMAL_VISIBLE_TEXT_BOUND_Y_IN_PX)
+        return;
+
     point2d center = point;
     if (horiz_justification == justification::left)  center.x += clip_w / 2.0;
     else if (horiz_justification == justification::right) center.x -= clip_w / 2.0;

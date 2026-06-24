@@ -220,7 +220,6 @@ using DeferredOverlayCommand =
  *   when the scene actually changes.
  */
 class deferred_renderer : public irenderer {
-    const double MINIMAL_VISIBLE_TEXT_BOUND_Y_IN_PX = 5.0;
 public:
     deferred_renderer(Painter *painter,
                       camera *cam);
