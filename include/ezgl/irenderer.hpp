@@ -404,7 +404,23 @@ public:
     virtual void draw_surface(surface* p_surface, const point2d& anchor_point,
                               double scale_factor = 1) = 0;
 
+    /**
+     * Load a PNG image from disk into a surface that can be drawn with
+     * draw_surface. The caller owns the returned surface and must release it
+     * with free_surface.
+     *
+     * @param file_path Path to the PNG file.
+     * @return A newly allocated surface; never null, but the load is only
+     *         logged (not signalled) on failure, so a missing or invalid file
+     *         yields an empty surface.
+     */
     static surface* load_png(const char* file_path);
+
+    /**
+     * Free a surface previously returned by load_png.
+     *
+     * @param p_surface The surface to release.
+     */
     static void free_surface(surface* p_surface);
 
 protected:
