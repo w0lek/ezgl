@@ -50,13 +50,18 @@ public:
     /// and rebinds the animation renderer's painter. @see render_backend::on_resize
     void on_resize(int w, int h) override;
 
-    /// @copydoc render_backend::create_animation_renderer
+    /// Lazily creates an immediate_renderer (sharing this backend's Painter and
+    /// camera) for animation overlays, reusing it on later calls.
+    /// @see render_backend::create_animation_renderer
     renderer* create_animation_renderer() override;
 
-    /// @copydoc render_backend::render_to_image
+    /// Renders a fresh frame at (w, h) into a new QImage via an independent
+    /// Painter and deferred_renderer. @see render_backend::render_to_image
     QImage render_to_image(int w, int h) override;
 
 private:
+    /// Pulls a fresh off-screen surface from the DrawingAreaWidget and rebuilds
+    /// the Painter. Called on construction and on every resize.
     void recreate_surface();
 
     QWidget*       m_drawing_area;

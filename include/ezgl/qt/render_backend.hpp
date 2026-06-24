@@ -133,18 +133,16 @@ public:
 
     /**
      * Render a frame and return it as a QImage. Used by
-     * @c canvas::render_to_image() to back @c save_graphics() and
-     * headless visual regression tests.
+     * @c canvas::render_to_image() to back @c save_graphics(), PDF/PNG export,
+     * and headless visual regression tests.
      *
-     * Returns a null QImage by default, which signals
-     * @c canvas::render_to_image() to fall back to the QPainter-based
-     * deferred path. Backends that support GPU readback (e.g.
-     * @ref rhi_backend) override this.
+     * Every backend must implement this: the QPainter backends paint into an
+     * off-screen QImage, while @ref rhi_backend does a GPU readback.
      *
-     * @param w  Desired output width  (0 = use the widget's current width).
-     * @param h  Desired output height (0 = use the widget's current height).
+     * @param w  Output width in pixels.
+     * @param h  Output height in pixels.
      */
-    virtual QImage render_to_image(int /*w*/, int /*h*/) { return {}; }
+    virtual QImage render_to_image(int w, int h) = 0;
 };
 
 } // namespace ezgl
