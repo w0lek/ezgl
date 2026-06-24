@@ -37,10 +37,23 @@ public:
     /// owned by the DrawingAreaWidget, so it is not freed here.
     ~deferred_backend() override;
 
+    /// Clears the surface to the background color, replays the scene through a
+    /// fresh deferred_renderer, and requests a widget repaint.
+    /// @see render_backend::redraw
     void redraw() override;
+
+    /// No scene cache exists on this path, so this falls through to a full
+    /// @ref redraw. @see render_backend::redraw_camera_only
     void redraw_camera_only() override;
+
+    /// Recreates the off-screen surface and Painter at the new size, redraws,
+    /// and rebinds the animation renderer's painter. @see render_backend::on_resize
     void on_resize(int w, int h) override;
+
+    /// @copydoc render_backend::create_animation_renderer
     renderer* create_animation_renderer() override;
+
+    /// @copydoc render_backend::render_to_image
     QImage render_to_image(int w, int h) override;
 
 private:
