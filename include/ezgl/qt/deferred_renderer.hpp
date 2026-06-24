@@ -17,13 +17,18 @@ namespace ezgl {
 
 // ---- style keys ----------------------------------------------------------
 
-// Packed key for line primitives: color(32) | line_width(16) | line_cap(8) | line_dash(8)
+/**
+ * Style identity for stroked primitives (lines, rect outlines). Two primitives
+ * sharing a LineStyleKey can be drawn with the same QPen, so they are batched
+ * together to minimise QPainter state changes during flush.
+ */
 struct LineStyleKey {
-    uint32_t color_rgba;   // r | g<<8 | b<<16 | a<<24
-    uint16_t line_width;   // current_line_width clamped to uint16
-    uint8_t  line_cap;     // line_cap enum cast to uint8
-    uint8_t  line_dash;    // line_dash enum cast to uint8
+    uint32_t color_rgba;   ///< Packed color: r | g<<8 | b<<16 | a<<24.
+    uint16_t line_width;   ///< current_line_width clamped to uint16.
+    uint8_t  line_cap;     ///< line_cap enum cast to uint8.
+    uint8_t  line_dash;    ///< line_dash enum cast to uint8.
 
+    /// @return The four fields packed into one value for use as a batch-map key.
     uint64_t key() const {
         return uint64_t(color_rgba)
              | (uint64_t(line_width) << 32)
@@ -32,10 +37,14 @@ struct LineStyleKey {
     }
 };
 
-// Packed key for filled rectangles: only color matters (no stroke attributes)
+/**
+ * Style identity for filled primitives (rectangles, polygons). Fills have no
+ * stroke attributes, so only color distinguishes them for batching.
+ */
 struct FillStyleKey {
-    uint32_t color_rgba;
+    uint32_t color_rgba;   ///< Packed color: r | g<<8 | b<<16 | a<<24.
 
+    /// @return The color, used directly as a batch-map key.
     uint64_t key() const { return color_rgba; }
 };
 
