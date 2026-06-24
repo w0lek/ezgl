@@ -131,7 +131,6 @@ class deferred_renderer : public irenderer {
     const double MINIMAL_VISIBLE_TEXT_BOUND_Y_IN_PX = 5.0;
 public:
     deferred_renderer(Painter *painter,
-                      world_to_screen_fn world_to_screen,
                       camera *cam);
 
     ~deferred_renderer() override = default;

@@ -51,9 +51,8 @@ static bool clip_line(const rectangle& w, point2d& p1, point2d& p2)
 
 // ---- Construction ------------------------------------------------------------
 
-irenderer::irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam)
+irenderer::irenderer(Painter* painter, camera* cam)
     : m_painter(painter)
-    , m_world_to_screen(std::move(world_to_screen))
     , m_camera(cam)
 {
     if (m_painter != nullptr)
@@ -106,7 +105,7 @@ rectangle irenderer::get_visible_screen() const
 
 rectangle irenderer::world_to_screen(const rectangle& box)
 {
-    return rectangle(m_world_to_screen(box.bottom_left()), m_world_to_screen(box.top_right()));
+    return rectangle(m_camera->world_to_screen(box.bottom_left()), m_camera->world_to_screen(box.top_right()));
 }
 
 // ---- State-setter implementations -------------------------------------------
@@ -266,8 +265,8 @@ void irenderer::paint_line(const point2d& start, const point2d& end)
         rectangle clip = irenderer::get_visible_world();
         if (!clip_line(clip, draw_start, draw_end))
             return;
-        draw_start = m_world_to_screen(draw_start);
-        draw_end   = m_world_to_screen(draw_end);
+        draw_start = m_camera->world_to_screen(draw_start);
+        draw_end   = m_camera->world_to_screen(draw_end);
     }
 
     m_painter->move_to(draw_start.x, draw_start.y);
@@ -280,8 +279,8 @@ void irenderer::paint_rectangle_path(const point2d& start, const point2d& end, b
     point2d draw_start = start;
     point2d draw_end = end;
     if (current_coordinate_system == WORLD) {
-        draw_start = m_world_to_screen(draw_start);
-        draw_end   = m_world_to_screen(draw_end);
+        draw_start = m_camera->world_to_screen(draw_start);
+        draw_end   = m_camera->world_to_screen(draw_end);
     }
     m_painter->move_to(draw_start.x, draw_start.y);
     m_painter->line_to(draw_start.x, draw_end.y);
@@ -307,10 +306,10 @@ void irenderer::paint_poly(const std::vector<point2d>& points)
     if (rectangle_off_screen({{x_min, y_min}, {x_max, y_max}}))
         return;
 
-    point2d first = (current_coordinate_system == WORLD) ? m_world_to_screen(points[0]) : points[0];
+    point2d first = (current_coordinate_system == WORLD) ? m_camera->world_to_screen(points[0]) : points[0];
     m_painter->move_to(first.x, first.y);
     for (std::size_t i = 1; i < points.size(); ++i) {
-        point2d p = (current_coordinate_system == WORLD) ? m_world_to_screen(points[i]) : points[i];
+        point2d p = (current_coordinate_system == WORLD) ? m_camera->world_to_screen(points[i]) : points[i];
         m_painter->line_to(p.x, p.y);
     }
     m_painter->close_path();
@@ -323,8 +322,8 @@ void irenderer::paint_arc_path(const point2d& center, double radius, double star
     point2d draw_center = center;
     point2d point_x = {draw_center.x + radius, draw_center.y};
     if (current_coordinate_system == WORLD) {
-        draw_center  = m_world_to_screen(draw_center);
-        point_x = m_world_to_screen(point_x);
+        draw_center  = m_camera->world_to_screen(draw_center);
+        point_x = m_camera->world_to_screen(point_x);
     }
     radius = point_x.x - draw_center.x;
 
@@ -404,7 +403,7 @@ void irenderer::paint_text(const point2d& point, const std::string& text,
         return -extent / 2.0;
     };
 
-    point2d draw_center = (current_coordinate_system == WORLD) ? m_world_to_screen(point) : point;
+    point2d draw_center = (current_coordinate_system == WORLD) ? m_camera->world_to_screen(point) : point;
     // Apply (and consume) any one-shot screen-pixel offset. This stays in
     // pixel units regardless of zoom — the caller uses it when they want a
     // label "just off" a world-coord line at a constant visual distance.
@@ -472,7 +471,7 @@ void irenderer::paint_surface(surface* p_surface, const point2d& anchor, double 
         return;
 
     if (current_coordinate_system == WORLD)
-        top_left = m_world_to_screen(top_left);
+        top_left = m_camera->world_to_screen(top_left);
 
     if (scale_factor != 1.0) {
         m_painter->save();

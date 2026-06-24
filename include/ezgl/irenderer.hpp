@@ -9,7 +9,6 @@
 #include <QImage>
 
 #include <cstdint>
-#include <functional>
 #include <string>
 #include <vector>
 
@@ -63,9 +62,6 @@ enum class line_dash : int {
  */
 class irenderer {
 public:
-    /** Maps a world-coordinate point to its screen-pixel position. */
-    using world_to_screen_fn = std::function<point2d(point2d)>;
-
     virtual ~irenderer() = default;
 
     /**
@@ -434,19 +430,17 @@ public:
 
 protected:
     /**
-     * Construct the renderer base with the painter, camera, and world→screen
-     * transform that subclasses draw through.
+     * Construct the renderer base with the painter and camera that subclasses
+     * draw through.
      *
-     * @param painter        Backend painter used to issue draw primitives.
-     * @param world_to_screen Function mapping world coordinates to screen
-     *                       pixels using the current camera.
-     * @param cam            Camera supplying the current view and scale.
+     * @param painter Backend painter used to issue draw primitives.
+     * @param cam     Camera supplying the current view, scale, and the
+     *                world→screen transform used to map draw coordinates.
      */
-    irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam);
+    irenderer(Painter* painter, camera* cam);
 
     Painter*            m_painter{nullptr};        ///< Backend painter draw calls are issued to.
-    world_to_screen_fn  m_world_to_screen;         ///< Maps world coordinates to screen pixels.
-    camera*             m_camera{nullptr};         ///< Camera providing the current view and scale.
+    camera*             m_camera{nullptr};         ///< Camera providing the view, scale, and world→screen transform.
     t_coordinate_system current_coordinate_system = WORLD; ///< How draw-call coordinates are interpreted.
     color               current_color{0, 0, 0, 255};       ///< Active stroke/fill color.
     int                 current_line_width  = 0;   ///< Active line width in pixels (0 means 1).

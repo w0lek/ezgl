@@ -9,9 +9,8 @@ namespace ezgl {
 // ---- construction ----------------------------------------------------------
 
 immediate_renderer::immediate_renderer(Painter* painter,
-                                       world_to_screen_fn world_to_screen,
                                        camera* cam)
-    : irenderer(painter, std::move(world_to_screen), cam)
+    : irenderer(painter, cam)
 {}
 
 // ---- draw calls ------------------------------------------------------------

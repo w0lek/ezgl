@@ -29,12 +29,9 @@ void rhi_backend::redraw()
     if (!m_widget)
         return;
 
-    using namespace std::placeholders;
-
     if (!m_renderer) {
         m_renderer = std::make_unique<rhi_renderer>(
             m_widget,
-            std::bind(&camera::world_to_screen, m_camera, _1),
             m_camera,
             m_draw_callback,
             m_bg_color);
@@ -121,10 +118,8 @@ renderer* rhi_backend::create_animation_renderer()
     // never receive nullptr — same defensive pattern as
     // deferred_backend::create_animation_renderer().
     if (!m_renderer) {
-        using namespace std::placeholders;
         m_renderer = std::make_unique<rhi_renderer>(
             m_widget,
-            std::bind(&camera::world_to_screen, m_camera, _1),
             m_camera,
             m_draw_callback,
             m_bg_color);
@@ -144,9 +139,7 @@ QImage rhi_backend::render_to_image(int w, int h)
     //
     // The off-screen path uses an independent QRhi + render target, so the
     // live widget and live renderer are not touched at all.
-    using namespace std::placeholders;
     rhi_renderer renderer(QSize(w, h),
-                          std::bind(&camera::world_to_screen, *m_camera, _1),
                           m_camera,
                           m_draw_callback,
                           m_bg_color);

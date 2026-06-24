@@ -98,7 +98,6 @@ public:
      * thread-safe inbox.
      */
     rhi_renderer(RhiCanvasWidget* widget,
-                 world_to_screen_fn     world_to_screen,
                  camera*          cam,
                  draw_callback_fn draw_callback,
                  QColor           bg_color);
@@ -110,7 +109,6 @@ public:
      * the Qt widget lifecycle (e.g. @c save_graphics under headless QPA).
      */
     rhi_renderer(QSize            size,
-                 world_to_screen_fn     world_to_screen,
                  camera*          cam,
                  draw_callback_fn draw_callback,
                  QColor           bg_color);

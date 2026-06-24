@@ -88,9 +88,8 @@ static QPen make_pen(const LineStyleKey &s)
 // ---- construction --------------------------------------------------------
 
 deferred_renderer::deferred_renderer(Painter *painter,
-                                     world_to_screen_fn world_to_screen,
                                      camera *cam)
-    : irenderer(painter, std::move(world_to_screen), cam)
+    : irenderer(painter, cam)
 {}
 
 // ---- spatial index -------------------------------------------------------
@@ -272,8 +271,8 @@ QRectF deferred_renderer::to_screen_rect(const point2d& start, const point2d& en
     point2d rect_start = start;
     point2d rect_end = end;
     if (current_coordinate_system == WORLD) {
-        rect_start = m_world_to_screen(rect_start);
-        rect_end   = m_world_to_screen(rect_end);
+        rect_start = m_camera->world_to_screen(rect_start);
+        rect_end   = m_camera->world_to_screen(rect_end);
     }
     double x = std::min(rect_start.x, rect_end.x);
     double y = std::min(rect_start.y, rect_end.y);
@@ -405,8 +404,8 @@ void deferred_renderer::draw_line(const point2d& start, const point2d& end)
         rectangle clip = irenderer::get_visible_world();
         if (!clip_line_world(clip, draw_start, draw_end))
             return;
-        draw_start = m_world_to_screen(draw_start);
-        draw_end   = m_world_to_screen(draw_end);
+        draw_start = m_camera->world_to_screen(draw_start);
+        draw_end   = m_camera->world_to_screen(draw_end);
     }
 
     add_line(current_line_style(), QLineF(draw_start.x, draw_start.y, draw_end.x, draw_end.y));
@@ -452,9 +451,9 @@ void deferred_renderer::fill_triangle(const point2d& a, const point2d& b, const 
 {
     QPolygonF poly(3);
     if (current_coordinate_system == WORLD) {
-        const point2d sa = m_world_to_screen(a);
-        const point2d sb = m_world_to_screen(b);
-        const point2d sc = m_world_to_screen(c);
+        const point2d sa = m_camera->world_to_screen(a);
+        const point2d sb = m_camera->world_to_screen(b);
+        const point2d sc = m_camera->world_to_screen(c);
         poly[0] = QPointF(sa.x, sa.y);
         poly[1] = QPointF(sb.x, sb.y);
         poly[2] = QPointF(sc.x, sc.y);
@@ -474,7 +473,7 @@ void deferred_renderer::fill_poly(const std::vector<point2d>& points)
     poly.reserve(int(points.size()));
     if (current_coordinate_system == WORLD) {
         for (const auto& p : points) {
-            const point2d sp = m_world_to_screen(p);
+            const point2d sp = m_camera->world_to_screen(p);
             poly.append(QPointF(sp.x, sp.y));
         }
     } else {
@@ -994,7 +993,7 @@ void deferred_renderer::replay()
                 // recorded pixel offsets. Net effect: the triangle's
                 // anchor moves with the world, but its size on screen is
                 // exactly the same pixel extent at every zoom level.
-                const point2d anchor_screen = m_world_to_screen(cmd.anchor_world);
+                const point2d anchor_screen = m_camera->world_to_screen(cmd.anchor_world);
                 const QPointF pa(anchor_screen.x + cmd.offset_a_px.x,
                                  anchor_screen.y + cmd.offset_a_px.y);
                 const QPointF pb(anchor_screen.x + cmd.offset_b_px.x,
