@@ -48,8 +48,7 @@ void immediate_backend::recreate_surface()
     m_renderer = new immediate_renderer(
         m_painter,
         std::bind(&camera::world_to_screen, m_camera, _1),
-        m_camera,
-        m_surface);
+        m_camera);
 }
 
 void immediate_backend::redraw()
@@ -102,7 +101,7 @@ QImage immediate_backend::render_to_image(int w, int h)
     painter.paint();
 
     using namespace std::placeholders;
-    immediate_renderer g(&painter, std::bind(&camera::world_to_screen, *m_camera, _1), m_camera, &surface);
+    immediate_renderer g(&painter, std::bind(&camera::world_to_screen, *m_camera, _1), m_camera);
     m_draw_callback(&g);
     return surface;
 }

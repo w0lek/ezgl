@@ -10,17 +10,9 @@ namespace ezgl {
 
 immediate_renderer::immediate_renderer(Painter* painter,
                                        world_to_screen_fn world_to_screen,
-                                       camera* cam,
-                                       QImage* surface)
-    : irenderer(painter, std::move(world_to_screen), cam, surface)
+                                       camera* cam)
+    : irenderer(painter, std::move(world_to_screen), cam)
 {}
-
-// ---- painter update --------------------------------------------------------
-
-void immediate_renderer::update_renderer(Painter* painter, QImage* surface)
-{
-    update_painter(painter, surface);
-}
 
 // ---- draw calls ------------------------------------------------------------
 

@@ -44,10 +44,8 @@ public:
     void draw_surface(surface* p_surface, const point2d& anchor_point,
                       double scale_factor = 1) override;
 
-    void update_renderer(Painter* painter, QImage* surface);
-
     immediate_renderer(Painter* painter, world_to_screen_fn world_to_screen,
-                       camera* cam, QImage* surface);
+                       camera* cam);
 };
 
 } // namespace ezgl

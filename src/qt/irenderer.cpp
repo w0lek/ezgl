@@ -51,7 +51,7 @@ static bool clip_line(const rectangle& w, point2d& p1, point2d& p2)
 
 // ---- Construction ------------------------------------------------------------
 
-irenderer::irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam, QImage*)
+irenderer::irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam)
     : m_painter(painter)
     , m_world_to_screen(std::move(world_to_screen))
     , m_camera(cam)
@@ -62,7 +62,7 @@ irenderer::irenderer(Painter* painter, world_to_screen_fn world_to_screen, camer
 
 // ---- Painter / camera utilities ----------------------------------------------
 
-void irenderer::update_painter(Painter* painter, QImage*)
+void irenderer::set_painter(Painter* painter)
 {
     m_painter = painter;
     if (m_painter != nullptr) {

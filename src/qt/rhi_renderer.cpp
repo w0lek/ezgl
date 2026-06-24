@@ -342,7 +342,7 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
                              camera*          cam,
                              draw_callback_fn draw_callback,
                              QColor           bg_color)
-    : irenderer(nullptr, world_to_screen, cam, nullptr)
+    : irenderer(nullptr, world_to_screen, cam)
     , m_rhi_widget(widget)
     , m_size(clamp_size({widget->width(), widget->height()}))
     , m_overlay_dpr(widget->devicePixelRatioF())
@@ -353,8 +353,7 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
     , m_overlay_deferred(std::make_unique<deferred_renderer>(
           &m_overlay_painter,
           std::move(world_to_screen),   // move the second copy into overlay renderer
-          cam,
-          &m_overlay))
+          cam))
 {
     (void)draw_callback;
     // QImage::setDevicePixelRatio must be set BEFORE Painter begin() so the
@@ -375,7 +374,7 @@ rhi_renderer::rhi_renderer(RhiCanvasWidget* widget,
     clear_tile_geometry();
     m_overlay_deferred->clear_overlay_and_batches();
     m_overlay.fill(Qt::transparent);
-    update_painter(&m_overlay_painter, &m_overlay);
+    set_painter(&m_overlay_painter);
     m_overlay_painter.setAntialias(false);
     m_overlay_painter.setSmoothPixmap(false);
 }
@@ -385,7 +384,7 @@ rhi_renderer::rhi_renderer(QSize            size,
                              camera*          cam,
                              draw_callback_fn draw_callback,
                              QColor           bg_color)
-    : irenderer(nullptr, world_to_screen, cam, nullptr)
+    : irenderer(nullptr, world_to_screen, cam)
     , m_rhi_widget(nullptr)
     , m_size(clamp_size(size))
     , m_overlay_dpr(1.0) // headless: caller passes raw pixel size, no DPR scaling
@@ -395,8 +394,7 @@ rhi_renderer::rhi_renderer(QSize            size,
     , m_overlay_deferred(std::make_unique<deferred_renderer>(
           &m_overlay_painter,
           std::move(world_to_screen),
-          cam,
-          &m_overlay))
+          cam))
 {
     (void)draw_callback;
     m_n_bands       = int(std::max(1u, std::thread::hardware_concurrency()));
@@ -410,7 +408,7 @@ rhi_renderer::rhi_renderer(QSize            size,
     clear_tile_geometry();
     m_overlay_deferred->clear_overlay_and_batches();
     m_overlay.fill(Qt::transparent);
-    update_painter(&m_overlay_painter, &m_overlay);
+    set_painter(&m_overlay_painter);
     m_overlay_painter.setAntialias(false);
     m_overlay_painter.setSmoothPixmap(false);
 }
@@ -684,8 +682,8 @@ void rhi_renderer::begin_frame()
     m_overlay_painter.begin(&m_overlay);
     m_overlay_painter.setAntialias(false);
     m_overlay_painter.setSmoothPixmap(false);
-    update_painter(&m_overlay_painter, &m_overlay);
-    m_overlay_deferred->set_painter_surface(&m_overlay_painter, &m_overlay);
+    set_painter(&m_overlay_painter);
+    m_overlay_deferred->set_painter(&m_overlay_painter);
 
     // Match the deferred path semantics: each redraw starts from the renderer
     // defaults rather than inheriting state from the previous frame.
@@ -729,8 +727,8 @@ void rhi_renderer::begin_overlay_frame()
     m_overlay_painter.begin(&m_overlay);
     m_overlay_painter.setAntialias(false);
     m_overlay_painter.setSmoothPixmap(false);
-    update_painter(&m_overlay_painter, &m_overlay);
-    m_overlay_deferred->set_painter_surface(&m_overlay_painter, &m_overlay);
+    set_painter(&m_overlay_painter);
+    m_overlay_deferred->set_painter(&m_overlay_painter);
 
     m_skip_tile_writes = false;
 }

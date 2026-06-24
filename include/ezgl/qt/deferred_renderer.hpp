@@ -132,8 +132,7 @@ class deferred_renderer : public irenderer {
 public:
     deferred_renderer(Painter *painter,
                       world_to_screen_fn world_to_screen,
-                      camera *cam,
-                      QImage *surface);
+                      camera *cam);
 
     ~deferred_renderer() override = default;
 
@@ -180,9 +179,6 @@ public:
 
     // Discard all stored commands and batches (called at begin of new frame).
     void clear_overlay_and_batches();
-
-    // Redirect the internal painter to a new surface (called after resize).
-    void set_painter_surface(Painter* painter, QImage* surface);
 
 protected:
     void replay();

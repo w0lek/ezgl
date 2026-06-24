@@ -89,9 +89,8 @@ static QPen make_pen(const LineStyleKey &s)
 
 deferred_renderer::deferred_renderer(Painter *painter,
                                      world_to_screen_fn world_to_screen,
-                                     camera *cam,
-                                     QImage *surface)
-    : irenderer(painter, std::move(world_to_screen), cam, surface)
+                                     camera *cam)
+    : irenderer(painter, std::move(world_to_screen), cam)
 {}
 
 // ---- spatial index -------------------------------------------------------
@@ -1023,18 +1022,13 @@ void deferred_renderer::flush()
 void deferred_renderer::replay_overlay()
 {
     replay();
-    // Commands are preserved — not reset — so the overlay can be replayed
+    // Drawing commands are preserved — not reset — so the overlay can be replayed
     // again on the next camera-only update.
 }
 
 void deferred_renderer::clear_overlay_and_batches()
 {
     reset();
-}
-
-void deferred_renderer::set_painter_surface(Painter* painter, QImage* surface)
-{
-    update_painter(painter, surface);
 }
 
 void deferred_renderer::clear_deferred_primitives()

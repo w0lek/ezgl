@@ -423,34 +423,118 @@ public:
      */
     static void free_surface(surface* p_surface);
 
+    /**
+     * Rebind this renderer to a (possibly new) painter and re-apply the cached
+     * font, color, line width, cap, and dash to it. Called by the backends
+     * after the render target is recreated (e.g. on resize).
+     *
+     * @param painter The painter to draw through.
+     */
+    void set_painter(Painter* painter);
+
 protected:
-    irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam, QImage* surface);
+    /**
+     * Construct the renderer base with the painter, camera, and world→screen
+     * transform that subclasses draw through.
+     *
+     * @param painter        Backend painter used to issue draw primitives.
+     * @param world_to_screen Function mapping world coordinates to screen
+     *                       pixels using the current camera.
+     * @param cam            Camera supplying the current view and scale.
+     */
+    irenderer(Painter* painter, world_to_screen_fn world_to_screen, camera* cam);
 
-    Painter*            m_painter{nullptr};
-    world_to_screen_fn  m_world_to_screen;
-    camera*             m_camera{nullptr};
-    t_coordinate_system current_coordinate_system = WORLD;
-    color               current_color{0, 0, 0, 255};
-    int                 current_line_width  = 0;
-    line_cap            current_line_cap    = line_cap::butt;
-    line_dash           current_line_dash   = line_dash::none;
-    double              rotation_angle      = 0.0;
-    justification       horiz_justification = justification::center;
-    justification       vert_justification  = justification::center;
-    QFont               current_font;
-    point2d             text_screen_offset_px = {0.0, 0.0};
+    Painter*            m_painter{nullptr};        ///< Backend painter draw calls are issued to.
+    world_to_screen_fn  m_world_to_screen;         ///< Maps world coordinates to screen pixels.
+    camera*             m_camera{nullptr};         ///< Camera providing the current view and scale.
+    t_coordinate_system current_coordinate_system = WORLD; ///< How draw-call coordinates are interpreted.
+    color               current_color{0, 0, 0, 255};       ///< Active stroke/fill color.
+    int                 current_line_width  = 0;   ///< Active line width in pixels (0 means 1).
+    line_cap            current_line_cap    = line_cap::butt;   ///< Active line-cap style.
+    line_dash           current_line_dash   = line_dash::none;  ///< Active line-dash pattern.
+    double              rotation_angle      = 0.0; ///< Text rotation in radians (clockwise-negated degrees).
+    justification       horiz_justification = justification::center; ///< Horizontal text/surface anchoring.
+    justification       vert_justification  = justification::center; ///< Vertical text/surface anchoring.
+    QFont               current_font;              ///< Active font for text.
+    point2d             text_screen_offset_px = {0.0, 0.0}; ///< One-shot screen offset for the next draw_text.
 
-    void update_painter(Painter* painter, QImage* surface);
-
+    /**
+     * Test whether a rectangle lies entirely outside the visible world, used
+     * to cull off-screen primitives. Always returns false in SCREEN
+     * coordinates (no culling).
+     *
+     * @param rect Rectangle to test, in the current coordinate system.
+     * @return True if @p rect is fully outside the visible world.
+     */
     bool rectangle_off_screen(rectangle rect);
+
+    /**
+     * Clip a line segment to a world-coordinate window (Cohen–Sutherland),
+     * updating the endpoints in place.
+     *
+     * @param clip_window Window to clip against, in world coordinates.
+     * @param start       Line start; modified to the clipped position.
+     * @param end         Line end; modified to the clipped position.
+     * @return True if any part of the line is visible, false if fully clipped.
+     */
     bool clip_line_world(const rectangle& clip_window, point2d& start, point2d& end);
+
+    /**
+     * Stroke a line, culling and (in WORLD coords) clipping it to the visible
+     * world before transforming to screen space.
+     */
     void paint_line(const point2d& start, const point2d& end);
+
+    /**
+     * Build a rectangle path from two opposite corners and either fill or
+     * stroke it.
+     *
+     * @param start One corner.
+     * @param end   The opposite corner.
+     * @param fill  True to fill, false to stroke the outline.
+     */
     void paint_rectangle_path(const point2d& start, const point2d& end, bool fill);
+
+    /**
+     * Fill a closed polygon, culling it if its bounding box is off-screen.
+     *
+     * @param points Polygon vertices in order (must contain at least two).
+     */
     void paint_poly(const std::vector<point2d>& points);
+
+    /**
+     * Build and fill or stroke an arc path.
+     *
+     * @param center        Center of the arc.
+     * @param radius        Base radius (the x-radius).
+     * @param start_angle   Start angle in degrees, counter-clockwise from +x.
+     * @param extent_angle  Angular sweep in degrees.
+     * @param stretch_factor Vertical scale applied to @p radius to produce an
+     *                       ellipse (1 for a circle).
+     * @param fill          True to fill the wedge, false to stroke the arc.
+     */
     void paint_arc_path(const point2d& center, double radius, double start_angle,
                        double extent_angle, double stretch_factor, bool fill);
+
+    /**
+     * Render a text string, applying justification, rotation, and the one-shot
+     * screen offset, and skipping it if it exceeds the given bounds.
+     *
+     * @param point   Anchor position for the text.
+     * @param text    The string to draw.
+     * @param bound_x Maximum width, or non-finite/DBL_MAX for unbounded.
+     * @param bound_y Maximum height, or non-finite/DBL_MAX for unbounded.
+     */
     void paint_text(const point2d& point, const std::string& text,
                     double bound_x, double bound_y);
+
+    /**
+     * Draw an image surface, applying justification and scaling.
+     *
+     * @param p_surface   The surface to draw.
+     * @param anchor      Anchor position for the surface.
+     * @param scale_factor Uniform scale applied to the surface.
+     */
     void paint_surface(surface* p_surface, const point2d& anchor, double scale_factor);
 };
 
