@@ -49,25 +49,32 @@ struct FillStyleKey {
 };
 
 // ---- batch storage -------------------------------------------------------
+//
+// Each batch groups primitives that share one style key, so flush() can set
+// the QPen/QBrush once and emit the whole vector in a single QPainter pass.
 
+/// All lines sharing one LineStyleKey, drawn with a single QPen.
 struct LineBatch {
-    LineStyleKey        style;
-    std::vector<QLineF> lines;
+    LineStyleKey        style;   ///< Shared stroke style for every line in the batch.
+    std::vector<QLineF> lines;   ///< Lines collected under this style.
 };
 
+/// All filled rectangles sharing one FillStyleKey, drawn with a single QBrush.
 struct FillRectBatch {
-    FillStyleKey        style;
-    std::vector<QRectF> rects;
+    FillStyleKey        style;   ///< Shared fill style for every rectangle in the batch.
+    std::vector<QRectF> rects;   ///< Filled rectangles collected under this style.
 };
 
+/// All rectangle outlines sharing one LineStyleKey, drawn with a single QPen.
 struct DrawRectBatch {
-    LineStyleKey        style;
-    std::vector<QRectF> rects;
+    LineStyleKey        style;   ///< Shared stroke style for every outline in the batch.
+    std::vector<QRectF> rects;   ///< Outlined rectangles collected under this style.
 };
 
+/// All filled polygons sharing one FillStyleKey, drawn with a single QBrush.
 struct FillPolyBatch {
-    FillStyleKey            style;
-    std::vector<QPolygonF>  polys;
+    FillStyleKey            style;   ///< Shared fill style for every polygon in the batch.
+    std::vector<QPolygonF>  polys;   ///< Filled polygons collected under this style.
 };
 
 struct DeferredPainterState {
