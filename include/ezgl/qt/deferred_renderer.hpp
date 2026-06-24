@@ -237,37 +237,81 @@ public:
     ~deferred_renderer() override = default;
 
     // ---- irenderer: hot-path draw calls (batched) --------------------------
+    // These record into the per-state vertex batches (see DeferredPainterState)
+    // rather than painting immediately; the geometry is emitted at @ref replay()
+    // time. Semantics otherwise match the irenderer base declarations.
 
+    /// @name Record a line segment into the current state's line batch.
+    /// @{
     void draw_line(const point2d& start, const point2d& end) override;
+    /// @}
 
+    /// @name Record a filled rectangle into the current state's fill batch.
+    /// @{
     void fill_rectangle(const point2d& start, const point2d& end) override;
     void fill_rectangle(const point2d& start, double width, double height) override;
     void fill_rectangle(const rectangle& r) override;
+    /// @}
 
+    /// @name Record a rectangle outline into the current state's line batch.
+    /// @{
     void draw_rectangle(const point2d& start, const point2d& end) override;
     void draw_rectangle(const point2d& start, double width, double height) override;
     void draw_rectangle(const rectangle& r) override;
+    /// @}
 
-    // ---- irenderer: overlay draw calls (deferred to command queue) ---------
+    // ---- irenderer: draw calls (deferred to command queue) -----------------
+    // These append a DeferredOverlayCommand (with a captured painter state) to
+    // the command queue instead of painting immediately; world-space commands
+    // are also entered into the spatial index for replay-time culling.
+    // Semantics otherwise match the irenderer base declarations.
 
+    /// @name Record a filled polygon as a deferred command.
+    /// @{
     void fill_poly(const std::vector<point2d>& points) override;
+    /// @}
+    /// @name Record a filled triangle as a deferred command.
+    /// @{
     void fill_triangle(const point2d& a, const point2d& b, const point2d& c) override;
+    /// @}
+    /// @name Record a screen-sized arrow-pointer triangle as a deferred command,
+    /// capturing the per-vertex pixel offsets so its size stays zoom-invariant.
+    /// @{
     void fill_arrow_pointer_triangle(const point2d& anchor_world,
                                       const point2d& dir_world,
                                       float          arrow_size_px) override;
+    /// @}
+    /// @name Record an elliptic-arc outline as a deferred command.
+    /// @{
     void draw_elliptic_arc(const point2d& center, double radius_x, double radius_y,
                            double start_angle, double extent_angle) override;
+    /// @}
+    /// @name Record a circular-arc outline as a deferred command.
+    /// @{
     void draw_arc(const point2d& center, double radius,
                   double start_angle, double extent_angle) override;
+    /// @}
+    /// @name Record a filled elliptic arc as a deferred command.
+    /// @{
     void fill_elliptic_arc(const point2d& center, double radius_x, double radius_y,
                            double start_angle, double extent_angle) override;
+    /// @}
+    /// @name Record a filled circular arc as a deferred command.
+    /// @{
     void fill_arc(const point2d& center, double radius,
                   double start_angle, double extent_angle) override;
+    /// @}
+    /// @name Record a text label as a deferred command.
+    /// @{
     void draw_text(const point2d& point, std::string const& text) override;
     void draw_text(const point2d& point, std::string const& text,
                    double bound_x, double bound_y) override;
+    /// @}
+    /// @name Record a surface (image) blit as a deferred command.
+    /// @{
     void draw_surface(surface* p_surface, const point2d& anchor_point,
                       double scale_factor = 1) override;
+    /// @}
 
     // ---- Replay / flush ----------------------------------------------------
 
