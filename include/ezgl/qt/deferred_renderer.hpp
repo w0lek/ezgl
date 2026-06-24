@@ -146,11 +146,11 @@ struct DeferredArrowTriangleCommand {
     point2d              offset_c_px;
 };
 
-/// One recorded overlay command — any of the deferred command types. Stored in
-/// submission order in m_overlay_commands and dispatched with std::visit during
-/// replay. (Overlay commands can't be batched by style like lines/rects, so
+/// One recorded deferred command — any of the deferred command types. Stored in
+/// submission order in m_commands and dispatched with std::visit during
+/// replay. (These commands can't be batched by style like lines/rects, so
 /// each is replayed individually.)
-using DeferredOverlayCommand =
+using DeferredCommand =
     std::variant<DeferredArcCommand,
                  DeferredTextCommand,
                  DeferredSurfaceCommand,
@@ -188,14 +188,14 @@ using DeferredOverlayCommand =
  *    emits the whole batch in a single QPainter call. This is the hot path for
  *    bulk geometry (nets, routes, channels).
  *
- * 2. **Overlay commands** — @c draw_text, the arc calls, @c draw_surface,
+ * 2. **Deferred commands** — @c draw_text, the arc calls, @c draw_surface,
  *    @c fill_arrow_pointer_triangle. These carry per-instance state that a
  *    style key can't capture (font, rotation, justification) and/or must be
  *    re-projected per camera (text that rescales with zoom, arrows kept at a
- *    constant pixel size). Each is recorded as a @ref DeferredOverlayCommand
+ *    constant pixel size). Each is recorded as a @ref DeferredCommand
  *    with a full @ref DeferredPainterState snapshot and is kept in *world*
- *    coordinates. World-space overlay commands are also inserted into a coarse
- *    spatial grid (@ref index_world_overlay_command) so that replay can find
+ *    coordinates. World-space commands are also inserted into a coarse
+ *    spatial grid (@ref index_world_command) so that replay can find
  *    the ones overlapping the view without scanning every command.
  *
  * ## When things happen
@@ -207,10 +207,10 @@ using DeferredOverlayCommand =
  *   the *current* camera — not at record time — which is what lets the same
  *   recording be replayed at a different zoom/pan. @ref replay() then:
  *     1. culls each batch to the primitives currently on screen;
- *     2. culls overlay commands via the spatial index, then a per-command
+ *     2. culls commands via the spatial index, then a per-command
  *        visibility test against the current view;
  *     3. draws the visible batches (one QPen/QBrush set-up per batch);
- *     4. draws the visible overlay commands, applying each command's captured
+ *     4. draws the visible commands, applying each command's captured
  *        state and any camera-dependent transform (text rescale, arrow sizing).
  * - @ref flush() = @ref replay() then @ref reset(). @ref deferred_backend
  *   re-records every frame and calls @ref flush(). @ref rhi_renderer (only its
@@ -223,9 +223,9 @@ class deferred_renderer : public irenderer {
 public:
     /**
      * Construct a deferred renderer over the given painter and camera. The
-     * record buffers, batches, and overlay spatial index all start empty; the
-     * overlay index grid is sized lazily on first use (see
-     * @ref ensure_overlay_index_grid).
+     * record buffers, batches, and command spatial index all start empty; the
+     * command index grid is sized lazily on first use (see
+     * @ref ensure_command_index_grid).
      *
      * @param painter Backend painter used to issue draw primitives.
      * @param cam     Camera supplying the current view, scale, and
@@ -261,7 +261,7 @@ public:
     /// @}
 
     // ---- irenderer: draw calls (deferred to command queue) -----------------
-    // These append a DeferredOverlayCommand (with a captured painter state) to
+    // These append a DeferredCommand (with a captured painter state) to
     // the command queue instead of painting immediately; world-space commands
     // are also entered into the spatial index for replay-time culling.
     // Semantics otherwise match the irenderer base declarations.
@@ -315,30 +315,39 @@ public:
 
     // ---- Replay / flush ----------------------------------------------------
 
-    // Replay all recorded batches and overlay commands to the QPainter,
+    // Replay all recorded batches and commands to the QPainter,
     // keeping them so they can be replayed again (e.g. rhi replaying its
     // overlay subset on a camera-only redraw — see the class doc).
     void replay();
 
-    // Discard all recorded batches and overlay commands.
+    // Discard all recorded batches and commands.
     void reset();
 
     // Replay, then reset.
     void flush();
 
-protected:
-    void clear_deferred_primitives();
-
 private:
-    void ensure_overlay_index_grid();
-    int clamp_overlay_tile_x(double x) const;
-    int clamp_overlay_tile_y(double y) const;
-    void index_world_overlay_command(std::uint32_t command_index,
+    /// Lazily size the command spatial-index grid to the camera's initial world
+    /// (degenerate dimensions are clamped to epsilon); a no-op once built.
+    void ensure_command_index_grid();
+    /// @name Map a world coordinate to a grid column / row, clamped to the index bounds.
+    /// @{
+    int clamp_command_tile_x(double x) const;
+    int clamp_command_tile_y(double y) const;
+    /// @}
+    /// Insert a world-space command into every index bucket its
+    /// @p bounds overlaps, so a later visible-world query can find it.
+    void index_world_command(std::uint32_t command_index,
                                      rectangle      bounds);
+    /// Snapshot the current painter/renderer state for replay of a deferred command.
     DeferredPainterState capture_painter_state() const;
+    /// Restore a previously captured painter/renderer state onto the painter.
     void apply_painter_state(const DeferredPainterState& state);
 
+    /// The current viewport rectangle in screen (widget) pixels.
     QRectF screen_viewport_rect() const;
+    /// @name Test a primitive against the screen viewport, used to cull SCREEN-coordinate draws.
+    /// @{
     bool screen_rect_visible(const QRectF& rect, double padding = 0.0) const;
     bool screen_line_visible(const QLineF& line, double line_width) const;
     bool screen_arc_visible(const point2d& center,
@@ -351,6 +360,7 @@ private:
     bool screen_surface_visible(surface *p_surface,
                                 const point2d& point,
                                 double scale_factor) const;
+    /// @}
 
     // ---- replay() stages ---------------------------------------------------
     // A batch culled to only its currently-visible primitives, ready to draw.
@@ -371,8 +381,8 @@ private:
     // and refills them instead of reallocating.
     struct ReplayCache {
         VisibleBatches                             visible_batches;    ///< Culled batches to draw.
-        std::vector<std::uint32_t>                 overlay_candidates; ///< Overlay indices possibly in view.
-        std::vector<const DeferredOverlayCommand*> visible_overlay;    ///< Overlay commands that passed the cull.
+        std::vector<std::uint32_t>                 candidate_commands; ///< Command indices possibly in view.
+        std::vector<const DeferredCommand*> visible_commands;    ///< Commands that passed the cull.
 
         // Empty every buffer for a fresh frame, keeping their heap capacity.
         void clear() {
@@ -380,8 +390,8 @@ private:
             visible_batches.fill_rects.clear();
             visible_batches.draw_rects.clear();
             visible_batches.fill_polys.clear();
-            overlay_candidates.clear();
-            visible_overlay.clear();
+            candidate_commands.clear();
+            visible_commands.clear();
         }
     };
 
@@ -392,23 +402,23 @@ private:
 
     // Stage 1a: cull each recorded batch to the primitives currently on screen.
     void cull_visible_batches(VisibleBatches& out) const;
-    // Stage 1b: collect overlay-command indices that might be in view (the
+    // Stage 1b: collect command indices that might be in view (the
     // always-replayed unindexed ones plus a spatial-index query of the visible
     // world), sorted into record order.
-    void gather_candidate_overlay_commands(std::vector<std::uint32_t>& out);
+    void gather_candidate_commands(std::vector<std::uint32_t>& out);
     // Stage 1c: from the candidates, keep the commands that pass a per-command
     // visibility test against the current camera (applies painter state while
     // measuring text/surface extents).
-    void select_visible_overlay_commands(const std::vector<std::uint32_t>& candidates,
-                                         std::vector<const DeferredOverlayCommand*>& out);
+    void select_visible_commands(const std::vector<std::uint32_t>& candidates,
+                                         std::vector<const DeferredCommand*>& out);
     // Stage 2a: paint the culled batches (one QPen/QBrush set-up per batch).
     void draw_visible_batches(const VisibleBatches& batches);
-    // Stage 2b: paint the visible overlay commands on top, applying each
+    // Stage 2b: paint the visible commands on top, applying each
     // command's captured state and any camera-dependent transform.
-    void draw_visible_overlay_commands(
-        const std::vector<const DeferredOverlayCommand*>& commands);
+    void draw_visible_commands(
+        const std::vector<const DeferredCommand*>& commands);
 
-    // Per-command overlay visibility helpers (world coordinates). The text one
+    // Per-command visibility helpers (world coordinates). The text one
     // also resolves the camera-rescaled font into @p state for replay.
     bool resolve_text_replay_state(const DeferredTextCommand& cmd, DeferredPainterState& state);
     bool world_arc_visible(const point2d& center, double radius_x, double radius_y);
@@ -416,16 +426,24 @@ private:
                             double bound_x, double bound_y);
     bool world_surface_visible(surface* p_surface, const point2d& point, double scale_factor);
 
+    /// @name Build the batch lookup key for the current line / fill state.
+    /// @{
     LineStyleKey current_line_style() const;
     FillStyleKey current_fill_style() const;
+    /// @}
 
+    /// @name Append a primitive to the batch for the given style key, creating the batch on first use.
+    /// @{
     void add_line(const LineStyleKey &s, QLineF line);
     void add_fill_rect(const FillStyleKey &s, QRectF rect);
     void add_draw_rect(const LineStyleKey &s, QRectF rect);
     void add_fill_poly(const FillStyleKey &s, QPolygonF poly);
+    /// @}
 
+    /// Convert a world-space rectangle (two opposite corners) to screen pixels.
     QRectF to_screen_rect(const point2d& start, const point2d& end);
 
+    /// Record an arc as a deferred command; @p fill selects filled vs. outline.
     void push_arc_command(const point2d& center, double radius_x, double radius_y,
                           double start_angle, double extent_angle, bool fill);
 
@@ -440,14 +458,14 @@ private:
     std::unordered_map<uint64_t, size_t> m_fill_rect_idx;
     std::unordered_map<uint64_t, size_t> m_draw_rect_idx;
     std::unordered_map<uint64_t, size_t> m_fill_poly_idx;
-    std::vector<DeferredOverlayCommand>  m_overlay_commands;
-    rectangle                            m_overlay_index_scene_bounds;
-    double                               m_overlay_index_tile_width = 1.0;
-    double                               m_overlay_index_tile_height = 1.0;
-    std::vector<std::vector<std::uint32_t>> m_indexed_world_overlay_buckets;
-    std::vector<std::uint32_t>           m_unindexed_overlay_commands;
-    std::vector<std::uint32_t>           m_overlay_query_marks;
-    std::uint32_t                        m_overlay_query_generation = 1;
+    std::vector<DeferredCommand>  m_commands;
+    rectangle                            m_command_index_scene_bounds;
+    double                               m_command_index_tile_width = 1.0;
+    double                               m_command_index_tile_height = 1.0;
+    std::vector<std::vector<std::uint32_t>> m_indexed_world_command_buckets;
+    std::vector<std::uint32_t>           m_unindexed_commands;
+    std::vector<std::uint32_t>           m_command_query_marks;
+    std::uint32_t                        m_command_query_generation = 1;
 
     // Persistent scratch reused by replay() across frames (see ReplayCache).
     ReplayCache m_replay_cache;

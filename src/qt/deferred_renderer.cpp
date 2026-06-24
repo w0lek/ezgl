@@ -18,7 +18,7 @@ namespace ezgl {
 // ---- helpers -------------------------------------------------------------
 
 static constexpr double kMinReadableTextSize = 8.0;
-static constexpr int kOverlaySpatialGridDimension = 256;
+static constexpr int kCommandSpatialGridDimension = 256;
 
 struct DeferredVisibleStats {
     std::size_t lines = 0;
@@ -94,7 +94,7 @@ deferred_renderer::deferred_renderer(Painter *painter,
 
 // ---- spatial index -------------------------------------------------------
 
-void deferred_renderer::ensure_overlay_index_grid()
+void deferred_renderer::ensure_command_index_grid()
 {
     const rectangle scene = m_camera->get_initial_world();
     const double scene_width =
@@ -103,58 +103,58 @@ void deferred_renderer::ensure_overlay_index_grid()
         std::max(scene.height(), std::numeric_limits<double>::epsilon());
     const rectangle normalized_scene{{scene.left(), scene.bottom()}, scene_width, scene_height};
 
-    if (m_indexed_world_overlay_buckets.size()
-            == std::size_t(kOverlaySpatialGridDimension * kOverlaySpatialGridDimension)
-        && normalized_scene == m_overlay_index_scene_bounds) {
+    if (m_indexed_world_command_buckets.size()
+            == std::size_t(kCommandSpatialGridDimension * kCommandSpatialGridDimension)
+        && normalized_scene == m_command_index_scene_bounds) {
         return;
     }
 
-    m_overlay_index_scene_bounds = normalized_scene;
-    m_overlay_index_tile_width =
-        m_overlay_index_scene_bounds.width() / double(kOverlaySpatialGridDimension);
-    m_overlay_index_tile_height =
-        m_overlay_index_scene_bounds.height() / double(kOverlaySpatialGridDimension);
-    m_indexed_world_overlay_buckets.clear();
-    m_indexed_world_overlay_buckets.resize(
-        std::size_t(kOverlaySpatialGridDimension * kOverlaySpatialGridDimension));
+    m_command_index_scene_bounds = normalized_scene;
+    m_command_index_tile_width =
+        m_command_index_scene_bounds.width() / double(kCommandSpatialGridDimension);
+    m_command_index_tile_height =
+        m_command_index_scene_bounds.height() / double(kCommandSpatialGridDimension);
+    m_indexed_world_command_buckets.clear();
+    m_indexed_world_command_buckets.resize(
+        std::size_t(kCommandSpatialGridDimension * kCommandSpatialGridDimension));
 }
 
-int deferred_renderer::clamp_overlay_tile_x(double x) const
+int deferred_renderer::clamp_command_tile_x(double x) const
 {
     const double normalized =
-        (x - m_overlay_index_scene_bounds.left()) / m_overlay_index_tile_width;
-    return std::clamp(int(std::floor(normalized)), 0, kOverlaySpatialGridDimension - 1);
+        (x - m_command_index_scene_bounds.left()) / m_command_index_tile_width;
+    return std::clamp(int(std::floor(normalized)), 0, kCommandSpatialGridDimension - 1);
 }
 
-int deferred_renderer::clamp_overlay_tile_y(double y) const
+int deferred_renderer::clamp_command_tile_y(double y) const
 {
     const double normalized =
-        (y - m_overlay_index_scene_bounds.bottom()) / m_overlay_index_tile_height;
-    return std::clamp(int(std::floor(normalized)), 0, kOverlaySpatialGridDimension - 1);
+        (y - m_command_index_scene_bounds.bottom()) / m_command_index_tile_height;
+    return std::clamp(int(std::floor(normalized)), 0, kCommandSpatialGridDimension - 1);
 }
 
-void deferred_renderer::index_world_overlay_command(std::uint32_t command_index,
+void deferred_renderer::index_world_command(std::uint32_t command_index,
                                                     rectangle      bounds)
 {
-    ensure_overlay_index_grid();
+    ensure_command_index_grid();
 
-    if (bounds.right() < m_overlay_index_scene_bounds.left()
-        || bounds.left() > m_overlay_index_scene_bounds.right()
-        || bounds.top() < m_overlay_index_scene_bounds.bottom()
-        || bounds.bottom() > m_overlay_index_scene_bounds.top()) {
-        m_unindexed_overlay_commands.push_back(command_index);
+    if (bounds.right() < m_command_index_scene_bounds.left()
+        || bounds.left() > m_command_index_scene_bounds.right()
+        || bounds.top() < m_command_index_scene_bounds.bottom()
+        || bounds.bottom() > m_command_index_scene_bounds.top()) {
+        m_unindexed_commands.push_back(command_index);
         return;
     }
 
-    const int min_tx = clamp_overlay_tile_x(bounds.left());
-    const int max_tx = clamp_overlay_tile_x(bounds.right());
-    const int min_ty = clamp_overlay_tile_y(bounds.bottom());
-    const int max_ty = clamp_overlay_tile_y(bounds.top());
+    const int min_tx = clamp_command_tile_x(bounds.left());
+    const int max_tx = clamp_command_tile_x(bounds.right());
+    const int min_ty = clamp_command_tile_y(bounds.bottom());
+    const int max_ty = clamp_command_tile_y(bounds.top());
     for (int ty = min_ty; ty <= max_ty; ++ty) {
         for (int tx = min_tx; tx <= max_tx; ++tx) {
             const std::size_t bucket_index =
-                std::size_t(ty) * std::size_t(kOverlaySpatialGridDimension) + std::size_t(tx);
-            m_indexed_world_overlay_buckets[bucket_index].push_back(command_index);
+                std::size_t(ty) * std::size_t(kCommandSpatialGridDimension) + std::size_t(tx);
+            m_indexed_world_command_buckets[bucket_index].push_back(command_index);
         }
     }
 }
@@ -445,7 +445,7 @@ void deferred_renderer::draw_rectangle(const rectangle& r)
     draw_rectangle({r.left(), r.bottom()}, {r.right(), r.top()});
 }
 
-// ---- overlay draw calls (stored in command queue) ------------------------
+// ---- draw calls (stored in the command queue) ----------------------------
 
 void deferred_renderer::fill_triangle(const point2d& a, const point2d& b, const point2d& c)
 {
@@ -488,8 +488,8 @@ void deferred_renderer::push_arc_command(const point2d& center, double radius_x,
                                          double radius_y, double start_angle,
                                          double extent_angle, bool fill)
 {
-    const std::uint32_t command_index = std::uint32_t(m_overlay_commands.size());
-    m_overlay_commands.emplace_back(DeferredArcCommand{
+    const std::uint32_t command_index = std::uint32_t(m_commands.size());
+    m_commands.emplace_back(DeferredArcCommand{
         capture_painter_state(),
         center,
         radius_x,
@@ -499,12 +499,12 @@ void deferred_renderer::push_arc_command(const point2d& center, double radius_x,
         fill
     });
     if (current_coordinate_system == WORLD) {
-        index_world_overlay_command(
+        index_world_command(
             command_index,
             {{center.x - radius_x, center.y - radius_y},
              {center.x + radius_x, center.y + radius_y}});
     } else {
-        m_unindexed_overlay_commands.push_back(command_index);
+        m_unindexed_commands.push_back(command_index);
     }
 }
 
@@ -555,8 +555,8 @@ void deferred_renderer::fill_arrow_pointer_triangle(const point2d& anchor_world,
     const point2d off_left{ -dir_unit.x * r + perp_unit.x * r, -dir_unit.y * r + perp_unit.y * r };
     const point2d off_right{-dir_unit.x * r - perp_unit.x * r, -dir_unit.y * r - perp_unit.y * r };
 
-    const std::uint32_t command_index = std::uint32_t(m_overlay_commands.size());
-    m_overlay_commands.emplace_back(DeferredArrowTriangleCommand{
+    const std::uint32_t command_index = std::uint32_t(m_commands.size());
+    m_commands.emplace_back(DeferredArrowTriangleCommand{
         capture_painter_state(),
         anchor_world,
         off_tip,
@@ -566,7 +566,7 @@ void deferred_renderer::fill_arrow_pointer_triangle(const point2d& anchor_world,
     // Mark as unindexed: we don't have a tight world-bbox to feed the
     // spatial index (the on-screen extent depends on the current camera),
     // so always replay.
-    m_unindexed_overlay_commands.push_back(command_index);
+    m_unindexed_commands.push_back(command_index);
 }
 
 void deferred_renderer::draw_text(const point2d& point, std::string const& text)
@@ -577,9 +577,9 @@ void deferred_renderer::draw_text(const point2d& point, std::string const& text)
 void deferred_renderer::draw_text(const point2d& point, std::string const& text,
                                   double bound_x, double bound_y)
 {
-    const std::uint32_t command_index = std::uint32_t(m_overlay_commands.size());
+    const std::uint32_t command_index = std::uint32_t(m_commands.size());
     const point2d recorded_world_scale = m_camera->get_world_scale_factor();
-    m_overlay_commands.emplace_back(DeferredTextCommand{
+    m_commands.emplace_back(DeferredTextCommand{
         capture_painter_state(),
         point,
         text,
@@ -611,32 +611,32 @@ void deferred_renderer::draw_text(const point2d& point, std::string const& text,
         else if (vert_justification == justification::bottom)
             center.y += clip_height / 2.0;
 
-        index_world_overlay_command(
+        index_world_command(
             command_index,
             {{center.x - clip_width / 2.0, center.y - clip_height / 2.0},
              clip_width,
              clip_height});
     } else {
-        m_unindexed_overlay_commands.push_back(command_index);
+        m_unindexed_commands.push_back(command_index);
     }
 }
 
 void deferred_renderer::draw_surface(surface *p_surface, const point2d& point,
                                      double scale_factor)
 {
-    const std::uint32_t command_index = std::uint32_t(m_overlay_commands.size());
-    m_overlay_commands.emplace_back(DeferredSurfaceCommand{
+    const std::uint32_t command_index = std::uint32_t(m_commands.size());
+    m_commands.emplace_back(DeferredSurfaceCommand{
         capture_painter_state(),
         p_surface,
         point,
         scale_factor
     });
-    m_unindexed_overlay_commands.push_back(command_index);
+    m_unindexed_commands.push_back(command_index);
 }
 
 // ---- flush / replay / reset ----------------------------------------------
 
-// ---- replay helpers: per-command overlay visibility ----------------------
+// ---- replay helpers: per-command visibility ------------------------------
 
 bool deferred_renderer::resolve_text_replay_state(const DeferredTextCommand& cmd,
                                                   DeferredPainterState& state)
@@ -740,10 +740,10 @@ void deferred_renderer::replay()
     // The stage functions fill persistent scratch members (reused across
     // frames) rather than returning fresh vectors.
     cull_visible_batches(m_replay_cache.visible_batches);
-    gather_candidate_overlay_commands(m_replay_cache.overlay_candidates);
-    select_visible_overlay_commands(m_replay_cache.overlay_candidates, m_replay_cache.visible_overlay);
+    gather_candidate_commands(m_replay_cache.candidate_commands);
+    select_visible_commands(m_replay_cache.candidate_commands, m_replay_cache.visible_commands);
     const VisibleBatches& batches = m_replay_cache.visible_batches;
-    const std::vector<const DeferredOverlayCommand*>& overlay_commands = m_replay_cache.visible_overlay;
+    const std::vector<const DeferredCommand*>& commands = m_replay_cache.visible_commands;
 
 #ifdef EZGL_RENDERER_DEBUG
     DeferredVisibleStats stats;
@@ -751,7 +751,7 @@ void deferred_renderer::replay()
     for (const auto& b : batches.fill_rects) stats.filled_rects   += b.rects.size();
     for (const auto& b : batches.draw_rects) stats.outlined_rects += b.rects.size();
     for (const auto& b : batches.fill_polys) stats.filled_polys   += b.polys.size();
-    for (const DeferredOverlayCommand* command : overlay_commands) {
+    for (const DeferredCommand* command : commands) {
         std::visit([&](const auto& cmd) {
             using T = std::decay_t<decltype(cmd)>;
             if constexpr (std::is_same_v<T, DeferredArcCommand>)
@@ -763,9 +763,9 @@ void deferred_renderer::replay()
     print_visible_stats(stats);
 #endif // EZGL_RENDERER_DEBUG
 
-    // Stage 2 — paint: bulk batches first, then overlay commands on top.
+    // Stage 2 — paint: bulk batches first, then commands on top.
     draw_visible_batches(batches);
-    draw_visible_overlay_commands(overlay_commands);
+    draw_visible_commands(commands);
 }
 
 void deferred_renderer::cull_visible_batches(VisibleBatches& out) const
@@ -814,45 +814,45 @@ void deferred_renderer::cull_visible_batches(VisibleBatches& out) const
     }
 }
 
-void deferred_renderer::gather_candidate_overlay_commands(std::vector<std::uint32_t>& candidates)
+void deferred_renderer::gather_candidate_commands(std::vector<std::uint32_t>& candidates)
 {
     // candidates is expected empty (replay() clears the cache).
     // Unindexed commands (e.g. arrows, SCREEN-coordinate ones) have no world
     // bbox, so they are always candidates.
     candidates.insert(candidates.end(),
-                      m_unindexed_overlay_commands.begin(),
-                      m_unindexed_overlay_commands.end());
+                      m_unindexed_commands.begin(),
+                      m_unindexed_commands.end());
 
     const rectangle visible_world = irenderer::get_visible_world();
 
-    if (!m_indexed_world_overlay_buckets.empty()
-        && !m_overlay_commands.empty()
-        && m_overlay_index_scene_bounds.right() >= visible_world.left()
-        && m_overlay_index_scene_bounds.left() <= visible_world.right()
-        && m_overlay_index_scene_bounds.top() >= visible_world.bottom()
-        && m_overlay_index_scene_bounds.bottom() <= visible_world.top()) {
+    if (!m_indexed_world_command_buckets.empty()
+        && !m_commands.empty()
+        && m_command_index_scene_bounds.right() >= visible_world.left()
+        && m_command_index_scene_bounds.left() <= visible_world.right()
+        && m_command_index_scene_bounds.top() >= visible_world.bottom()
+        && m_command_index_scene_bounds.bottom() <= visible_world.top()) {
         // A per-query generation stamp dedups commands that span several tiles
         // without clearing the whole marks vector each frame.
-        if (m_overlay_query_marks.size() < m_overlay_commands.size())
-            m_overlay_query_marks.resize(m_overlay_commands.size(), 0);
-        ++m_overlay_query_generation;
-        if (m_overlay_query_generation == 0) {
-            std::fill(m_overlay_query_marks.begin(), m_overlay_query_marks.end(), 0);
-            m_overlay_query_generation = 1;
+        if (m_command_query_marks.size() < m_commands.size())
+            m_command_query_marks.resize(m_commands.size(), 0);
+        ++m_command_query_generation;
+        if (m_command_query_generation == 0) {
+            std::fill(m_command_query_marks.begin(), m_command_query_marks.end(), 0);
+            m_command_query_generation = 1;
         }
 
-        const int min_tx = clamp_overlay_tile_x(visible_world.left());
-        const int max_tx = clamp_overlay_tile_x(visible_world.right());
-        const int min_ty = clamp_overlay_tile_y(visible_world.bottom());
-        const int max_ty = clamp_overlay_tile_y(visible_world.top());
+        const int min_tx = clamp_command_tile_x(visible_world.left());
+        const int max_tx = clamp_command_tile_x(visible_world.right());
+        const int min_ty = clamp_command_tile_y(visible_world.bottom());
+        const int max_ty = clamp_command_tile_y(visible_world.top());
         for (int ty = min_ty; ty <= max_ty; ++ty) {
             for (int tx = min_tx; tx <= max_tx; ++tx) {
                 const std::size_t bucket_index =
-                    std::size_t(ty) * std::size_t(kOverlaySpatialGridDimension) + std::size_t(tx);
-                for (const std::uint32_t command_index : m_indexed_world_overlay_buckets[bucket_index]) {
-                    if (m_overlay_query_marks[command_index] == m_overlay_query_generation)
+                    std::size_t(ty) * std::size_t(kCommandSpatialGridDimension) + std::size_t(tx);
+                for (const std::uint32_t command_index : m_indexed_world_command_buckets[bucket_index]) {
+                    if (m_command_query_marks[command_index] == m_command_query_generation)
                         continue;
-                    m_overlay_query_marks[command_index] = m_overlay_query_generation;
+                    m_command_query_marks[command_index] = m_command_query_generation;
                     candidates.push_back(command_index);
                 }
             }
@@ -863,14 +863,14 @@ void deferred_renderer::gather_candidate_overlay_commands(std::vector<std::uint3
     std::sort(candidates.begin(), candidates.end());
 }
 
-void deferred_renderer::select_visible_overlay_commands(
+void deferred_renderer::select_visible_commands(
     const std::vector<std::uint32_t>& candidates,
-    std::vector<const DeferredOverlayCommand*>& visible)
+    std::vector<const DeferredCommand*>& visible)
 {
     // visible is expected empty (replay() clears the cache).
     for (const std::uint32_t command_index : candidates) {
-        const DeferredOverlayCommand& command =
-            m_overlay_commands[std::size_t(command_index)];
+        const DeferredCommand& command =
+            m_commands[std::size_t(command_index)];
         const bool is_visible = std::visit([&](const auto& cmd) -> bool {
             using T = std::decay_t<decltype(cmd)>;
             if constexpr (std::is_same_v<T, DeferredArcCommand>) {
@@ -936,10 +936,10 @@ void deferred_renderer::draw_visible_batches(const VisibleBatches& batches)
     }
 }
 
-void deferred_renderer::draw_visible_overlay_commands(
-    const std::vector<const DeferredOverlayCommand*>& commands)
+void deferred_renderer::draw_visible_commands(
+    const std::vector<const DeferredCommand*>& commands)
 {
-    for (const DeferredOverlayCommand* command : commands) {
+    for (const DeferredCommand* command : commands) {
         std::visit([this](const auto& cmd) {
             apply_painter_state(cmd.state);
             using T = std::decay_t<decltype(cmd)>;
@@ -989,11 +989,6 @@ void deferred_renderer::flush()
     reset();
 }
 
-void deferred_renderer::clear_deferred_primitives()
-{
-    reset();
-}
-
 void deferred_renderer::reset()
 {
     m_line_batches.clear();
@@ -1004,14 +999,14 @@ void deferred_renderer::reset()
     m_fill_rect_idx.clear();
     m_draw_rect_idx.clear();
     m_fill_poly_idx.clear();
-    m_overlay_commands.clear();
-    for (auto& bucket : m_indexed_world_overlay_buckets)
+    m_commands.clear();
+    for (auto& bucket : m_indexed_world_command_buckets)
         bucket.clear();
-    m_unindexed_overlay_commands.clear();
-    m_overlay_query_marks.clear();
-    m_overlay_query_generation = 1;
+    m_unindexed_commands.clear();
+    m_command_query_marks.clear();
+    m_command_query_generation = 1;
     // Drop the replay scratch (esp. the command pointers, which would dangle
-    // once m_overlay_commands is cleared); clear() keeps the heap capacity.
+    // once m_commands is cleared); clear() keeps the heap capacity.
     m_replay_cache.clear();
 }
 
