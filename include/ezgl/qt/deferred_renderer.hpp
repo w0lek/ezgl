@@ -154,6 +154,57 @@ using DeferredOverlayCommand =
 
 // ---- deferred_renderer ---------------------------------------------------
 
+/**
+ * QPainter renderer that *records* a frame's draw calls and replays them later,
+ * instead of painting immediately. This buys two things over the immediate
+ * renderer: draw calls are reordered to minimise QPainter pen/brush changes,
+ * and the recorded frame can be re-drawn for a new camera without re-running
+ * the application's draw callback (used by @ref rhi_renderer for camera-only
+ * redraws). Used directly by @ref deferred_backend, and as the overlay/fallback
+ * layer owned by @ref rhi_renderer.
+ *
+ * ## Two storage paths
+ *
+ * Each draw call lands in one of two stores, chosen by how cheaply it can be
+ * described:
+ *
+ * 1. **Style-batched primitives** — @c draw_line, @c draw_rectangle,
+ *    @c fill_rectangle, @c fill_poly. Their geometry is projected to screen
+ *    space immediately and appended to a batch keyed by a @ref LineStyleKey /
+ *    @ref FillStyleKey (color + stroke attributes). All primitives sharing a
+ *    style land in the same batch, so replay sets the QPen/QBrush once and
+ *    emits the whole batch in a single QPainter call. This is the hot path for
+ *    bulk geometry (nets, routes, channels).
+ *
+ * 2. **Overlay commands** — @c draw_text, the arc calls, @c draw_surface,
+ *    @c fill_arrow_pointer_triangle. These carry per-instance state that a
+ *    style key can't capture (font, rotation, justification) and/or must be
+ *    re-projected per camera (text that rescales with zoom, arrows kept at a
+ *    constant pixel size). Each is recorded as a @ref DeferredOverlayCommand
+ *    with a full @ref DeferredPainterState snapshot and is kept in *world*
+ *    coordinates. World-space overlay commands are also inserted into a coarse
+ *    spatial grid (@ref index_world_overlay_command) so that replay can find
+ *    the ones overlapping the view without scanning every command.
+ *
+ * ## When things happen
+ *
+ * - **Record time** (inside the app's draw callback): the calls above only
+ *   *store* geometry/commands; nothing is painted yet, and no visibility test
+ *   is done.
+ * - **Replay time** (@ref replay): visibility culling happens *here*, against
+ *   the *current* camera — not at record time — which is what lets the same
+ *   recording be replayed at a different zoom/pan. @ref replay() then:
+ *     1. culls each batch to the primitives currently on screen;
+ *     2. culls overlay commands via the spatial index, then a per-command
+ *        visibility test against the current view;
+ *     3. draws the visible batches (one QPen/QBrush set-up per batch);
+ *     4. draws the visible overlay commands, applying each command's captured
+ *        state and any camera-dependent transform (text rescale, arrow sizing).
+ * - @ref flush() = @ref replay() then @ref reset(). @ref deferred_backend
+ *   re-records every frame and calls @ref flush(); @ref rhi_renderer calls
+ *   @ref replay() repeatedly across camera-only updates and @ref reset() only
+ *   when the scene actually changes.
+ */
 class deferred_renderer : public irenderer {
     const double MINIMAL_VISIBLE_TEXT_BOUND_Y_IN_PX = 5.0;
 public:
