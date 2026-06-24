@@ -28,6 +28,7 @@
 
 namespace ezgl {
 
+/// Application-supplied scene-drawing callback.
 using draw_canvas_fn = void (*)(renderer*);
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
