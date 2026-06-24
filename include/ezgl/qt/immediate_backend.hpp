@@ -68,14 +68,14 @@ private:
     /// the Painter and immediate_renderer. Called on construction and on every resize.
     void recreate_surface();
 
-    QWidget*            m_drawing_area;
-    draw_canvas_fn      m_draw_callback;
-    camera*             m_camera;
-    color               m_background_color;
+    QWidget*            m_drawing_area;     ///< Target Qt widget (not owned); the DrawingAreaWidget supplying the surface.
+    draw_canvas_fn      m_draw_callback;    ///< Application scene-drawing callback, invoked each redraw.
+    camera*             m_camera;           ///< Camera providing the view and world→screen transform (not owned).
+    color               m_background_color; ///< Color the surface is cleared to before each frame.
 
-    QImage*             m_surface  = nullptr;
-    Painter*            m_painter  = nullptr;
-    immediate_renderer* m_renderer = nullptr;
+    QImage*             m_surface  = nullptr; ///< Off-screen render target; owned by the DrawingAreaWidget, not freed here.
+    Painter*            m_painter  = nullptr; ///< Painter wrapping m_surface; owned, recreated on resize, deleted in dtor.
+    immediate_renderer* m_renderer = nullptr; ///< Immediate renderer drawing through m_painter; owned, recreated on resize, deleted in dtor.
 };
 
 } // namespace ezgl
