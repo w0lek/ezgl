@@ -154,16 +154,14 @@ public:
   /// Adds a straight segment from the current point to (@p x, @p y).
   void line_to(double x, double y);
 
-  /// Appends a circular arc to the current path, swept in the positive
-  /// (counter-clockwise) direction.
+  /// Appends a circular arc to the current path. The sweep direction follows
+  /// the sign of the (angle2 - angle1) span, so this draws either direction —
+  /// no separate "negative" variant is needed (unlike Cairo, which auto-wraps
+  /// angles and therefore split this into cairo_arc / cairo_arc_negative).
   /// @param xc,yc        Arc center, in device pixels.
   /// @param radius       Arc radius, in device pixels.
   /// @param angle1,angle2 Start and end angles, in radians.
   void arc(double xc, double yc, double radius, double angle1, double angle2);
-
-  /// Appends a circular arc to the current path, swept in the negative
-  /// (clockwise) direction. Parameters match arc().
-  void arc_negative(double xc, double yc, double radius, double angle1, double angle2);
 
   /// Selects the current font family, slant, and weight for subsequent text.
   /// @param family UTF-8 family name, or nullptr to keep the current family.

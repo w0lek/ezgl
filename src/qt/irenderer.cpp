@@ -341,16 +341,12 @@ void irenderer::paint_arc_path(const point2d& center, double radius, double star
                            draw_center.y + radius * std::sin(a0_rad));
     }
 
+    // arc() takes a signed sweep (end - start), so it draws either direction;
+    // the sign of extent_angle is already carried by end_angle.
     double end_angle = start_angle + extent_angle;
-    if (extent_angle >= 0) {
-        m_painter->arc_negative(draw_center.x, draw_center.y, radius,
-                                -start_angle * std::numbers::pi / 180.0,
-                                -end_angle   * std::numbers::pi / 180.0);
-    } else {
-        m_painter->arc(draw_center.x, draw_center.y, radius,
-                       -start_angle * std::numbers::pi / 180.0,
-                       -end_angle   * std::numbers::pi / 180.0);
-    }
+    m_painter->arc(draw_center.x, draw_center.y, radius,
+                   -start_angle * std::numbers::pi / 180.0,
+                   -end_angle   * std::numbers::pi / 180.0);
 
     if (fill) m_painter->close_path();
     if (fill) m_painter->fill();
