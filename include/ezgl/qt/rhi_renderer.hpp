@@ -159,24 +159,53 @@ public:
     void set_text_screen_offset(point2d offset_px) override;
 
     // ---- irenderer: hot-path GPU draw calls --------------------------------
+    //
+    // These bin geometry into the per-tile batches keyed by the current
+    // @ref StyleKey; nothing is rasterised until @ref flush(). Per-method
+    // contracts are on @ref irenderer.
 
+    /// Record a line into the thin- or thick-line tile batch (chosen by the
+    /// current line width), or the dashed batch when a dash style is active.
     void draw_line(const point2d& start, const point2d& end) override;
 
+    /// @name Record a filled rectangle into the fill-rect tile batch.
+    /// @{
     void fill_rectangle(const point2d& start, const point2d& end) override;
     void fill_rectangle(const point2d& start, double width, double height) override;
     void fill_rectangle(const rectangle& r) override;
+    /// @}
 
+    /// @name Record a rectangle outline as four lines into the line tile batch.
+    /// @{
     void draw_rectangle(const point2d& start, const point2d& end) override;
     void draw_rectangle(const point2d& start, double width, double height) override;
     void draw_rectangle(const rectangle& r) override;
+    /// @}
 
-    // ---- irenderer: overlay draw calls (forwarded to m_overlay_deferred) ---
+    // ---- irenderer: polygon / arrow / overlay draw calls -------------------
+    //
+    // Mixed routing: filled polygons/triangles go to the GPU FilledPoly batch
+    // in WORLD space but are forwarded to the overlay renderer in SCREEN
+    // space; arrows are always GPU; arcs, text, and surfaces are always
+    // forwarded to the overlay (composited as a QImage over the GPU frame).
+    // Per-method contracts are on @ref irenderer.
 
+    /// In WORLD space: triangulate and record into the GPU @ref
+    /// PrimitiveType::FilledPoly tile batch. In SCREEN space: forward to the
+    /// overlay renderer.
     void fill_poly(const std::vector<point2d>& points) override;
+    /// In WORLD space: record one triangle into the GPU @ref
+    /// PrimitiveType::FilledPoly tile batch. In SCREEN space: forward to the
+    /// overlay renderer.
     void fill_triangle(const point2d& a, const point2d& b, const point2d& c) override;
+    /// Always GPU: push one @ref PrimitiveType::Arrow instance whose vertex
+    /// shader synthesises a constant-pixel-size triangle; @c arrow_size_px is
+    /// packed into the @ref StyleKey line-width slot.
     void fill_arrow_pointer_triangle(const point2d& anchor_world,
                                       const point2d& dir_world,
                                       float          arrow_size_px) override;
+    /// @name Forward an arc outline / fill to the overlay renderer.
+    /// @{
     void draw_elliptic_arc(const point2d& center, double radius_x, double radius_y,
                            double start_angle, double extent_angle) override;
     void draw_arc(const point2d& center, double radius,
@@ -185,9 +214,14 @@ public:
                            double start_angle, double extent_angle) override;
     void fill_arc(const point2d& center, double radius,
                   double start_angle, double extent_angle) override;
+    /// @}
+    /// @name Forward a text label to the overlay renderer.
+    /// @{
     void draw_text(const point2d& point, std::string const& text) override;
     void draw_text(const point2d& point, std::string const& text,
                    double bound_x, double bound_y) override;
+    /// @}
+    /// Forward an image blit to the overlay renderer.
     void draw_surface(surface* p_surface, const point2d& anchor_point,
                       double scale_factor = 1) override;
 
