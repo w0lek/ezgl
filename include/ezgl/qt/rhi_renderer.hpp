@@ -88,11 +88,11 @@ public:
     /// so the caller can render it via RhiCanvasWidget::render_offscreen() without
     /// needing a live QRhiWidget or QRhiWidget::grab().
     struct HeadlessFrameData {
-        SceneBuffers scene;
-        QMatrix4x4   mvp;
-        rectangle    visible_world;
-        QImage       overlay;
-        QColor       bg;
+        SceneBuffers scene;         ///< CPU-side geometry to upload and draw on the offscreen GPU.
+        QMatrix4x4   mvp;           ///< World→clip transform for this frame.
+        rectangle    visible_world; ///< Visible world rect, used for chunk culling during the offscreen draw.
+        QImage       overlay;       ///< Pre-rendered text/surface overlay composited over the GPU frame.
+        QColor       bg;            ///< Background clear color.
     };
 
     /**
