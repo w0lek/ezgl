@@ -115,12 +115,17 @@ static_assert(sizeof(ArrowInstance) == 16, "ArrowInstance must be 16 bytes");
 /// and one GPU draw call per chunk.
 using StyleKey = std::uint64_t;
 
+/// Render-state discriminator stored in the high byte (bits 56–63) of a
+/// @ref StyleKey. Selects which GPU pipeline draws a primitive and which
+/// per-type bucket of @ref SceneBuffers its geometry lands in; each
+/// enumerator has a matching `*StyleBuffer` map there. The packed @c uint8_t
+/// width keeps the key compact (see @ref pack_style_key).
 enum class PrimitiveType : std::uint8_t {
-    ThinLine,
-    FilledRect,
-    FilledPoly,
-    ThickLine,
-    DashedLine,
+    ThinLine,         ///< 1-pixel line; @ref PosVertex stream (@ref ThinLineStyleBuffer).
+    FilledRect,       ///< Axis-aligned filled rectangle, GPU-instanced (@ref FillRectStyleBuffer).
+    FilledPoly,       ///< Triangulated filled polygon; @ref PosVertex stream (@ref FillPolyStyleBuffer).
+    ThickLine,        ///< Screen-width line expanded to a quad in the vertex shader (@ref ThickLineStyleBuffer).
+    DashedLine,       ///< Thick line with a dash pattern; carries @c phase_world (@ref DashedLineStyleBuffer).
     Arrow,            ///< GPU-instanced arrow head; line_width field reused as arrow_size_px.
 };
 
