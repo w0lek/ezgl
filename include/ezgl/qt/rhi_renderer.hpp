@@ -117,17 +117,29 @@ public:
                  draw_callback_fn draw_callback,
                  QColor           bg_color);
 
+    /// Default: the owned overlay deferred renderer and GPU scene state are
+    /// freed by their own destructors. The widget and camera are non-owning.
     ~rhi_renderer() = default;
 
     // ---- irenderer: coordinate system / viewport ---------------------------
+    //
+    // Interface contract is documented on the @ref irenderer base; the notes
+    // below add only rhi-specific behaviour. Undocumented overrides inherit
+    // the base doc verbatim.
 
     void set_coordinate_system(t_coordinate_system cs) override;
+    /// In addition to the base contract: drives the MVP and the @ref Chunk
+    /// visibility test used to cull non-visible geometry each frame.
     void set_visible_world(rectangle new_world) override;
     rectangle get_visible_world() override;
     rectangle get_visible_screen() const override;
     rectangle world_to_screen(const rectangle& box) override;
 
     // ---- irenderer: state setters ------------------------------------------
+    //
+    // The active color / line width / dash fold into the @ref StyleKey of
+    // every primitive emitted afterwards; font and text state is forwarded to
+    // the overlay renderer instead. Per-method contracts are on @ref irenderer.
 
     void set_color(color c) override;
     void set_color(color c, uint_fast8_t alpha) override;
