@@ -78,6 +78,10 @@ namespace ezgl {
  */
 class rhi_renderer : public irenderer {
 public:
+    /// User draw routine invoked once per full flush. It receives this
+    /// renderer (as the base @ref renderer interface) and issues @c draw_* /
+    /// @c fill_* calls, which the renderer records into @ref SceneBuffers for
+    /// GPU upload rather than painting immediately.
     using draw_callback_fn = void (*)(renderer*);
 
     /// Data captured from a single headless frame — returned by flush_capture()
