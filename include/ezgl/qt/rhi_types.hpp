@@ -174,42 +174,60 @@ struct Chunk {
     std::uint32_t count  = 0;     ///< Number of vertices/instances belonging to this tile cell.
 };
 
+/// Fields shared by every per-style buffer: the @ref StyleKey that uniquely
+/// identifies this batch, the unpacked @c rgba used to fill the style UBO at
+/// upload time (cached here so the GPU side need not re-decode the key), and
+/// the per-tile @ref Chunk list that lets the draw loop cull non-visible
+/// geometry. The concrete geometry array lives in each derived struct.
 struct StyleBufferCommon {
     StyleKey           style_key = 0;
     std::uint32_t      rgba      = 0;
     std::vector<Chunk> chunks;
 };
 
+/// All thin (1-pixel) lines sharing one @ref StyleKey. Geometry is a flat
+/// @ref PosVertex array (two verts per segment). @c chunks index sub-ranges
+/// of @c verts. See @ref PrimitiveType::ThinLine.
 struct ThinLineStyleBuffer : StyleBufferCommon {
     std::vector<PosVertex> verts;
     bool empty()  const noexcept { return verts.empty(); }
     void clear()        noexcept { chunks.clear(); verts.clear(); }
 };
 
+/// All filled rectangles sharing one @ref StyleKey, one @ref FillRectInstance
+/// per rect (GPU-instanced). See @ref PrimitiveType::FilledRect.
 struct FillRectStyleBuffer : StyleBufferCommon {
     std::vector<FillRectInstance> instances;
     bool empty()  const noexcept { return instances.empty(); }
     void clear()        noexcept { chunks.clear(); instances.clear(); }
 };
 
+/// All filled polygons sharing one @ref StyleKey, stored as a flat triangle
+/// list of @ref PosVertex (CPU-triangulated). See @ref PrimitiveType::FilledPoly.
 struct FillPolyStyleBuffer : StyleBufferCommon {
     std::vector<PosVertex> verts;
     bool empty()  const noexcept { return verts.empty(); }
     void clear()        noexcept { chunks.clear(); verts.clear(); }
 };
 
+/// All thick (screen-width) lines sharing one @ref StyleKey, one
+/// @ref ThickLineInstance per segment. See @ref PrimitiveType::ThickLine.
 struct ThickLineStyleBuffer : StyleBufferCommon {
     std::vector<ThickLineInstance> instances;
     bool empty()  const noexcept { return instances.empty(); }
     void clear()        noexcept { chunks.clear(); instances.clear(); }
 };
 
+/// All dashed lines sharing one @ref StyleKey, one @ref DashedLineInstance per
+/// segment (each carries its @c phase_world). See @ref PrimitiveType::DashedLine.
 struct DashedLineStyleBuffer : StyleBufferCommon {
     std::vector<DashedLineInstance> instances;
     bool empty()  const noexcept { return instances.empty(); }
     void clear()        noexcept { chunks.clear(); instances.clear(); }
 };
 
+/// All arrow heads sharing one @ref StyleKey, one @ref ArrowInstance per arrow
+/// (GPU-instanced). See @ref PrimitiveType::Arrow.
 struct ArrowStyleBuffer : StyleBufferCommon {
     std::vector<ArrowInstance> instances;
     bool empty()  const noexcept { return instances.empty(); }
@@ -230,12 +248,16 @@ struct SceneBuffers {
     std::unordered_map<StyleKey, DashedLineStyleBuffer> dashed_lines;
     std::unordered_map<StyleKey, ArrowStyleBuffer>      arrows;
 
+    /// True when no primitive type holds any style batch — i.e. nothing to
+    /// upload or draw this frame.
     bool empty() const noexcept
     {
         return thin_lines.empty() && fill_rects.empty() && fill_polys.empty()
             && thick_lines.empty() && dashed_lines.empty() && arrows.empty();
     }
 
+    /// Drop every style batch of every type, leaving an empty scene ready to
+    /// be refilled by the next @ref rhi_renderer flush.
     void clear() noexcept
     {
         thin_lines.clear(); fill_rects.clear(); fill_polys.clear();
