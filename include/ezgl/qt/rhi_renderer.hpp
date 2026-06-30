@@ -275,6 +275,27 @@ private:
     static constexpr int kTileGridDimension  = 32;
     static constexpr int kBatchInitialReserve = 1024;
 
+    // ---- Tile batches (per-tile, per-style geometry being recorded) --------
+    //
+    // While the draw callback runs, geometry is accumulated per screen-space
+    // tile and, within each tile, grouped by @ref StyleKey so that one tile +
+    // one style maps to one contiguous draw range. At @ref flush() the tiles
+    // are concatenated per style into the @ref SceneBuffers chunks uploaded to
+    // the GPU. Each batch caches the unpacked @c rgba alongside its
+    // @c style_key to avoid re-decoding the key.
+    //
+    // There is deliberately no arrow tile batch. Tiling exists so each chunk
+    // can carry a static, zoom-invariant world-space AABB that the per-chunk
+    // visibility test culls against. An arrow has no such bound: its anchor is
+    // a world point, but the triangle is expanded to a fixed *pixel* size in
+    // the vertex shader, so its world-space footprint grows and shrinks with
+    // zoom and is unknown at record time. With no zoom-stable extent there is
+    // no tile it can be correctly assigned to, so arrows bypass tiling and are
+    // recorded directly in @c m_cmd_arrows; at build time each style group is
+    // emitted as a single scene-wide chunk that always passes the visibility
+    // test.
+
+    /// One tile's worth of thin (1-pixel) lines sharing one @ref StyleKey.
     struct TileThinLineBatch {
         StyleKey               style_key = 0;
         std::uint32_t          rgba = 0;
@@ -282,6 +303,7 @@ private:
         TileThinLineBatch(StyleKey sk, std::uint32_t c) : style_key(sk), rgba(c) {}
     };
 
+    /// One tile's worth of filled rectangles sharing one @ref StyleKey.
     struct TileFillRectBatch {
         StyleKey                      style_key = 0;
         std::uint32_t                 rgba = 0;
@@ -289,6 +311,7 @@ private:
         TileFillRectBatch(StyleKey sk, std::uint32_t c) : style_key(sk), rgba(c) {}
     };
 
+    /// One tile's worth of triangulated filled-polygon verts sharing one @ref StyleKey.
     struct TileFillPolyBatch {
         StyleKey               style_key = 0;
         std::uint32_t          rgba = 0;
@@ -296,6 +319,7 @@ private:
         TileFillPolyBatch(StyleKey sk, std::uint32_t c) : style_key(sk), rgba(c) {}
     };
 
+    /// One tile's worth of thick (screen-width) lines sharing one @ref StyleKey.
     struct TileThickLineBatch {
         StyleKey                       style_key = 0;
         std::uint32_t                  rgba = 0;
@@ -303,6 +327,7 @@ private:
         TileThickLineBatch(StyleKey sk, std::uint32_t c) : style_key(sk), rgba(c) {}
     };
 
+    /// One tile's worth of dashed lines sharing one @ref StyleKey.
     struct TileDashedLineBatch {
         StyleKey                        style_key = 0;
         std::uint32_t                   rgba = 0;
@@ -310,6 +335,11 @@ private:
         TileDashedLineBatch(StyleKey sk, std::uint32_t c) : style_key(sk), rgba(c) {}
     };
 
+    /// All geometry recorded for a single screen-space tile, split into one
+    /// vector of style batches per primitive type. The ctor reserves
+    /// @ref kBatchInitialReserve per type to avoid reallocation churn on the
+    /// recording hot path. @c world_bounds / @c tile_x / @c tile_y identify
+    /// the tile for chunk assignment at @ref flush() time.
     struct RhiTileBatch {
         RhiTileBatch() {
             thin_line_batches.reserve(kBatchInitialReserve);
@@ -319,15 +349,16 @@ private:
             dashed_line_batches.reserve(kBatchInitialReserve);
         }
 
-        rectangle                         world_bounds;
-        std::uint16_t                     tile_x = 0;
-        std::uint16_t                     tile_y = 0;
+        rectangle                         world_bounds;  ///< World extent of this tile, copied into each emitted @ref Chunk.
+        std::uint16_t                     tile_x = 0;    ///< Tile column in the @ref kTileGridDimension grid.
+        std::uint16_t                     tile_y = 0;    ///< Tile row in the @ref kTileGridDimension grid.
         std::vector<TileThinLineBatch>    thin_line_batches;
         std::vector<TileFillRectBatch>    fill_rect_batches;
         std::vector<TileFillPolyBatch>    fill_poly_batches;
         std::vector<TileThickLineBatch>   thick_line_batches;
         std::vector<TileDashedLineBatch>  dashed_line_batches;
 
+        /// True when this tile holds no geometry of any primitive type.
         bool empty() const
         {
             return thin_line_batches.empty()
