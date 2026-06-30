@@ -141,11 +141,17 @@ inline constexpr StyleKey pack_style_key(PrimitiveType primitive_type,
         | (StyleKey(std::uint8_t(primitive_type)) << 56);
 }
 
+/// Extract the line width (bits 32–47) from a @ref StyleKey, in pixels.
+/// Zero for fill primitives; for @ref PrimitiveType::Arrow this field holds
+/// the arrow size in pixels. Inverse of the @c line_width_px argument to
+/// @ref pack_style_key.
 inline constexpr std::uint16_t style_key_line_width(StyleKey key) noexcept
 {
     return std::uint16_t((key >> 32) & 0xFFFFu);
 }
 
+/// Extract the dash style (bits 48–55) from a @ref StyleKey; 0 means solid.
+/// Inverse of the @c line_dash argument to @ref pack_style_key.
 inline constexpr std::uint8_t style_key_line_dash(StyleKey key) noexcept
 {
     return std::uint8_t((key >> 48) & 0xFFu);
