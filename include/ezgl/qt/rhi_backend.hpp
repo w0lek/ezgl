@@ -49,10 +49,18 @@ class rhi_renderer;
  */
 class rhi_backend final : public render_backend {
 public:
+    /// Construct an on-screen GPU backend bound to an existing
+    /// @ref RhiCanvasWidget. Stores the draw callback (run on every full
+    /// redraw), the @ref camera (queried for the MVP), and the background
+    /// clear color. The owned @ref rhi_renderer is created lazily on the first
+    /// @ref redraw(); none of the arguments are owned by this backend.
     rhi_backend(RhiCanvasWidget* widget,
                 draw_canvas_fn   draw_callback,
                 camera*          cam,
                 color            background_color);
+
+    /// Destroys the owned @ref rhi_renderer. The widget, camera, and draw
+    /// callback are non-owning and outlive this backend.
     ~rhi_backend() override;
 
     /// Full redraw: (re)create the @ref rhi_renderer if needed, run the draw
@@ -93,19 +101,19 @@ public:
     QImage render_to_image(int w, int h) override;
 
 private:
-    RhiCanvasWidget*              m_widget;
-    draw_canvas_fn                m_draw_callback;
-    camera*                       m_camera;
-    QColor                        m_bg_color;
-    std::unique_ptr<rhi_renderer> m_renderer;
+    RhiCanvasWidget*              m_widget;        ///< Non-owning on-screen canvas this backend presents into.
+    draw_canvas_fn                m_draw_callback; ///< User draw routine re-run on every full redraw.
+    camera*                       m_camera;        ///< Non-owning camera supplying the world→screen MVP.
+    QColor                        m_bg_color;      ///< Frame clear color.
+    std::unique_ptr<rhi_renderer> m_renderer;      ///< Owned GPU renderer; created lazily on first redraw().
 
     bool m_is_redraw_suspended        = false; ///< True between suspend_redraw() and resume_redraw(); while set, resize-driven redraws are recorded as pending instead of flushed (direct redraw() still flushes immediately).
     bool m_is_redraw_requested        = false; ///< Set by on_resize() while redrawing is suspended: a full redraw is pending, to be flushed at resume_redraw().
     bool m_is_camera_update_requested = false; ///< Set by on_resize() while redrawing is suspended: a camera-only redraw is pending, to be flushed at resume_redraw().
     bool m_has_drawn_frame            = false; ///< Whether at least one frame has been drawn; lets resize events tell if the scene is initialised.
 
-    int m_last_w = 0;
-    int m_last_h = 0;
+    int m_last_w = 0; ///< Most recent width from on_resize(), in device pixels.
+    int m_last_h = 0; ///< Most recent height from on_resize(), in device pixels.
 };
 
 } // namespace ezgl
