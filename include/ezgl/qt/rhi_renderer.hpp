@@ -272,7 +272,13 @@ public:
     void flush_mvp_only();
 
 private:
+    /// Side length, in tiles, of the square screen-space tiling grid. The scene
+    /// is binned into @c kTileGridDimension × @c kTileGridDimension tiles so that
+    /// each tile+style pair becomes one culled @ref Chunk at @ref flush().
     static constexpr int kTileGridDimension  = 32;
+    /// Initial capacity reserved for each per-type tile batch vector, sized to
+    /// absorb a typical tile's primitive count without reallocation churn while
+    /// the draw callback records geometry.
     static constexpr int kBatchInitialReserve = 1024;
 
     // ---- Tile batches (per-tile, per-style geometry being recorded) --------
@@ -371,8 +377,15 @@ private:
 
     // ---- helpers ------------------------------------------------------------
 
+    /// Pack the current recording state (color, line width, dash) plus the
+    /// given primitive type into a @ref StyleKey. The dash bits are only set
+    /// for @ref PrimitiveType::DashedLine.
     StyleKey current_style_key(PrimitiveType primitive_type,
                                float         line_width_px = 0.0f) const;
+
+    /// @name Find-or-create the per-@ref StyleKey batch within one tile.
+    /// Returns the existing batch for @p style_key, or appends a fresh one.
+    /// @{
     TileThinLineBatch& ensure_thin_line_batch(RhiTileBatch& tile,
                                               StyleKey     style_key,
                                               std::uint32_t rgba);
@@ -388,6 +401,12 @@ private:
     TileDashedLineBatch& ensure_dashed_line_batch(RhiTileBatch& tile,
                                                   StyleKey     style_key,
                                                   std::uint32_t rgba);
+    /// @}
+
+    /// @name Append already-tile-clipped geometry into one tile's style batch.
+    /// Lowest level: the caller has clipped the primitive to @p tile's world
+    /// bounds; these just push the vertices/instance via @c ensure_*_batch.
+    /// @{
     void append_thin_line_segment(RhiTileBatch& tile,
                                   const point2d& start,
                                   const point2d& end,
@@ -404,6 +423,13 @@ private:
                               const point2d& c,
                               StyleKey      style_key,
                               std::uint32_t rgba);
+    /// @}
+
+    /// @name Bin one primitive across every tile it overlaps.
+    /// Compute the primitive's tile span, then for each covered tile clip the
+    /// geometry to the tile's world bounds and append it there. These are the
+    /// per-primitive entry points used by @ref dispatch_commands_to_tiles.
+    /// @{
     void append_line_to_tiles(const point2d& start,
                               const point2d& end,
                               StyleKey style_key,
@@ -417,48 +443,82 @@ private:
                                        const point2d& c,
                                        StyleKey   style_key,
                                        std::uint32_t rgba);
+    /// @}
 
+    /// Append a thick-line segment into one tile's thick-line batch (clipped).
     void append_thick_segment(RhiTileBatch& tile,
                               const point2d& start,
                               const point2d& end,
                               StyleKey      style_key,
                               std::uint32_t rgba);
+    /// Bin a thick line across the tiles it overlaps.
     void append_thick_line_to_tiles(const point2d& start,
                                     const point2d& end,
                                     StyleKey   style_key,
                                     std::uint32_t rgba);
+    /// Bin one edge of a thick rectangle outline; reuses the thick-line pool
+    /// and pipeline (forwards to @ref append_thick_line_to_tiles).
     void append_thick_draw_segment_to_tiles(const point2d& start,
                                             const point2d& end,
                                             StyleKey   style_key,
                                             std::uint32_t rgba);
 
+    /// Append a dashed-line segment into one tile's dashed batch (clipped),
+    /// carrying @p phase_world so the dash pattern stays continuous across
+    /// tile boundaries.
     void append_dashed_segment(RhiTileBatch& tile,
                                const point2d& start,
                                const point2d& end,
                                float         phase_world,
                                StyleKey      style_key,
                                std::uint32_t rgba);
+    /// Bin a dashed line across the tiles it overlaps, tracking cumulative
+    /// world-space phase per sub-segment.
     void append_dashed_line_to_tiles(const point2d& start,
                                      const point2d& end,
                                      StyleKey   style_key,
                                      std::uint32_t rgba);
+    /// Bin one edge of a dashed rectangle outline; reuses the dashed-line pool.
     void append_dashed_draw_segment_to_tiles(const point2d& start,
                                              const point2d& end,
                                              StyleKey   style_key,
                                              std::uint32_t rgba);
+
+    /// (Re)create the overlay QImage at the current size/DPR, clear it to
+    /// transparent, and begin its painter so overlay draw calls can paint.
     void begin_overlay_frame();
+    /// Rebuild the overlay layer by replaying the cached deferred overlay
+    /// commands (text/arcs/surfaces) without re-running the draw callback;
+    /// used by the camera-only redraw path.
     void render_cached_overlay();
+    /// Allocate/resize the tile grid and recompute each tile's world bounds
+    /// for the current visible world.
     void ensure_tile_grid();
+    /// Clear per-tile geometry (the style batches) while keeping the grid.
     void clear_tile_geometry();
+    /// Clear the recorded per-band command queues (except @c m_cmd_arrows,
+    /// which @ref build_scene_buffers consumes later).
     void clear_commands();
+    /// Parallel worker: replay the recorded commands for one horizontal
+    /// @p band of tile rows into their tiles. Bands partition the tile rows so
+    /// workers write disjoint tiles without locking.
     void dispatch_commands_to_tiles(int band);
+    /// Band index owning tile row @p ty.
     int  band_for_tile_row(int ty) const { return std::min(ty / m_rows_per_band, m_n_bands - 1); }
+    /// First tile row in @p band.
     int  band_ty_min(int band) const { return band * m_rows_per_band; }
+    /// Last tile row in @p band (clamped to the grid).
     int  band_ty_max(int band) const { return std::min((band + 1) * m_rows_per_band - 1, kTileGridDimension - 1); }
+    /// Clamp a world X to a valid tile column index.
     int clamp_tile_x(double x) const;
+    /// Clamp a world Y to a valid tile row index.
     int clamp_tile_y(double y) const;
+    /// Flatten a (column, row) tile coordinate to a linear grid index.
     int tile_index(int tile_x, int tile_y) const;
+    /// Tile batch at (column, row).
     RhiTileBatch& tile_at(int tile_x, int tile_y);
+    /// Concatenate the per-tile style batches into @ref SceneBuffers, emitting
+    /// one @ref Chunk per tile per style, then append the un-tiled arrows.
     SceneBuffers build_scene_buffers() const;
 
     /** Compute screen→NDC orthographic matrix from current widget size. */
@@ -484,11 +544,25 @@ private:
     // dispatch thread only iterates the commands that touch its tile rows.
     // rgba is stored in the lower 32 bits of sk (see pack_style_key).
 
+    /// Recorded 1-pixel line: @c sk is the packed @ref StyleKey (rgba in its
+    /// lower 32 bits), @c (x0,y0)–(x1,y1) the world-space endpoints.
     struct ThinLineCmd   { StyleKey sk; float x0, y0, x1, y1; };
+    /// Recorded filled rectangle spanning the world-space opposite corners
+    /// @c (x0,y0) and @c (x1,y1); @c sk is the packed @ref StyleKey.
     struct FillRectCmd   { StyleKey sk; float x0, y0, x1, y1; };
+    /// Recorded filled triangle with world-space vertices @c (x0,y0),
+    /// @c (x1,y1), @c (x2,y2); @c sk is the packed @ref StyleKey.
     struct FillTriCmd    { StyleKey sk; float x0, y0, x1, y1, x2, y2; };
+    /// Recorded stroked line whose world-space width is carried in @c sk;
+    /// @c (x0,y0)–(x1,y1) are the world-space endpoints.
     struct ThickLineCmd  { StyleKey sk; float x0, y0, x1, y1; };
+    /// Recorded dashed line; @c sk encodes both width and dash pattern, with
+    /// @c (x0,y0)–(x1,y1) the world-space endpoints.
     struct DashedLineCmd { StyleKey sk; float x0, y0, x1, y1; };
+    /// Recorded arrow: @c (ax,ay) is the world-space anchor and @c (dx,dy) the
+    /// direction the head points; the head is expanded to a fixed pixel size in
+    /// the vertex shader, so this command is never tile-binned (see
+    /// @c m_cmd_arrows). @c sk is the packed @ref StyleKey.
     struct ArrowCmd      { StyleKey sk; float ax, ay, dx, dy; };
 
     int m_n_bands       = 1;
