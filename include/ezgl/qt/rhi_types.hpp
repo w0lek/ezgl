@@ -36,6 +36,47 @@
  * @see ezgl::rhi_renderer for the recording side (tile binning + style
  *      bucket assignment).
  * @see ezgl::RhiSceneRenderer for the GPU upload side.
+ *
+ * @par Graphics terms used across the rhi/* files (glossary)
+ * This is a student-oriented cheat sheet for the acronyms that recur in the
+ * comments of every @c rhi_* file. Definitions are deliberately short; the
+ * point is to make the other comments readable, not to be exhaustive.
+ *
+ *  - **GPU**   the graphics card/chip that draws pixels in parallel.
+ *  - **CPU**   the main processor that runs our C++ and prepares data for the GPU.
+ *  - **Qt RHI** Qt's "Rendering Hardware Interface": one API that Qt maps onto
+ *              whatever the machine actually has (Vulkan, Metal, Direct3D, OpenGL).
+ *              @c QRhi is the object representing that GPU connection.
+ *  - **shader** a small program that runs on the GPU. A *vertex* shader positions
+ *              each point; a *fragment* shader colors each pixel.
+ *  - **vertex** one point of geometry (here: an @c (x,y) corner of a line/shape).
+ *  - **VBO**   Vertex Buffer Object: a GPU array holding per-vertex (or, when
+ *              *instanced*, per-shape) data.
+ *  - **UBO**   Uniform Buffer Object: a small block of constants shared by every
+ *              shader run in one draw (here it holds the color and the MVP matrix).
+ *  - **SRB**   Shader Resource Bindings (Qt's @c QRhiShaderResourceBindings): the
+ *              object that says "this UBO/texture is visible to the shader here."
+ *  - **PSO**   Pipeline State Object (@c QRhiGraphicsPipeline): a bundle of fixed
+ *              GPU settings + shader pair for one kind of primitive. Switching PSOs
+ *              is costly, so we bind each one once per frame.
+ *  - **instancing** drawing many copies of the same small shape (a line quad, an
+ *              arrow triangle) from one set of vertices plus a per-copy record.
+ *  - **MVP**   Model-View-Projection matrix: the transform that maps our world
+ *              coordinates into what the GPU draws (see NDC).
+ *  - **NDC**   Normalized Device Coordinates: the fixed square the GPU draws into,
+ *              running -1..+1 in x and y regardless of window size.
+ *  - **AABB**  Axis-Aligned Bounding Box: a rectangle (not rotated) around some
+ *              geometry, used for cheap "is this visible?" tests.
+ *  - **RGBA**  a color as red/green/blue/alpha (alpha = opacity), packed into 32 bits.
+ *  - **VRAM**  the GPU's own memory. Plentiful, but slow to fill from the CPU...
+ *  - **PCIe**  ...because CPU→GPU uploads travel over this bus, which is the
+ *              expensive step we try to avoid re-doing every frame.
+ *  - **MSAA**  Multi-Sample Anti-Aliasing: the GPU samples each pixel several times
+ *              to smooth jagged edges, then averages ("resolves") them.
+ *  - **DPR**   Device Pixel Ratio: physical pixels per logical pixel on hi-DPI
+ *              screens (e.g. 2.0 on a "retina" display).
+ *  - **QPA**   Qt Platform Abstraction: Qt's backend for a given platform. The
+ *              special @c offscreen QPA has no window, used by headless tests.
  */
 
 namespace ezgl {

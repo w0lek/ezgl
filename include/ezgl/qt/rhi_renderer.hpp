@@ -75,6 +75,9 @@ namespace ezgl {
  * @see RhiCanvasWidget for the Qt-side widget + thread inbox.
  * @see RhiSceneRenderer for the GPU pipeline + frame-slot resources.
  * @see rhi_backend for the lifecycle wrapper.
+ *
+ * @note New to the graphics acronyms below (UBO, VBO, MSAA, NDC, …)? They are
+ *       defined once in the glossary at the top of @ref rhi_types.hpp.
  */
 class rhi_renderer : public irenderer {
 public:

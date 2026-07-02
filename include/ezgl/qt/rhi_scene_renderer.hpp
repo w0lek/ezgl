@@ -78,6 +78,9 @@ namespace ezgl {
  * - @ref initialize(rhi, rp_desc)   — call once when QRhi and render-pass are ready
  * - @ref render(cb, rt, ...)        — call every frame
  * - @ref release()                  — call before the QRhi is destroyed
+ *
+ * @note New to the graphics acronyms here (UBO, VBO, SRB, PSO, MSAA, …)? They
+ *       are defined once in the glossary at the top of @ref rhi_types.hpp.
  */
 class RhiSceneRenderer {
 public:

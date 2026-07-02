@@ -46,6 +46,9 @@ namespace ezgl {
  * Callers that need that combination should detect it before
  * instantiating @ref RhiCanvasWidget and fall back to a non-rhi
  * backend.
+ *
+ * @note New to the graphics acronyms here (QRhi, MSAA, MVP, QPA, …)? They are
+ *       defined once in the glossary at the top of @ref rhi_types.hpp.
  */
 class RhiCanvasWidget : public QRhiWidget {
     Q_OBJECT
