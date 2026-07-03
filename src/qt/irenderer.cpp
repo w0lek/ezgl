@@ -109,6 +109,12 @@ rectangle irenderer::world_to_screen(const rectangle& box)
     return rectangle(m_transform(box.bottom_left()), m_transform(box.top_right()));
 }
 
+ezgl::text_dimension_t irenderer::get_text_dimension(const std::string& text) {
+    text_extents_t text_extents{0, 0, 0, 0, 0, 0};
+    m_painter->text_extents(text.c_str(), &text_extents);
+    return ezgl::text_dimension_t{text_extents.width, text_extents.height};
+}
+
 // ---- State-setter implementations -------------------------------------------
 
 void irenderer::set_color(color c)

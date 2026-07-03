@@ -45,6 +45,11 @@ enum class line_dash : int {
     asymmetric_5_3
 };
 
+struct text_dimension_t {
+    double width = 0.0;
+    double height = 0.0;
+};
+
 /**
  * Base interface and shared state for all ezgl renderers.
  *
@@ -137,6 +142,14 @@ public:
 
     static surface* load_png(const char* file_path);
     static void free_surface(surface* p_surface);
+
+    /**
+     * @brief Return the dimension (width and height) of a string in pixels.
+     * 
+     * @param text The string to calculate.
+     * @return A struct containing two doubles that specify the string's width and height.
+     */
+    ezgl::text_dimension_t get_text_dimension(const std::string& text);
 
 protected:
     irenderer(Painter* painter, transform_fn transform, camera* cam, QImage* surface);
