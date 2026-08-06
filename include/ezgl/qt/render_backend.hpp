@@ -28,7 +28,10 @@
 
 namespace ezgl {
 
+enum view_operation {panning, zooming_in, zooming_out};
+
 using draw_canvas_fn = void (*)(renderer*);
+using decide_full_redraw_fn = bool (*)(renderer*, view_operation);
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.
@@ -89,7 +92,7 @@ public:
     /// scene cache (rhi) can skip the user draw callback and just
     /// re-render with the new MVP. The immediate and deferred backends
     /// fall through to a full @ref redraw because they have no cache.
-    virtual void redraw_camera_only() = 0;
+    virtual void redraw_camera_only(view_operation op) = 0;
 
     /// Optional batching window. Multiple @ref redraw / @ref
     /// redraw_camera_only calls between @c begin_ / @c end_ may coalesce

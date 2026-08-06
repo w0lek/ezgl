@@ -65,7 +65,7 @@ void deferred_backend::redraw()
     q_debug("The canvas will be redrawn (deferred path).");
 }
 
-void deferred_backend::redraw_camera_only()
+void deferred_backend::redraw_camera_only(view_operation /*op*/)
 {
     redraw();
 }

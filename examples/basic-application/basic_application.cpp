@@ -45,6 +45,8 @@
  */
 void draw_main_canvas(ezgl::renderer *g);
 
+bool decide_full_redraw_needed(ezgl::renderer* g, ezgl::view_operation op);
+
 /**
  * Initial Setup is a mandatory function for any EZGL application, and is run whenever a window is opened. 
  */
@@ -135,7 +137,7 @@ int main(int argc, char **argv)
   // visualization graphics are draw. Set the callback function that will be
   // called when the main window needs redrawing, and define the (world)
   // coordinate system we want to draw in.
-  ezgl::canvas *c = application.add_canvas("MainCanvas", draw_main_canvas, initial_world);
+  ezgl::canvas *c = application.add_canvas("MainCanvas", draw_main_canvas, nullptr, initial_world);
   c->set_renderer_type(renderer);
 
   // Run the application until the user quits.

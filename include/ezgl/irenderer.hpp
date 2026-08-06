@@ -152,7 +152,9 @@ public:
      * @param text The string to calculate.
      * @return A struct that contains two doubles specifying the string's width and height.
      */
-    ezgl::t_text_dimension get_text_dimension(const std::string& text);
+    t_text_dimension get_text_dimension(const std::string& text);
+
+    double world_units_per_pixel();
 
 protected:
     irenderer(Painter* painter, transform_fn transform, camera* cam, QImage* surface);

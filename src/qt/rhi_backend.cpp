@@ -10,12 +10,14 @@ namespace ezgl {
 
 rhi_backend::~rhi_backend() = default;
 
-rhi_backend::rhi_backend(RhiCanvasWidget* widget,
-                         draw_canvas_fn   draw_callback,
-                         camera*          cam,
-                         color            background_color)
+rhi_backend::rhi_backend(RhiCanvasWidget*      widget,
+                         draw_canvas_fn        draw_callback,
+                         decide_full_redraw_fn decide_redraw_callback,
+                         camera*               cam,
+                         color                 background_color)
     : m_widget(widget)
     , m_draw_callback(draw_callback)
+    , m_decide_redraw_callback(decide_redraw_callback)
     , m_camera(cam)
     , m_bg_color(background_color.red,
                  background_color.green,
@@ -52,9 +54,9 @@ void rhi_backend::redraw()
     q_debug("The canvas will be redrawn (RHI path).");
 }
 
-void rhi_backend::redraw_camera_only()
+void rhi_backend::redraw_camera_only(view_operation op)
 {
-    if (m_renderer && m_has_drawn_frame) {
+    if (m_renderer && m_has_drawn_frame && m_decide_redraw_callback && !m_decide_redraw_callback(m_renderer.get(), op)) {
         m_renderer->flush_mvp_only();
         m_pending_redraw      = false;
         m_pending_camera_only = false;
@@ -79,10 +81,6 @@ void rhi_backend::end_deferred_redraw_cycle()
     m_defer_redraw = false;
     if (m_pending_redraw || !m_has_drawn_frame)
         redraw();
-    else if (m_pending_camera_only)
-        redraw_camera_only();
-    else if (m_renderer)
-        redraw();
 }
 
 void rhi_backend::on_resize(int w, int h)
@@ -99,8 +97,6 @@ void rhi_backend::on_resize(int w, int h)
             m_pending_redraw      = true;
             m_pending_camera_only = false;
         }
-    } else if (can_reuse_geometry) {
-        redraw_camera_only();
     } else {
         redraw();
     }
