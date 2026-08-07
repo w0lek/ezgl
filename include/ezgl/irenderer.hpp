@@ -48,7 +48,7 @@ enum class line_dash : int {
 /**
  * @brief Specifies a string's width and height in pixels.
  */
-struct t_text_dimension {
+struct text_dimension_t {
     double width = 0.0;
     double height = 0.0;
 };
@@ -152,7 +152,7 @@ public:
      * @param text The string to calculate.
      * @return A struct that contains two doubles specifying the string's width and height.
      */
-    t_text_dimension get_text_dimension(const std::string& text);
+    text_dimension_t get_text_dimension(const std::string& text);
 
     double world_units_per_pixel();
 

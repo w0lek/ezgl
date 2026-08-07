@@ -109,10 +109,10 @@ rectangle irenderer::world_to_screen(const rectangle& box)
     return rectangle(m_transform(box.bottom_left()), m_transform(box.top_right()));
 }
 
-t_text_dimension irenderer::get_text_dimension(const std::string& text) {
+text_dimension_t irenderer::get_text_dimension(const std::string& text) {
     text_extents_t text_extents{0, 0, 0, 0, 0, 0};
     m_painter->text_extents(text.c_str(), &text_extents);
-    return t_text_dimension{text_extents.width, text_extents.height};
+    return text_dimension_t{text_extents.width, text_extents.height};
 }
 
 double irenderer::world_units_per_pixel() {
