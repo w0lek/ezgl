@@ -28,7 +28,7 @@
 
 namespace ezgl {
 
-enum view_operation {panning, zooming_in, zooming_out};
+enum view_operation {pan, zm_in, zm_out};
 
 using draw_canvas_fn = void (*)(renderer*);
 using decide_full_redraw_fn = bool (*)(renderer*, view_operation);
