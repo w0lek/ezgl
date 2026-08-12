@@ -48,11 +48,11 @@ class rhi_renderer;
  */
 class rhi_backend final : public render_backend {
 public:
-    rhi_backend(RhiCanvasWidget*      widget,
-                draw_canvas_fn        draw_callback,
-                decide_full_redraw_fn decide_redraw_callback,
-                camera*               cam,
-                color                 background_color);
+    rhi_backend(RhiCanvasWidget*         widget,
+                draw_canvas_fn           draw_callback,
+                decide_reuse_geometry_fn decide_reuse_geometry_callback,
+                camera*                  cam,
+                color                    background_color);
     ~rhi_backend() override;
 
     /// Full redraw. Within a defer cycle, sets @c m_pending_redraw and
@@ -64,7 +64,7 @@ public:
     /// @ref rhi_renderer::flush_mvp_only(). If a full redraw is also
     /// pending, the full redraw wins (it produces a superset of the
     /// camera-only result).
-    void redraw_camera_only(view_operation op) override;
+    void redraw_camera_only(view_change_reason reason) override;
 
     /// Open a defer window: coalesce multiple @ref redraw /
     /// @ref redraw_camera_only calls into a single GPU frame on close.
@@ -87,7 +87,7 @@ public:
 private:
     RhiCanvasWidget*              m_widget;
     draw_canvas_fn                m_draw_callback;
-    decide_full_redraw_fn         m_decide_redraw_callback;
+    decide_reuse_geometry_fn      m_decide_reuse_geometry_callback;
     camera*                       m_camera;
     QColor                        m_bg_color;
     std::unique_ptr<rhi_renderer> m_renderer;

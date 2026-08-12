@@ -47,12 +47,12 @@ namespace {
 // If the requested type is rhi but no GPU is available, falls back to
 // immediate (QPainter) transparently.
 std::unique_ptr<ezgl::render_backend> make_backend(
-    ezgl::renderer_type         type,
-    QWidget*                    widget,   // RhiCanvasWidget*, DrawingAreaWidget*, or nullptr
-    ezgl::draw_canvas_fn        draw_callback,
-    ezgl::decide_full_redraw_fn decide_redraw_callback,
-    ezgl::camera*               cam,
-    ezgl::color                 bg)
+    ezgl::renderer_type            type,
+    QWidget*                       widget, // RhiCanvasWidget*, DrawingAreaWidget*, or nullptr
+    ezgl::draw_canvas_fn           draw_callback,
+    ezgl::decide_reuse_geometry_fn decide_reuse_geometry_callback, // Only meaningful when the rhi renderer is used.
+    ezgl::camera*                  cam,
+    ezgl::color                    bg)
 {
     ezgl::renderer_type effective = type;
     if (effective == ezgl::renderer_type::rhi && !ezgl::probe_rhi()) {
@@ -64,7 +64,7 @@ std::unique_ptr<ezgl::render_backend> make_backend(
         // qobject_cast returns nullptr for non-RhiCanvasWidget widgets and for
         // nullptr itself — rhi_backend interprets nullptr as headless mode.
         return std::make_unique<ezgl::rhi_backend>(
-            qobject_cast<ezgl::RhiCanvasWidget*>(widget), draw_callback, decide_redraw_callback, cam, bg);
+            qobject_cast<ezgl::RhiCanvasWidget*>(widget), draw_callback, decide_reuse_geometry_callback, cam, bg);
     }
     if (effective == ezgl::renderer_type::immediate)
         return std::make_unique<ezgl::immediate_backend>(widget, draw_callback, cam, bg);
@@ -91,7 +91,7 @@ namespace ezgl {
 QImage canvas::render_to_image(int surface_width, int surface_height)
 {
   if (!m_backend)
-    m_backend = make_backend(m_renderer_type, nullptr, m_draw_callback, m_decide_redraw_callback, &m_camera, m_background_color);
+    m_backend = make_backend(m_renderer_type, nullptr, m_draw_callback, m_decide_reuse_geometry_callback, &m_camera, m_background_color);
 
   // Retarget the camera for the (w, h) framebuffer so compute_mvp produces
   // the right world→NDC matrix; restore afterward so the next live paint
@@ -160,12 +160,10 @@ void canvas::draw_offscreen(int output_width, int output_height)
 
 canvas::canvas(std::string canvas_id,
                draw_canvas_fn draw_callback,
-               decide_full_redraw_fn decide_redraw_callback,
                rectangle coordinate_system,
                color background_color)
     : m_canvas_id(std::move(canvas_id))
     , m_draw_callback(draw_callback)
-    , m_decide_redraw_callback(decide_redraw_callback)
     , m_camera(coordinate_system)
     , m_background_color(background_color)
 {
@@ -176,7 +174,7 @@ void canvas::initialize(QWidget *drawing_area)
   return_if_fail("initialize drawing_area", drawing_area != nullptr);
 
   m_drawing_area = drawing_area;
-  m_backend = make_backend(m_renderer_type, drawing_area, m_draw_callback, m_decide_redraw_callback, &m_camera, m_background_color);
+  m_backend = make_backend(m_renderer_type, drawing_area, m_draw_callback, m_decide_reuse_geometry_callback, &m_camera, m_background_color);
 
   // Wire up widget-specific signals after backend creation.
   if (RhiCanvasWidget* rw = qobject_cast<RhiCanvasWidget*>(drawing_area)) {
@@ -236,10 +234,10 @@ void canvas::redraw()
   }
 }
 
-void canvas::redraw_camera_only(view_operation op)
+void canvas::redraw_camera_only(view_change_reason reason)
 {
   if (m_backend)
-    m_backend->redraw_camera_only(op);
+    m_backend->redraw_camera_only(reason);
 }
 
 renderer *canvas::create_animation_renderer()

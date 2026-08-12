@@ -202,7 +202,6 @@ public:
    */
   canvas *add_canvas(std::string const &canvas_id,
       draw_canvas_fn draw_callback,
-      decide_full_redraw_fn decide_redraw_callback,
       rectangle coordinate_system,
       color background_color = WHITE);
 

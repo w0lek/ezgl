@@ -83,7 +83,7 @@ public:
    * cached overlay for the new camera, and avoids re-running the draw callback.
    * Falls back to a full redraw on non-RHI paths or before the first frame.
    */
-  void redraw_camera_only(view_operation op);
+  void redraw_camera_only(view_change_reason reason);
 
   /**
    * Get an immutable reference to this canvas' camera.
@@ -107,6 +107,11 @@ public:
   void set_renderer_type(renderer_type t)
   {
     m_renderer_type = t;
+  }
+
+  void set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk)
+  {
+    m_decide_reuse_geometry_callback = cbk;
   }
 
   renderer_type get_renderer_type() const
@@ -156,7 +161,7 @@ protected:
   /**
    * Create a canvas that can be drawn to.
    */
-  canvas(std::string canvas_id, draw_canvas_fn draw_callback, decide_full_redraw_fn decide_redraw_callback, rectangle coordinate_system, color background_color);
+  canvas(std::string canvas_id, draw_canvas_fn draw_callback, rectangle coordinate_system, color background_color);
 
   /**
    * Lazy initialization of the canvas class.
@@ -175,7 +180,7 @@ private:
   // The function to call when the widget needs to be redrawn.
   draw_canvas_fn m_draw_callback;
 
-  decide_full_redraw_fn m_decide_redraw_callback;
+  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = nullptr;
 
   // The transformations between the GUI and the world.
   camera m_camera;
@@ -190,7 +195,7 @@ private:
   renderer_type m_renderer_type = renderer_type::rhi;
 
   // Optional post-redraw timing callback.
-  std::function<void(double)> m_frame_timing_fn;
+  std::function<void(double)> m_frame_timing_fn = nullptr;
 
   // Active rendering backend — selected at initialize() time based on widget type.
   std::unique_ptr<render_backend> m_backend;

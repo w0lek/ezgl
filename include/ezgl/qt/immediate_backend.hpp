@@ -28,7 +28,7 @@ public:
     ~immediate_backend() override;
 
     void redraw() override;
-    void redraw_camera_only(view_operation /*op*/) override;
+    void redraw_camera_only(view_change_reason /*reason*/) override;
     void on_resize(int w, int h) override;
     renderer* create_animation_renderer() override;
     QImage render_to_image(int w, int h) override;
