@@ -70,6 +70,7 @@ public:
     virtual rectangle get_visible_world();
     virtual rectangle get_visible_screen() const;
     virtual rectangle world_to_screen(const rectangle& box);
+    double world_units_per_pixel();
 
     virtual void set_color(color new_color);
     virtual void set_color(color new_color, uint_fast8_t alpha);
@@ -153,8 +154,6 @@ public:
      * @return A struct that contains two doubles specifying the string's width and height.
      */
     text_dimension_t get_text_dimension(const std::string& text);
-
-    double world_units_per_pixel();
 
 protected:
     irenderer(Painter* painter, transform_fn transform, camera* cam, QImage* surface);

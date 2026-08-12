@@ -56,16 +56,16 @@ void rhi_backend::redraw()
 
 void rhi_backend::redraw_camera_only(view_change_reason reason)
 {
-    if (m_renderer
-        && m_has_drawn_frame
-        && m_decide_reuse_geometry_callback
-        && m_decide_reuse_geometry_callback(m_renderer.get(), reason)) {
-        m_renderer->flush_mvp_only();
-        m_pending_redraw      = false;
-        m_pending_camera_only = false;
-        m_has_drawn_frame     = true;
-        q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
-        return;
+    if (m_renderer && m_has_drawn_frame) {
+        if (reason == view_change_reason::setup
+            || (m_decide_reuse_geometry_callback && m_decide_reuse_geometry_callback(m_renderer.get(), reason))) {
+            m_renderer->flush_mvp_only();
+            m_pending_redraw      = false;
+            m_pending_camera_only = false;
+            m_has_drawn_frame     = true;
+            q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
+            return;
+        }
     }
     redraw();
 }
