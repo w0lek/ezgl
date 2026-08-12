@@ -55,8 +55,7 @@ public:
                 color                    background_color);
     ~rhi_backend() override;
 
-    /// Full redraw. Within a defer cycle, sets @c m_pending_redraw and
-    /// returns immediately; otherwise calls @ref rhi_renderer::flush().
+    /// Full redraw.
     void redraw() override;
 
     /**
@@ -71,7 +70,7 @@ public:
      * 
      * @param reason Reason that triggers the camera redraw (e.g. pan, zoom_in).
      * 
-     * @return Return true to indicate a camera transform/overlay, or false to indicate a full redraw.
+     * @return Return true to indicate the geometry can be reused. Retuen false otherwise
      */
     bool valid_to_reuse_geometry(view_change_reason reason);
 
@@ -96,6 +95,7 @@ public:
 private:
     RhiCanvasWidget*              m_widget;
     draw_canvas_fn                m_draw_callback;
+    /// A callback used before a camera-only redraw to determine if the cached geometry can still be reused.
     decide_reuse_geometry_fn      m_decide_reuse_geometry_callback;
     camera*                       m_camera;
     QColor                        m_bg_color;

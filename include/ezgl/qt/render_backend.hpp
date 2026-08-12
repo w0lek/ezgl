@@ -39,7 +39,7 @@ enum class view_change_reason {
 };
 
 /**
- * @brief Basic dimension updates after a change in the view.
+ * @brief Basic information about a change in the view.
  */
 struct view_change_ctx {
     view_change_reason reason;    ///< Reason that triggers the camera redraw (e.g. pan, zoom_in).
@@ -53,11 +53,11 @@ using draw_canvas_fn = void (*)(renderer*);
 /**
  * @brief Ask the client to decide whether cached scene geometry can be reused for the new view.
  * 
- * The callback receives a view_change_ctx describing the state after a camera/view change to make a decision.
+ * @param ctx Basic information about the view change that the client uses to make a decision.
  * 
  * @return Return true to update only the camera transform/overlay, or false to force a full redraw.
  */
-using decide_reuse_geometry_fn = std::function<bool(view_change_ctx&)>;
+using decide_reuse_geometry_fn = std::function<bool(view_change_ctx& ctx)>;
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.

@@ -111,6 +111,9 @@ public:
     m_renderer_type = t;
   }
 
+  /**
+   * Set the callback which decides before a camera-only redraw if the cached geometry can be reused.
+   */
   void set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk)
   {
     m_decide_reuse_geometry_callback = cbk;
@@ -182,7 +185,8 @@ private:
   // The function to call when the widget needs to be redrawn.
   draw_canvas_fn m_draw_callback;
 
-  // The function to call when need to determine if the buffered geometry is unchanged so that a camera-only redraw can be performed.
+  // A callback used before a camera-only redraw to determine if the cached geometry can be reused.
+  // Only used on the RHI path.
   decide_reuse_geometry_fn m_decide_reuse_geometry_callback = nullptr;
 
   // The transformations between the GUI and the world.

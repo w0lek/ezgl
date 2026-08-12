@@ -40,28 +40,28 @@ void rhi_backend::redraw()
             m_camera,
             m_draw_callback,
             m_bg_color);
+    }
+    
+    if (m_defer_redraw) {
+        m_pending_redraw = true;
     } else {
         m_renderer->begin_frame();
+        m_draw_callback(m_renderer.get());
+        m_renderer->flush();
+        m_has_drawn_frame = true;
+        q_debug("The canvas will be redrawn (RHI path).");
     }
-
-    m_draw_callback(m_renderer.get());
-    m_renderer->flush();
-
-    m_defer_redraw        = false;
-    m_pending_redraw      = false;
-    m_pending_camera_only = false;
-    m_has_drawn_frame     = true;
-    q_debug("The canvas will be redrawn (RHI path).");
 }
 
 void rhi_backend::redraw_camera_only(view_change_reason reason)
 {
     if (m_renderer && m_has_drawn_frame && valid_to_reuse_geometry(reason)) {
-        m_renderer->flush_mvp_only();
-        m_pending_redraw      = false;
-        m_pending_camera_only = false;
-        m_has_drawn_frame     = true;
-        q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
+        if (m_defer_redraw) {
+            m_pending_camera_only = true;
+        } else {
+            m_renderer->flush_mvp_only();
+            q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
+        }
         return;
     }
     redraw();
@@ -75,7 +75,7 @@ bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
         return true;
 
     // The callback function is not available. Default to approval.
-    if (m_decide_reuse_geometry_callback)
+    if (!m_decide_reuse_geometry_callback)
         return true;
 
     rhi_renderer* g = m_renderer.get();
@@ -100,7 +100,7 @@ void rhi_backend::end_deferred_redraw_cycle()
         redraw();
     else if (m_pending_camera_only)
         redraw_camera_only(view_change_reason::setup);
-    else if (m_renderer)
+    else
         redraw();
 }
 
@@ -111,14 +111,8 @@ void rhi_backend::on_resize(int w, int h)
     m_last_h = h;
 
     const bool can_reuse_geometry = size_changed && m_renderer && m_has_drawn_frame;
-    if (m_defer_redraw) {
-        if (can_reuse_geometry)
-            m_pending_camera_only = true;
-        else {
-            m_pending_redraw      = true;
-            m_pending_camera_only = false;
-        }
-    } else if (can_reuse_geometry) {
+
+    if (can_reuse_geometry) {
         redraw_camera_only(view_change_reason::setup);
     } else {
         redraw();
