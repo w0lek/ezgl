@@ -29,13 +29,27 @@
 namespace ezgl {
 
 enum view_change_reason {
+    /// The visible world moved without changing zoom level.
     pan,
+
+    /// The visible world area decreased.
     zm_in,
+
+    /// The visible world area increased.
     zm_out,
+
+    /// The view changed because of renderer setup or resize handling.
+    /// This is before the GUI is available for the user to interact with.
     setup
 };
 
 using draw_canvas_fn = void (*)(renderer*);
+
+/**
+ * @brief Called before an RHI camera-only redraw to decide whether cached scene geometry can be reused for the new view.
+ * 
+ * @return Return true to update only the camera transform/overlay, or false to force a full redraw.
+ */
 using decide_reuse_geometry_fn = std::function<bool(renderer*, view_change_reason)>;
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
