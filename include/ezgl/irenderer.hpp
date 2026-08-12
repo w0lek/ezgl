@@ -70,6 +70,7 @@ public:
     virtual rectangle get_visible_world();
     virtual rectangle get_visible_screen() const;
     virtual rectangle world_to_screen(const rectangle& box);
+    /// Return the horizontal world-space distance represented by one screen pixel.
     double world_units_per_pixel();
 
     virtual void set_color(color new_color);

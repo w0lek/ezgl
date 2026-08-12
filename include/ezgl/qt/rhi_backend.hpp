@@ -59,12 +59,21 @@ public:
     /// returns immediately; otherwise calls @ref rhi_renderer::flush().
     void redraw() override;
 
-    /// Camera-only redraw. Within a defer cycle, sets
-    /// @c m_pending_camera_only; otherwise calls
-    /// @ref rhi_renderer::flush_mvp_only(). If a full redraw is also
-    /// pending, the full redraw wins (it produces a superset of the
-    /// camera-only result).
+    /**
+     * @brief Camera-only redraw if the geometry is proved to be still valid. Falls back to a full redraw otherwise.
+     * 
+     * @param reason Reason that triggers this camera redraw (e.g. pan, zoom_in).
+     */
     void redraw_camera_only(view_change_reason reason) override;
+
+    /**
+     * @brief Determine if the cached geometry is valid to reuse before performing a camera-only redraw.
+     * 
+     * @param reason Reason that triggers the camera redraw (e.g. pan, zoom_in).
+     * 
+     * @return Return true to indicate a camera transform/overlay, or false to indicate a full redraw.
+     */
+    bool valid_to_reuse_geometry(view_change_reason reason);
 
     /// Open a defer window: coalesce multiple @ref redraw /
     /// @ref redraw_camera_only calls into a single GPU frame on close.

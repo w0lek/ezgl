@@ -28,29 +28,36 @@
 
 namespace ezgl {
 
-enum view_change_reason {
-    /// The visible world moved without changing zoom level.
-    pan,
+/**
+ * @brief Reasons corresponding to a change in the view.
+ */
+enum class view_change_reason {
+    pan,      ///< The visible world moved without changing zoom level.
+    zoom_in,  ///< The visible world area decreased.
+    zoom_out, ///< The visible world area increased.
+    setup     ///< The view changed because of renderer setup or resize handling. Happens before the GUI is available for interaction.
+};
 
-    /// The visible world area decreased.
-    zm_in,
-
-    /// The visible world area increased.
-    zm_out,
-
-    /// The view changed because of renderer setup or resize handling.
-    /// This is before the GUI is available for the user to interact with.
-    setup
+/**
+ * @brief Basic dimension updates after a change in the view.
+ */
+struct view_change_ctx {
+    view_change_reason reason;    ///< Reason that triggers the camera redraw (e.g. pan, zoom_in).
+    double world_units_per_pixel; ///< The new ratio of the horizontal world-space distance over one screen pixel.
+    rectangle visible_world;      ///< The new visible world.
+    rectangle visible_screen;     ///< The new visible screen.
 };
 
 using draw_canvas_fn = void (*)(renderer*);
 
 /**
- * @brief Called before an RHI camera-only redraw to decide whether cached scene geometry can be reused for the new view.
+ * @brief Ask the client to decide whether cached scene geometry can be reused for the new view.
+ * 
+ * The callback receives a view_change_ctx describing the state after a camera/view change to make a decision.
  * 
  * @return Return true to update only the camera transform/overlay, or false to force a full redraw.
  */
-using decide_reuse_geometry_fn = std::function<bool(renderer*, view_change_reason)>;
+using decide_reuse_geometry_fn = std::function<bool(view_change_ctx&)>;
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.
@@ -106,11 +113,15 @@ public:
     /// trees, …) has changed.
     virtual void redraw() = 0;
 
-    /// Camera-only redraw: scene geometry is unchanged, only the camera
-    /// transform / overlay layout differs. Backends that maintain a
-    /// scene cache (rhi) can skip the user draw callback and just
-    /// re-render with the new MVP. The immediate and deferred backends
-    /// fall through to a full @ref redraw because they have no cache.
+    /**
+     * @brief Redraw using only a camera (MVP) update when cached geometry is reusable. Meaningful on the RHI path only.
+     *
+     * @param reason Reason that triggers this camera redraw (e.g. pan, zoom_in).
+     * 
+     * On the RHI path, the function checks whether the existing scene buffer can be reused.
+     * If reuse is allowed, the backend updates the camera transform/overlay without re-running the draw callback.
+     * Otherwise, or on non-RHI paths, this falls back to a full redraw.
+     */
     virtual void redraw_camera_only(view_change_reason reason) = 0;
 
     /// Optional batching window. Multiple @ref redraw / @ref

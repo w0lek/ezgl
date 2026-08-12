@@ -77,11 +77,13 @@ public:
   void redraw();
 
   /**
-   * Redraw using only a camera (MVP) update — no geometry re-upload.
+   * @brief Redraw using only a camera (MVP) update when cached geometry is reusable. Meaningful on the RHI path only.
    *
-   * On the RHI path this reuses the existing vertex buffers, rebuilds the
-   * cached overlay for the new camera, and avoids re-running the draw callback.
-   * Falls back to a full redraw on non-RHI paths or before the first frame.
+   * @param reason Reason that triggers this camera redraw (e.g. pan, zoom_in).
+   * 
+   * On the RHI path, the RHI backend checks whether the existing scene buffer can be reused.
+   * If reuse is allowed, the backend updates the camera transform/overlay without re-running the draw callback.
+   * Otherwise, or on non-RHI paths, this falls back to a full redraw.
    */
   void redraw_camera_only(view_change_reason reason);
 
@@ -180,6 +182,7 @@ private:
   // The function to call when the widget needs to be redrawn.
   draw_canvas_fn m_draw_callback;
 
+  // The function to call when need to determine if the buffered geometry is unchanged so that a camera-only redraw can be performed.
   decide_reuse_geometry_fn m_decide_reuse_geometry_callback = nullptr;
 
   // The transformations between the GUI and the world.
