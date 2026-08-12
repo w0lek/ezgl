@@ -33,7 +33,7 @@ class rhi_renderer;
  * @endcode
  *
  * Without the defer window, @ref redraw() and @ref redraw_camera_only()
- * dispatch immediately. The first call to either also flips
+ * dispatch immediately. The first call to redraw() also flips
  * @c m_has_drawn_frame so subsequent resize events know whether the
  * scene has been initialised.
  *
@@ -70,7 +70,7 @@ public:
      * 
      * @param reason Reason that triggers the camera redraw (e.g. pan, zoom_in).
      * 
-     * @return Return true to indicate the geometry can be reused. Retuen false otherwise
+     * @return Return true to indicate the geometry can be reused. Return false otherwise.
      */
     bool valid_to_reuse_geometry(view_change_reason reason);
 
@@ -81,8 +81,7 @@ public:
     /// Close the defer window and flush any pending redraw.
     void end_deferred_redraw_cycle() override;
 
-    /// Resize: re-create the rhi_renderer at the new dimensions and
-    /// remember the size so the next redraw uses it.
+    /// Resize: update the new dimensions and perform a full or camera redraw.
     void on_resize(int w, int h) override;
 
     /// Animation overlay renderer. Returns an immediate renderer painting

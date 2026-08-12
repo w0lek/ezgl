@@ -40,17 +40,17 @@ void rhi_backend::redraw()
             m_camera,
             m_draw_callback,
             m_bg_color);
-    }
-    
-    if (m_defer_redraw) {
+    } else if (m_defer_redraw) {
         m_pending_redraw = true;
+        return;
     } else {
         m_renderer->begin_frame();
-        m_draw_callback(m_renderer.get());
-        m_renderer->flush();
-        m_has_drawn_frame = true;
-        q_debug("The canvas will be redrawn (RHI path).");
     }
+
+    m_draw_callback(m_renderer.get());
+    m_renderer->flush();
+    m_has_drawn_frame = true;
+    q_debug("The canvas is redrawn (RHI path).");
 }
 
 void rhi_backend::redraw_camera_only(view_change_reason reason)
@@ -60,7 +60,7 @@ void rhi_backend::redraw_camera_only(view_change_reason reason)
             m_pending_camera_only = true;
         } else {
             m_renderer->flush_mvp_only();
-            q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
+            q_debug("The canvas overlay+MVP is updated (camera-only RHI path).");
         }
         return;
     }
