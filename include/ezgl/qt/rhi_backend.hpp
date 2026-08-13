@@ -65,15 +65,6 @@ public:
      */
     void redraw_camera_only(view_change_reason reason) override;
 
-    /**
-     * @brief Determine if the cached geometry is valid to reuse before performing a camera-only redraw.
-     * 
-     * @param reason Reason that triggers the camera redraw (e.g. pan, zoom_in).
-     * 
-     * @return Return true to indicate the geometry can be reused. Return false otherwise.
-     */
-    bool valid_to_reuse_geometry(view_change_reason reason);
-
     /// Open a defer window: coalesce multiple @ref redraw /
     /// @ref redraw_camera_only calls into a single GPU frame on close.
     void begin_deferred_redraw_cycle() override;

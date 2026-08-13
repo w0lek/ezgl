@@ -38,16 +38,6 @@ enum class view_change_reason {
     setup     ///< The view changed because of renderer setup or resize handling. Happens before the GUI is available for interaction.
 };
 
-/**
- * @brief Basic information about a change in the view.
- */
-struct view_change_ctx {
-    view_change_reason reason;    ///< Reason that triggers the camera redraw (e.g. pan, zoom_in).
-    double world_units_per_pixel; ///< The new ratio of the horizontal world-space distance over one screen pixel.
-    rectangle visible_world;      ///< The new visible world.
-    rectangle visible_screen;     ///< The new visible screen.
-};
-
 using draw_canvas_fn = void (*)(renderer*);
 
 /**
@@ -57,7 +47,7 @@ using draw_canvas_fn = void (*)(renderer*);
  * 
  * @return Return true to update only the camera transform/overlay, or false to force a full redraw.
  */
-using decide_reuse_geometry_fn = std::function<bool(view_change_ctx& ctx)>;
+using decide_reuse_geometry_fn = std::function<bool(view_change_reason, renderer*)>;
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.

@@ -187,7 +187,7 @@ private:
 
   // A callback used before a camera-only redraw to determine if the cached geometry can be reused.
   // Only used on the RHI path.
-  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = nullptr;
+  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = [](ezgl::view_change_ctx&){return true;};
 
   // The transformations between the GUI and the world.
   camera m_camera;
