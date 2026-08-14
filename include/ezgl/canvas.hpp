@@ -113,9 +113,12 @@ public:
 
   /**
    * Set the callback which decides before a camera-only redraw if the cached geometry can be reused. Only meaningful on the RHI path.
-   * If this setter is not called, the default initialized callback returns true so redraw_at_view_change() can use the camera-only path.
+   * If this setter is not called, redraw_at_view_change() will always perform a camera-only redraw.
    */
-  void set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk);
+  void canvas::set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk)
+  {
+    m_decide_reuse_geometry_callback = cbk;
+  }
 
   renderer_type get_renderer_type() const
   {
