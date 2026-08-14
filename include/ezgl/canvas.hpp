@@ -185,8 +185,8 @@ private:
 
   // A callback used before a camera-only redraw to determine if the cached geometry can be reused.
   // Only used on the RHI path.
-  // Default to return true if the client does not provide any custom function.
-  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = [](view_change_reason, renderer*) noexcept {return true;};
+  // If nullptr, redraw_at_view_change() will always perform a camera-only redraw.
+  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = nullptr;
 
   // The transformations between the GUI and the world.
   camera m_camera;

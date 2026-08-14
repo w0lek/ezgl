@@ -65,6 +65,15 @@ public:
      */
     void redraw_at_view_change(view_change_reason reason) override;
 
+    /**
+     * @brief Determine if the cached geometry is valid to reuse for a camera-only redraw after a view change.
+     * 
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     * 
+     * @return Return true to indicate the geometry can be reused. Return false otherwise.
+     */
+    bool valid_to_reuse_geometry(view_change_reason reason);
+
     /// Open a defer window: coalesce multiple @ref redraw /
     /// @ref redraw_at_view_change calls into a single GPU frame on close.
     void begin_deferred_redraw_cycle() override;

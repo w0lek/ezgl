@@ -55,8 +55,7 @@ void rhi_backend::redraw()
 
 void rhi_backend::redraw_at_view_change(view_change_reason reason)
 {
-    if (m_renderer && m_has_drawn_frame
-        && (reason == view_change_reason::setup || m_decide_reuse_geometry_callback(reason, m_renderer.get()))) {
+    if (m_renderer && m_has_drawn_frame && valid_to_reuse_geometry(reason)) {
         if (m_defer_redraw) {
             m_pending_camera_only = true;
         } else {
@@ -66,6 +65,21 @@ void rhi_backend::redraw_at_view_change(view_change_reason reason)
         return;
     }
     redraw();
+}
+
+bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
+{
+    // This enum value is only triggered by EZGL's internal methods during intial setup
+    // and is distinct from user interaction with the GUI. Default to approval.
+    if (reason == view_change_reason::setup)
+        return true;
+
+    // The callback function is not available. Default to approval.
+    if (!m_decide_reuse_geometry_callback)
+        return true;
+
+    // Let the client decide if the geometry can be reused.
+    return m_decide_reuse_geometry_callback(reason, m_renderer.get());
 }
 
 void rhi_backend::begin_deferred_redraw_cycle()
