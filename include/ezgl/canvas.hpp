@@ -79,13 +79,13 @@ public:
   /**
    * @brief Redraw using only a camera (MVP) update when cached geometry is reusable. Meaningful on the RHI path only.
    *
-   * @param reason Reason that triggers this camera redraw (e.g. pan, zoom_in).
+   * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
    * 
    * On the RHI path, the RHI backend checks whether the existing scene buffer can be reused.
    * If reuse is allowed, the backend updates the camera transform/overlay without re-running the draw callback.
    * Otherwise, or on non-RHI paths, this falls back to a full redraw.
    */
-  void redraw_camera_only(view_change_reason reason);
+  void redraw_at_view_change(view_change_reason reason);
 
   /**
    * Get an immutable reference to this canvas' camera.
@@ -112,12 +112,10 @@ public:
   }
 
   /**
-   * Set the callback which decides before a camera-only redraw if the cached geometry can be reused.
+   * Set the callback which decides before a camera-only redraw if the cached geometry can be reused. Only meaningful on the RHI path.
+   * If this setter is not called, the default initialized callback returns true so redraw_at_view_change() can use the camera-only path.
    */
-  void set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk)
-  {
-    m_decide_reuse_geometry_callback = cbk;
-  }
+  void set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk);
 
   renderer_type get_renderer_type() const
   {
@@ -187,7 +185,8 @@ private:
 
   // A callback used before a camera-only redraw to determine if the cached geometry can be reused.
   // Only used on the RHI path.
-  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = [](ezgl::view_change_ctx&){return true;};
+  // Default to return true if the client does not provide any custom function.
+  decide_reuse_geometry_fn m_decide_reuse_geometry_callback = [](view_change_reason, renderer*) noexcept {return true;};
 
   // The transformations between the GUI and the world.
   camera m_camera;
@@ -201,7 +200,7 @@ private:
   // Requested backend type — set before run(), used by initialize() to pick the backend.
   renderer_type m_renderer_type = renderer_type::rhi;
 
-  // Optional post-redraw timing callback.
+  // Optional callback invoked after redraw() with the measured redraw CPU time in milliseconds.
   std::function<void(double)> m_frame_timing_fn = nullptr;
 
   // Active rendering backend — selected at initialize() time based on widget type.

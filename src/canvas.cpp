@@ -234,10 +234,19 @@ void canvas::redraw()
   }
 }
 
-void canvas::redraw_camera_only(view_change_reason reason)
+void canvas::redraw_at_view_change(view_change_reason reason)
 {
   if (m_backend)
-    m_backend->redraw_camera_only(reason);
+    m_backend->redraw_at_view_change(reason);
+}
+
+void canvas::set_decide_reuse_geometry_callback(decide_reuse_geometry_fn cbk)
+{
+  if (!cbk) {
+    q_warning("Passing a nullptr or an invalid std::function is not allowed.");
+    return;
+  }
+  m_decide_reuse_geometry_callback = cbk;
 }
 
 renderer *canvas::create_animation_renderer()

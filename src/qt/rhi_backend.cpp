@@ -53,7 +53,7 @@ void rhi_backend::redraw()
     q_debug("The canvas is redrawn (RHI path).");
 }
 
-void rhi_backend::redraw_camera_only(view_change_reason reason)
+void rhi_backend::redraw_at_view_change(view_change_reason reason)
 {
     if (m_renderer && m_has_drawn_frame
         && (reason == view_change_reason::setup || m_decide_reuse_geometry_callback(reason, m_renderer.get()))) {
@@ -83,7 +83,7 @@ void rhi_backend::end_deferred_redraw_cycle()
     if (m_pending_redraw || !m_has_drawn_frame)
         redraw();
     else if (m_pending_camera_only)
-        redraw_camera_only(view_change_reason::setup);
+        redraw_at_view_change(view_change_reason::setup);
     else
         redraw();
 }
@@ -97,7 +97,7 @@ void rhi_backend::on_resize(int w, int h)
     const bool can_reuse_geometry = size_changed && m_renderer && m_has_drawn_frame;
 
     if (can_reuse_geometry) {
-        redraw_camera_only(view_change_reason::setup);
+        redraw_at_view_change(view_change_reason::setup);
     } else {
         redraw();
     }

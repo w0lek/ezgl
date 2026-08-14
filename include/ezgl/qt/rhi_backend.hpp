@@ -25,14 +25,14 @@ class rhi_renderer;
  * @code
  *   begin_deferred_redraw_cycle();   // m_defer_redraw = true
  *     redraw();                      // m_pending_redraw = true (no flush yet)
- *     redraw_camera_only();          // m_pending_camera_only = true
+ *     redraw_at_view_change();       // m_pending_camera_only = true (if the geometry is reusable)
  *     ...
  *   end_deferred_redraw_cycle();     // m_defer_redraw = false; if any
  *                                    // pending, flush once (full beats
  *                                    // camera-only — if both set, full wins).
  * @endcode
  *
- * Without the defer window, @ref redraw() and @ref redraw_camera_only()
+ * Without the defer window, @ref redraw() and @ref redraw_at_view_change()
  * dispatch immediately. The first call to redraw() also flips
  * @c m_has_drawn_frame so subsequent resize events know whether the
  * scene has been initialised.
@@ -61,12 +61,12 @@ public:
     /**
      * @brief Camera-only redraw if the geometry is proved to be still valid. Falls back to a full redraw otherwise.
      * 
-     * @param reason Reason that triggers this camera redraw (e.g. pan, zoom_in).
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
      */
-    void redraw_camera_only(view_change_reason reason) override;
+    void redraw_at_view_change(view_change_reason reason) override;
 
     /// Open a defer window: coalesce multiple @ref redraw /
-    /// @ref redraw_camera_only calls into a single GPU frame on close.
+    /// @ref redraw_at_view_change calls into a single GPU frame on close.
     void begin_deferred_redraw_cycle() override;
 
     /// Close the defer window and flush any pending redraw.
