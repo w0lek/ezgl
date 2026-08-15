@@ -169,8 +169,9 @@ using DeferredCommand =
  * QPainter renderer that *records* a frame's draw calls and replays them later,
  * instead of painting immediately. This buys two things over the immediate
  * renderer: draw calls are reordered to minimise QPainter pen/brush changes,
- * and the recorded frame can be re-drawn for a new camera without re-running
- * the application's draw callback.
+ * and the recorded frame can be re-drawn after the camera's view changes
+ * (the user pans or zooms) without re-running the application's draw
+ * callback — see @ref replay for how that works.
  *
  * Two very different callers use it:
  * - @ref deferred_backend renders an *entire* frame through it — every
