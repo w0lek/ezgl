@@ -20,7 +20,10 @@ namespace ezgl {
 /**
  * Style identity for stroked primitives (lines, rect outlines). Two primitives
  * sharing a LineStyleKey can be drawn with the same QPen, so they are batched
- * together to minimise QPainter state changes during flush.
+ * together to minimise QPainter state changes during flush. See @ref
+ * deferred_renderer for what "batched" means in practice: primitives with
+ * the same key are grouped so the whole group can be drawn with one
+ * QPen/QBrush setup instead of one per primitive.
  */
 struct LineStyleKey {
     uint32_t color_rgba;   ///< Packed color: r | g<<8 | b<<16 | a<<24.
@@ -39,7 +42,8 @@ struct LineStyleKey {
 
 /**
  * Style identity for filled primitives (rectangles, polygons). Fills have no
- * stroke attributes, so only color distinguishes them for batching.
+ * stroke attributes, so only color distinguishes them for batching (see
+ * @ref deferred_renderer for what batching means in practice).
  */
 struct FillStyleKey {
     uint32_t color_rgba;   ///< Packed color: r | g<<8 | b<<16 | a<<24.
