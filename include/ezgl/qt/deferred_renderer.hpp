@@ -152,8 +152,11 @@ struct DeferredArrowTriangleCommand {
 
 /// One recorded deferred command — any of the deferred command types. Stored in
 /// submission order in m_commands and dispatched with std::visit during
-/// replay. (These commands can't be batched by style like lines/rects, so
-/// each is replayed individually.)
+/// replay: std::visit looks at which of the four command types a given
+/// DeferredCommand currently holds and calls the matching draw code for it,
+/// so replay doesn't need an if/else chain to figure out each command's type.
+/// (These commands can't be batched by style like lines/rects, so each is
+/// replayed individually.)
 using DeferredCommand =
     std::variant<DeferredArcCommand,
                  DeferredTextCommand,
