@@ -55,6 +55,14 @@ enum class line_dash : int {
 };
 
 /**
+ * @brief Specifies a string's width and height in pixels.
+ */
+struct t_text_dimension {
+    double width = 0.0;
+    double height = 0.0;
+};
+
+/**
  * Base interface and shared state for all ezgl renderers.
  *
  * Shared state setters and camera helpers live here. Concrete renderers own
@@ -427,6 +435,14 @@ public:
      * @param painter The painter to draw through.
      */
     void set_painter(Painter* painter);
+
+    /**
+     * @brief Returns the dimension (width and height in pixels) of a string.
+     *
+     * @param text The string to calculate.
+     * @return A struct that contains two doubles specifying the string's width and height.
+     */
+    ezgl::t_text_dimension get_text_dimension(const std::string& text);
 
 protected:
     /**
