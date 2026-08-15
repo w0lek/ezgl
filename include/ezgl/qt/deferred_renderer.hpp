@@ -372,6 +372,14 @@ private:
 
     // ---- replay() stages ---------------------------------------------------
     // A batch culled to only its currently-visible primitives, ready to draw.
+    //
+    // This holds a compacted copy of the visible primitives rather than, say,
+    // a "visible" bool on each primitive in the base batch: draw_visible_batches
+    // hands each batch straight to a single QPainter::drawLines/drawRects call,
+    // which needs a contiguous array of exactly the primitives to draw. A bool
+    // flag wouldn't avoid that compaction step (QPainter can't skip flagged
+    // entries mid-array), so it would only add state to reset every frame
+    // without removing the copy.
     struct VisibleLineBatch { LineStyleKey style;        std::vector<QLineF>    lines; };
     struct VisibleRectBatch { FillStyleKey fill_style;
                               LineStyleKey line_style;   std::vector<QRectF>    rects; };
