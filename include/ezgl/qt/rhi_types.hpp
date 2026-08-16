@@ -75,6 +75,9 @@
  *              to smooth jagged edges, then averages ("resolves") them.
  *  - **DPR**   Device Pixel Ratio: physical pixels per logical pixel on hi-DPI
  *              screens (e.g. 2.0 on a "retina" display).
+ *  - **swap chain** the small set of window-sized images the GPU rotates through:
+ *              it draws the next frame into one while the screen shows another,
+ *              then they swap. Being window-sized, it is rebuilt on every resize.
  *  - **QPA**   Qt Platform Abstraction: Qt's backend for a given platform. The
  *              special @c offscreen QPA has no window, used by headless tests.
  */

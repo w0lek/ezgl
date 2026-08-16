@@ -122,7 +122,10 @@ public:
     virtual void resume_redraw() {}
 
     /// Resize notification. Backends recreate render targets / swap chains
-    /// here as needed.
+    /// here as needed — both are sized to the window, so neither survives a
+    /// resize. (A *swap chain* is the small set of images the GPU rotates
+    /// through: it draws into one while the screen displays another, then they
+    /// swap. Only the GPU backend has one; see @ref rhi_types.hpp's glossary.)
     virtual void on_resize(int w, int h) = 0;
 
     /// Return a transient @c renderer instance suitable for one-off
