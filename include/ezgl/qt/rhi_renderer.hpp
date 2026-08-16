@@ -40,6 +40,19 @@ namespace ezgl {
  * data is copied — record-time batches are intermediate, not the final
  * GPU-bound buffers.
  *
+ * @par Why chunk order must stay deterministic
+ * Chunk order is draw order, and the geometry pipelines blend with depth
+ * testing off — a painter's algorithm, so the last draw wins the pixel and
+ * translucent overlaps change colour outright (alpha blending is not
+ * commutative). This is why the per-tile style lists are vectors scanned
+ * linearly rather than hash maps: iterating an @c unordered_map would tie the
+ * order to hash order, which varies by run and platform, so the same scene
+ * could render differently and @c save_graphics() would stop being
+ * reproducible. (@ref deferred_renderer does use an @c unordered_map, but only
+ * to look up a batch's index; it draws by iterating its batch vector, so the
+ * map's order never reaches the output. Here the map would hold the batches
+ * themselves, making its order the draw order.)
+ *
  * @par GPU vs CPU primitives
  * The following primitives are GPU-rendered through one of the six geometry
  * pipelines in @ref RhiSceneRenderer: @c draw_line, @c fill_rectangle,
