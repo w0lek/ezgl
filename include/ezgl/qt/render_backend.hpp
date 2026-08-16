@@ -123,13 +123,20 @@ public:
     /// @see suspend_redraw
     virtual void resume_redraw() {}
 
-    /// Resize notification: the *widget* changed pixel size (window dragged,
-    /// layout or splitter moved). This is not a camera zoom — zooming leaves
-    /// the widget the same size and only changes which part of the world is
-    /// visible, whereas a resize changes the drawing surface itself, so
-    /// anything sized to the window (render targets, swap chains, the overlay
-    /// image) has to be recreated. Both end up redrawing, which is why they are
-    /// easy to confuse.
+    /// Resize notification, called from the canvas widget's @c resizeEvent()
+    /// — @ref DrawingAreaWidget for the immediate/deferred backends,
+    /// @ref RhiCanvasWidget for RHI. Qt calls @c resizeEvent automatically
+    /// whenever the widget's geometry changes (dragging the window corner,
+    /// maximise, a layout change); the same signal is also emitted on
+    /// @c showEvent.
+    ///
+    /// The widget emits @c resized, and canvas responds by first updating the
+    /// camera's widget size and then calling this. So it *is* camera-related —
+    /// but the trigger is the drawing surface changing size, not the zoom
+    /// level. Anything sized to the window (render targets, swap chains, the
+    /// overlay image) therefore has to be recreated. For RHI the GPU geometry
+    /// is still valid, so this usually takes the camera-only path (just a new
+    /// MVP) rather than a full redraw.
     ///
     /// (A *swap chain* is the small set of images the GPU rotates through: it
     /// draws into one while the screen displays another, then they swap. Only
