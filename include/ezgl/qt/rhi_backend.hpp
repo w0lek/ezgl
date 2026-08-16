@@ -16,6 +16,9 @@ class rhi_renderer;
  * @brief Qt RHI GPU-backed @ref render_backend implementation. Lifecycle
  * wrapper around @ref rhi_renderer.
  *
+ * @note New to the graphics acronyms used here (MVP, UBO, VBO, MSAA, NDC, …)?
+ *       They are defined once in the glossary at the top of @ref rhi_types.hpp.
+ *
  * Owns a persistent @ref rhi_renderer plus the redraw-suspension scheduling
  * state (the suspend flag and pending-redraw flags). Full redraws go through
  * @ref rhi_renderer::flush() — the heavy path: it re-runs the draw callback and
@@ -49,9 +52,6 @@ class rhi_renderer;
  * frame into the static helper @ref RhiCanvasWidget::render_offscreen(),
  * which builds its own standalone @c QRhi over @c QOffscreenSurface. No
  * @ref RhiCanvasWidget instance is created.
- *
- * @note New to the graphics acronyms below (UBO, VBO, MSAA, NDC, …)? They are
- *       defined once in the glossary at the top of @ref rhi_types.hpp.
  */
 class rhi_backend final : public render_backend {
 public:
