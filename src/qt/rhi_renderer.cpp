@@ -1057,11 +1057,11 @@ void rhi_renderer::append_fill_triangle_to_tiles(const point2d& a,
 
 // ---- thick line helpers ----------------------------------------------------
 
-void rhi_renderer::append_thick_segment(RhiTileBatch& tile,
-                                        const point2d& start,
-                                        const point2d& end,
-                                        StyleKey      style_key,
-                                        std::uint32_t rgba)
+void rhi_renderer::append_thick_line_segment(RhiTileBatch& tile,
+                                             const point2d& start,
+                                             const point2d& end,
+                                             StyleKey      style_key,
+                                             std::uint32_t rgba)
 {
     // One instance record (16 bytes) per segment.
     // The vertex shader reconstructs all 4 quad corners from this record plus
@@ -1090,11 +1090,11 @@ void rhi_renderer::append_thick_line_to_tiles(const point2d& start,
             RhiTileBatch& tile = tile_at(tx, ty);
             if (!clip_line_world(tile.world_bounds, clipped_start, clipped_end))
                 continue;
-            append_thick_segment(tile,
-                                 clipped_start,
-                                 clipped_end,
-                                 style_key,
-                                 rgba);
+            append_thick_line_segment(tile,
+                                      clipped_start,
+                                      clipped_end,
+                                      style_key,
+                                      rgba);
         }
     }
 }
@@ -1548,7 +1548,7 @@ void rhi_renderer::dispatch_commands_to_tiles(int band)
                 point2d cs = s, ce = e;
                 RhiTileBatch& tile = tile_at(tx, ty);
                 if (!clip_line_world(tile.world_bounds, cs, ce)) continue;
-                append_thick_segment(tile, cs, ce, cmd.sk, rgba);
+                append_thick_line_segment(tile, cs, ce, cmd.sk, rgba);
             }
         }
     }

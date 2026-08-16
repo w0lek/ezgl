@@ -453,11 +453,11 @@ private:
     /// @}
 
     /// Append a thick-line segment into one tile's thick-line batch (clipped).
-    void append_thick_segment(RhiTileBatch& tile,
-                              const point2d& start,
-                              const point2d& end,
-                              StyleKey      style_key,
-                              std::uint32_t rgba);
+    void append_thick_line_segment(RhiTileBatch& tile,
+                                   const point2d& start,
+                                   const point2d& end,
+                                   StyleKey      style_key,
+                                   std::uint32_t rgba);
     /// Bin a thick line across the tiles it overlaps.
     void append_thick_line_to_tiles(const point2d& start,
                                     const point2d& end,
