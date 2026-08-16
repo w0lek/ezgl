@@ -97,6 +97,11 @@ public:
     /// mark a pending redraw (camera-only if the geometry can be reused,
     /// otherwise a full redraw) instead of flushing; otherwise redraw
     /// immediately.
+    ///
+    /// A resize is handled *like* a camera change whenever it can be: the world
+    /// geometry already on the GPU is still valid, so only the MVP and the
+    /// window-sized resources need updating. The full path is taken only when
+    /// there is no geometry to reuse yet — no renderer, or no frame drawn.
     void on_resize(int w, int h) override;
 
     /// Animation overlay renderer. Returns an immediate renderer painting

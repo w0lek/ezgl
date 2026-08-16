@@ -123,11 +123,17 @@ public:
     /// @see suspend_redraw
     virtual void resume_redraw() {}
 
-    /// Resize notification. Backends recreate render targets / swap chains
-    /// here as needed — both are sized to the window, so neither survives a
-    /// resize. (A *swap chain* is the small set of images the GPU rotates
-    /// through: it draws into one while the screen displays another, then they
-    /// swap. Only the GPU backend has one; see @ref rhi_types.hpp's glossary.)
+    /// Resize notification: the *widget* changed pixel size (window dragged,
+    /// layout or splitter moved). This is not a camera zoom — zooming leaves
+    /// the widget the same size and only changes which part of the world is
+    /// visible, whereas a resize changes the drawing surface itself, so
+    /// anything sized to the window (render targets, swap chains, the overlay
+    /// image) has to be recreated. Both end up redrawing, which is why they are
+    /// easy to confuse.
+    ///
+    /// (A *swap chain* is the small set of images the GPU rotates through: it
+    /// draws into one while the screen displays another, then they swap. Only
+    /// the GPU backend has one; see @ref rhi_types.hpp's glossary.)
     virtual void on_resize(int w, int h) = 0;
 
     /// Return a transient @c renderer instance suitable for one-off
