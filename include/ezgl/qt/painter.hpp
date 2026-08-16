@@ -99,6 +99,15 @@ struct font_extents_t {
  * Cairo back end so the rest of the library could keep its drawing logic
  * largely unchanged after the Qt migration.
  *
+ * A *path* is a shape you trace out before any ink appears — think of moving a
+ * pen over paper without pressing down. move_to lifts the pen to a point and
+ * line_to traces across to the next. Only stroke() (ink the outline) or fill()
+ * (colour the area inside it) actually draws, and doing so clears the path so
+ * the next shape starts empty:
+ *
+ *     move_to(0,0); line_to(10,0); line_to(10,10); close_path();
+ *     fill();   // the triangle appears only now
+ *
  * Non-copyable: it owns an active QPainter on the target image.
  */
 class Painter : public QPainter {
