@@ -82,8 +82,9 @@ namespace ezgl {
  * The second constructor takes a @c QSize instead of a widget, and
  * @ref flush_capture() returns the assembled frame data as a
  * @ref HeadlessFrameData by value (no widget, no GPU dependency at this
- * level). @ref rhi_backend::render_to_image() uses this with
- * @ref RhiCanvasWidget::render_offscreen() to back @c save_graphics().
+ * level). @ref rhi_backend::render_to_image() uses this with the *static*
+ * @ref RhiCanvasWidget::render_offscreen() — no widget is instantiated — to
+ * back @c save_graphics().
  *
  * @see RhiCanvasWidget for the Qt-side widget + thread inbox.
  * @see RhiSceneRenderer for the GPU pipeline + frame-slot resources.
