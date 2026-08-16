@@ -274,8 +274,9 @@ public:
     /// Headless variant of @ref flush(): dispatches commands to tiles,
     /// builds @ref SceneBuffers, captures the overlay image, and returns
     /// the assembled frame data without touching any widget. Used by
-    /// @c rhi_backend::render_to_image() to feed
-    /// @ref RhiCanvasWidget::render_offscreen().
+    /// @c rhi_backend::render_to_image() to feed the *static*
+    /// @ref RhiCanvasWidget::render_offscreen(), which likewise needs no
+    /// widget instance.
     HeadlessFrameData flush_capture(const QColor& bg);
 
     /// Rebuild the overlay layer (text/arcs have screen-relative layout)
