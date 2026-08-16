@@ -205,6 +205,10 @@ using DeferredCommand =
  *    coordinates. World-space commands are also inserted into a coarse
  *    spatial grid (@ref index_world_command) so that replay can find
  *    the ones overlapping the view without scanning every command.
+ *    SCREEN-space commands have no world position to index, so they go into a
+ *    plain vector (@ref m_unindexed_commands) instead. The grid can't narrow
+ *    them down, so each is checked individually every frame by the usual
+ *    visibility test — cheap, as there are few of them.
  *
  * ## When things happen
  *
