@@ -490,11 +490,34 @@ private:
     /// Indices of SCREEN-space commands, which aren't indexed by world position
     /// and are therefore always treated as candidates during a query.
     std::vector<std::uint32_t>           m_unindexed_commands;
-    /// Per-command "last query that touched it" stamps, used to deduplicate a
-    /// command that several overlapping queried tiles all reference.
+
+    // A query = one search of the grid above for the commands in view, run once
+    // per frame by gather_candidate_commands.
+    //
+    // A command wider than one tile is listed in every tile it touches, so the
+    // search finds it once per tile and would collect it more than once. Say
+    // command #7 is a long text label straddling two tiles:
+    //
+    //     bucket[tile 3,4] = [7, 9]
+    //     bucket[tile 4,4] = [7, 12]
+    //
+    // With both tiles in view, #7 turns up twice and would be drawn twice.
+    // The marks below skip that repeat: each command records the number of the
+    // query that last collected it, and it is a repeat only if that number
+    // equals the current query's. Above, #7 is marked when tile (3,4) collects
+    // it, so tile (4,4) sees the mark and skips it.
+    //
+    // Numbering the queries (rather than a "seen" flag per command) means the
+    // next query just increments the number: every old mark stops matching, so
+    // nothing has to be cleared.
+
+    /// Number of the query that last collected each command; 0 = never collected.
+    /// Index-parallel to m_commands.
     std::vector<std::uint32_t>           m_command_query_marks;
-    /// Stamp for the in-progress query; bumped each gather (wrapping past 0
-    /// resets the marks) so a single pass needn't clear m_command_query_marks.
+    /// Number of the current query. It is 32-bit, so it eventually overflows
+    /// back to 0 — and since 0 also means "never collected", untouched commands
+    /// would then look like repeats and be dropped from the frame. On overflow
+    /// gather_candidate_commands zeroes the marks and restarts the count at 1.
     std::uint32_t                        m_command_query_generation = 1;
 
     // Persistent scratch reused by replay() across frames (see ReplayCache).
