@@ -73,13 +73,18 @@ struct text_extents_t {
 /**
  * @brief Font-wide metrics, mirroring Cairo's @c cairo_font_extents_t.
  *
+ * These describe the font itself, not any particular string — unlike
+ * @ref text_extents_t, whose @c height is one string's bounding box.
+ *
  * Field names are carried over from Cairo and filled from a QFontMetricsF.
  * @c max_y_advance applies to vertical layouts and is always 0 here.
  */
 struct font_extents_t {
   double ascent;        ///< Distance the font extends above the baseline.
   double descent;       ///< Distance the font extends below the baseline.
-  double height;        ///< Recommended baseline-to-baseline line spacing.
+  /// Line height: where to put the *next* line's baseline when stacking several
+  /// lines. One string sits on one baseline; this spaces it from the following one.
+  double height;
   double max_x_advance; ///< Maximum horizontal advance of any glyph in the font.
   double max_y_advance; ///< Maximum vertical advance; always 0 for horizontal layout.
 };
