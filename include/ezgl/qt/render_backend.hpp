@@ -86,6 +86,8 @@ inline constexpr const char* renderer_type_name(renderer_type t) noexcept
  * @endcode
  * A direct @ref redraw() / @ref redraw_camera_only() is NOT held while
  * redrawing is suspended — those dispatch immediately; only @ref on_resize defers.
+ * See @ref suspend_redraw for why this bracket exists and why only RHI honours
+ * it, and @ref rhi_backend for the pending-flag handling behind it.
  */
 class render_backend {
 public:
