@@ -204,6 +204,10 @@ public:
     /// Always GPU: push one @ref PrimitiveType::Arrow instance whose vertex
     /// shader synthesises a constant-pixel-size triangle; @c arrow_size_px is
     /// packed into the @ref StyleKey line-width slot.
+    /// Unlike @ref fill_triangle above, this ignores the current coordinate
+    /// system — the anchor is always taken as WORLD (the size is already in
+    /// pixels, which is the point of the call). Setting SCREEN beforehand does
+    /// not reinterpret the anchor as a pixel position.
     void fill_arrow_pointer_triangle(const point2d& anchor_world,
                                       const point2d& dir_world,
                                       float          arrow_size_px) override;
