@@ -24,6 +24,9 @@ class rhi_renderer;
  * transform on the GPU and reuses the existing geometry buffers.
  *
  * @par Suspend / pending flag state machine
+ * For why this bracket exists at all, who calls it, and why only the RHI
+ * backend honours it, see @ref render_backend::suspend_redraw. This class
+ * implements that contract; the flags below are how it does so.
  * @code
  *   suspend_redraw();        // m_is_redraw_suspended = true
  *     on_resize(w, h);       // sets m_is_redraw_requested or m_is_camera_update_requested
