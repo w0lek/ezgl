@@ -50,7 +50,7 @@ void zoom_in(canvas *cnv, point2d zoom_point, double zoom_factor);
 void zoom_out(canvas *cnv, point2d zoom_point, double zoom_factor);
 
 /**
- * Zoom in or out to fit an exact region of the world.
+ * Zoom to the specified world region.
  */
 void zoom_fit(canvas *cnv, rectangle region);
 

@@ -25,15 +25,15 @@ class rhi_renderer;
  * @code
  *   begin_deferred_redraw_cycle();   // m_defer_redraw = true
  *     redraw();                      // m_pending_redraw = true (no flush yet)
- *     redraw_camera_only();          // m_pending_camera_only = true
+ *     redraw_at_view_change();       // m_pending_camera_only = true (if the geometry is reusable)
  *     ...
  *   end_deferred_redraw_cycle();     // m_defer_redraw = false; if any
  *                                    // pending, flush once (full beats
  *                                    // camera-only — if both set, full wins).
  * @endcode
  *
- * Without the defer window, @ref redraw() and @ref redraw_camera_only()
- * dispatch immediately. The first call to either also flips
+ * Without the defer window, @ref redraw() and @ref redraw_at_view_change()
+ * dispatch immediately. The first call to redraw() also flips
  * @c m_has_drawn_frame so subsequent resize events know whether the
  * scene has been initialised.
  *
@@ -48,32 +48,40 @@ class rhi_renderer;
  */
 class rhi_backend final : public render_backend {
 public:
-    rhi_backend(RhiCanvasWidget* widget,
-                draw_canvas_fn   draw_callback,
-                camera*          cam,
-                color            background_color);
+    rhi_backend(RhiCanvasWidget*         widget,
+                draw_canvas_fn           draw_callback,
+                decide_reuse_geometry_fn decide_reuse_geometry_callback,
+                camera*                  cam,
+                color                    background_color);
     ~rhi_backend() override;
 
-    /// Full redraw. Within a defer cycle, sets @c m_pending_redraw and
-    /// returns immediately; otherwise calls @ref rhi_renderer::flush().
+    /// Full redraw.
     void redraw() override;
 
-    /// Camera-only redraw. Within a defer cycle, sets
-    /// @c m_pending_camera_only; otherwise calls
-    /// @ref rhi_renderer::flush_mvp_only(). If a full redraw is also
-    /// pending, the full redraw wins (it produces a superset of the
-    /// camera-only result).
-    void redraw_camera_only() override;
+    /**
+     * @brief Camera-only redraw if the geometry is proved to be still valid. Falls back to a full redraw otherwise.
+     * 
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     */
+    void redraw_at_view_change(view_change_reason reason) override;
+
+    /**
+     * @brief Determine if the cached geometry is valid to reuse for a camera-only redraw after a view change.
+     * 
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     * 
+     * @return Return true to indicate the geometry can be reused. Return false otherwise.
+     */
+    bool valid_to_reuse_geometry(view_change_reason reason);
 
     /// Open a defer window: coalesce multiple @ref redraw /
-    /// @ref redraw_camera_only calls into a single GPU frame on close.
+    /// @ref redraw_at_view_change calls into a single GPU frame on close.
     void begin_deferred_redraw_cycle() override;
 
     /// Close the defer window and flush any pending redraw.
     void end_deferred_redraw_cycle() override;
 
-    /// Resize: re-create the rhi_renderer at the new dimensions and
-    /// remember the size so the next redraw uses it.
+    /// Resize: update the new dimensions and perform a full or camera redraw.
     void on_resize(int w, int h) override;
 
     /// Animation overlay renderer. Returns an immediate renderer painting
@@ -86,6 +94,8 @@ public:
 private:
     RhiCanvasWidget*              m_widget;
     draw_canvas_fn                m_draw_callback;
+    /// A callback used before a camera-only redraw to determine if the cached geometry can still be reused.
+    decide_reuse_geometry_fn      m_decide_reuse_geometry_callback;
     camera*                       m_camera;
     QColor                        m_bg_color;
     std::unique_ptr<rhi_renderer> m_renderer;

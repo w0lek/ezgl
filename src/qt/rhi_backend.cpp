@@ -10,12 +10,14 @@ namespace ezgl {
 
 rhi_backend::~rhi_backend() = default;
 
-rhi_backend::rhi_backend(RhiCanvasWidget* widget,
-                         draw_canvas_fn   draw_callback,
-                         camera*          cam,
-                         color            background_color)
+rhi_backend::rhi_backend(RhiCanvasWidget*         widget,
+                         draw_canvas_fn           draw_callback,
+                         decide_reuse_geometry_fn decide_reuse_geometry_callback,
+                         camera*                  cam,
+                         color                    background_color)
     : m_widget(widget)
     , m_draw_callback(draw_callback)
+    , m_decide_reuse_geometry_callback(decide_reuse_geometry_callback)
     , m_camera(cam)
     , m_bg_color(background_color.red,
                  background_color.green,
@@ -38,31 +40,46 @@ void rhi_backend::redraw()
             m_camera,
             m_draw_callback,
             m_bg_color);
+    } else if (m_defer_redraw) {
+        m_pending_redraw = true;
+        return;
     } else {
         m_renderer->begin_frame();
     }
 
     m_draw_callback(m_renderer.get());
     m_renderer->flush();
-
-    m_defer_redraw        = false;
-    m_pending_redraw      = false;
-    m_pending_camera_only = false;
-    m_has_drawn_frame     = true;
-    q_debug("The canvas will be redrawn (RHI path).");
+    m_has_drawn_frame = true;
+    q_debug("The canvas is redrawn (RHI path).");
 }
 
-void rhi_backend::redraw_camera_only()
+void rhi_backend::redraw_at_view_change(view_change_reason reason)
 {
-    if (m_renderer && m_has_drawn_frame) {
-        m_renderer->flush_mvp_only();
-        m_pending_redraw      = false;
-        m_pending_camera_only = false;
-        m_has_drawn_frame     = true;
-        q_debug("The canvas overlay+MVP will be updated (camera-only RHI path).");
+    if (m_renderer && m_has_drawn_frame && valid_to_reuse_geometry(reason)) {
+        if (m_defer_redraw) {
+            m_pending_camera_only = true;
+        } else {
+            m_renderer->flush_mvp_only();
+            q_debug("The canvas overlay+MVP is updated (camera-only RHI path).");
+        }
         return;
     }
     redraw();
+}
+
+bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
+{
+    // This enum value is only triggered by EZGL's internal methods during intial setup
+    // and is distinct from user interaction with the GUI. Default to approval.
+    if (reason == view_change_reason::setup)
+        return true;
+
+    // The callback function is not available. Default to approval.
+    if (!m_decide_reuse_geometry_callback)
+        return true;
+
+    // Let the client decide if the geometry can be reused.
+    return m_decide_reuse_geometry_callback(reason, m_renderer.get());
 }
 
 void rhi_backend::begin_deferred_redraw_cycle()
@@ -80,8 +97,8 @@ void rhi_backend::end_deferred_redraw_cycle()
     if (m_pending_redraw || !m_has_drawn_frame)
         redraw();
     else if (m_pending_camera_only)
-        redraw_camera_only();
-    else if (m_renderer)
+        redraw_at_view_change(view_change_reason::setup);
+    else
         redraw();
 }
 
@@ -92,15 +109,9 @@ void rhi_backend::on_resize(int w, int h)
     m_last_h = h;
 
     const bool can_reuse_geometry = size_changed && m_renderer && m_has_drawn_frame;
-    if (m_defer_redraw) {
-        if (can_reuse_geometry)
-            m_pending_camera_only = true;
-        else {
-            m_pending_redraw      = true;
-            m_pending_camera_only = false;
-        }
-    } else if (can_reuse_geometry) {
-        redraw_camera_only();
+
+    if (can_reuse_geometry) {
+        redraw_at_view_change(view_change_reason::setup);
     } else {
         redraw();
     }
