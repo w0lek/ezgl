@@ -41,7 +41,7 @@ class rhi_renderer;
  *
  * @ref redraw() and @ref redraw_camera_only() always dispatch immediately;
  * only resize-driven redraws are deferred while redrawing is suspended. The
- * first draw flips @c m_has_drawn_frame so subsequent resize events know
+ * first full redraw flips @c m_has_drawn_frame so subsequent resize events know
  * whether the scene has been initialised.
  *
  * @par Headless capture
@@ -57,13 +57,15 @@ class rhi_backend final : public render_backend {
 public:
     /// Construct an on-screen GPU backend bound to an existing
     /// @ref RhiCanvasWidget. Stores the draw callback (run on every full
-    /// redraw), the @ref camera (queried for the MVP), and the background
+    /// redraw), the decide_reuse_geometry callback (tells redraw_at_view_change()
+    /// whether to perform a camera-only or full redraw), the @ref camera (queried for the MVP), and the background
     /// clear color. The owned @ref rhi_renderer is created lazily on the first
     /// @ref redraw(); none of the arguments are owned by this backend.
-    rhi_backend(RhiCanvasWidget* widget,
-                draw_canvas_fn   draw_callback,
-                camera*          cam,
-                color            background_color);
+    rhi_backend(RhiCanvasWidget*         widget,
+                draw_canvas_fn           draw_callback,
+                decide_reuse_geometry_fn decide_reuse_geometry_callback,
+                camera*                  cam,
+                color                    background_color);
 
     /// Destroys the owned @ref rhi_renderer. The widget, camera, and draw
     /// callback are non-owning and outlive this backend.
@@ -74,13 +76,27 @@ public:
     /// flushes immediately; it is not deferred while redrawing is suspended
     /// (@ref suspend_redraw / @ref resume_redraw) — only @ref on_resize defers.
     void redraw() override;
+    
+    /**
+     * @brief Camera-only redraw if the geometry is proved to be still valid. Falls back to a full redraw otherwise.
+     * 
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     */
+    void redraw_at_view_change(view_change_reason reason) override;
 
-    /// Camera-only redraw: if a frame has already been drawn, re-present with
-    /// the new MVP via @ref rhi_renderer::flush_mvp_only(); otherwise falls back
-    /// to a full @ref redraw(). Always flushes immediately; it is not deferred
-    /// while redrawing is suspended (@ref suspend_redraw / @ref resume_redraw) —
-    /// only @ref on_resize defers.
-    void redraw_camera_only() override;
+    /**
+     * @brief Determine if the cached geometry is valid to reuse for a camera-only redraw after a view change.
+     * 
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     * 
+     * @return Return true to indicate the geometry can be reused. Return false otherwise.
+     */
+    bool valid_to_reuse_geometry(view_change_reason reason);
+
+    /// Camera-only redraw: performs a MVP transformation via @ref rhi_renderer::flush_mvp_only() instead of
+    /// calling the expensive @ref redraw(). Always flushes immediately; it is not deferred
+    /// while redrawing is suspended (@ref suspend_redraw / @ref resume_redraw) — only @ref on_resize defers.
+    void redraw_camera_only();
 
     /// Suspend redrawing. While suspended, @ref on_resize records a pending
     /// redraw instead of flushing, so a burst of show/resize events during
@@ -112,11 +128,12 @@ public:
     QImage render_to_image(int w, int h) override;
 
 private:
-    RhiCanvasWidget*              m_widget;        ///< Non-owning on-screen canvas this backend presents into.
-    draw_canvas_fn                m_draw_callback; ///< User draw routine re-run on every full redraw.
-    camera*                       m_camera;        ///< Non-owning camera supplying the world→screen MVP.
-    QColor                        m_bg_color;      ///< Frame clear color.
-    std::unique_ptr<rhi_renderer> m_renderer;      ///< Owned GPU renderer; created lazily on first redraw().
+    RhiCanvasWidget*              m_widget;                         ///< Non-owning on-screen canvas this backend presents into.
+    draw_canvas_fn                m_draw_callback;                  ///< User draw routine re-run on every full redraw.
+    decide_reuse_geometry_fn      m_decide_reuse_geometry_callback; ///< Callback used to determine if the cached geometry can be reused for a camera-only redraw.
+    camera*                       m_camera;                         ///< Non-owning camera supplying the world→screen MVP.
+    QColor                        m_bg_color;                       ///< Frame clear color.
+    std::unique_ptr<rhi_renderer> m_renderer;                       ///< Owned GPU renderer; created lazily on first redraw().
 
     bool m_is_redraw_suspended        = false; ///< True between suspend_redraw() and resume_redraw(); while set, resize-driven redraws are recorded as pending instead of flushed (direct redraw() still flushes immediately).
     bool m_is_redraw_requested        = false; ///< Set by on_resize() while redrawing is suspended: a full redraw is pending, to be flushed at resume_redraw().

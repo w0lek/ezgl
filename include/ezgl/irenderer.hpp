@@ -57,7 +57,7 @@ enum class line_dash : int {
 /**
  * @brief Specifies a string's width and height in pixels.
  */
-struct t_text_dimension {
+struct text_dimension_t {
     double width = 0.0;
     double height = 0.0;
 };
@@ -107,6 +107,8 @@ public:
      * @return The corresponding rectangle in screen-pixel coordinates.
      */
     virtual rectangle world_to_screen(const rectangle& box);
+    /// Return the horizontal world-space distance represented by one screen pixel.
+    double world_units_per_pixel();
 
     /**
      * Set the active draw color for subsequent strokes and fills.
@@ -442,7 +444,7 @@ public:
      * @param text The string to calculate.
      * @return A struct that contains two doubles specifying the string's width and height.
      */
-    ezgl::t_text_dimension get_text_dimension(const std::string& text);
+    text_dimension_t get_text_dimension(const std::string& text);
 
 protected:
     /**
