@@ -37,7 +37,6 @@ enum class view_change_reason {
     zoom_out,     ///< The visible world area increased.
     pan_zoom_in,  ///< The visible world moved and world area decreased.
     pan_zoom_out, ///< The visible world moved and world area increased.
-    setup         ///< The view changed because of renderer setup or resize handling. Happens before the GUI becomes available for interaction.
 };
 
 /// Application-supplied scene-drawing callback.
@@ -123,7 +122,7 @@ public:
     virtual void redraw() = 0;
 
     /**
-     * @brief Redraw using only a camera (MVP) update when cached geometry is reusable, otherwise a full redraw. Meaningful on the RHI path only.
+     * @brief A camera-only (MVP) redraw when cached geometry is reusable, otherwise a full redraw. Meaningful on the RHI path only.
      *
      * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
      * 

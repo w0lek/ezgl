@@ -62,12 +62,12 @@ void rhi_backend::redraw_at_view_change(view_change_reason reason)
 
 bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
 {
-    // This enum value is only triggered by EZGL's internal methods during intial setup
-    // and is distinct from user interaction with the GUI. Default to approval.
-    if (reason == view_change_reason::setup)
-        return true;
+    // Setup is not yet complete. No valid geometry to reuse.
+    if (!m_renderer || !m_has_drawn_frame) {
+        return false;
+    }
 
-    // The callback function is not available. Default to approval.
+    // The callback function is not available. Default to reuse.
     if (!m_decide_reuse_geometry_callback)
         return true;
 
