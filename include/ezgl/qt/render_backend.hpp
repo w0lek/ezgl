@@ -28,8 +28,31 @@
 
 namespace ezgl {
 
+/**
+ * @brief Reasons corresponding to a change in the view.
+ */
+enum class view_change_reason {
+    pan,          ///< The visible world moved without changing zoom level.
+    zoom_in,      ///< The visible world area decreased.
+    zoom_out,     ///< The visible world area increased.
+    pan_zoom_in,  ///< The visible world moved and world area decreased.
+    pan_zoom_out, ///< The visible world moved and world area increased.
+};
+
 /// Application-supplied scene-drawing callback.
 using draw_canvas_fn = void (*)(renderer*);
+
+/**
+ * @brief Ask the client to decide whether cached scene geometry can be reused for the new view.
+ * 
+ * Note: the world dimension has been updated by the time this callback is invoked.
+ * 
+ * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+ * @param g Renderer used to retreive information about the updated world.
+ * 
+ * @return Return true to update only the camera transform/overlay, or false to force a full redraw.
+ */
+using decide_reuse_geometry_fn = std::function<bool(view_change_reason reason, renderer* g)>;
 
 /// Backend identifier used by @c canvas::set_renderer_type to select
 /// which @ref render_backend subclass to instantiate.
@@ -98,12 +121,14 @@ public:
     /// trees, …) has changed.
     virtual void redraw() = 0;
 
-    /// Camera-only redraw: scene geometry is unchanged, only the camera
-    /// transform / overlay layout differs. Backends that maintain a
-    /// scene cache (rhi) can skip the user draw callback and just
-    /// re-render with the new MVP. The immediate and deferred backends
-    /// fall through to a full @ref redraw because they have no cache.
-    virtual void redraw_camera_only() = 0;
+    /**
+     * @brief A camera-only (MVP) redraw when cached geometry is reusable, otherwise a full redraw. Meaningful on the RHI path only.
+     *
+     * @param reason Reason that triggers this view change (e.g. pan, zoom_in).
+     * 
+     * On non-RHI paths, this always falls back to a full redraw.
+     */
+    virtual void redraw_at_view_change(view_change_reason reason) = 0;
 
     /// Suspend redrawing around scene setup (optional; honoured only by RHI).
     ///

@@ -43,8 +43,8 @@ public:
     void redraw() override;
 
     /// No scene cache exists on this path, so this falls through to a full
-    /// @ref redraw. @see render_backend::redraw_camera_only
-    void redraw_camera_only() override;
+    /// @ref redraw. @see render_backend::redraw_at_view_change
+    void redraw_at_view_change(view_change_reason /*reason*/) override;
 
     /// Recreates the off-screen surface and Painter at the new size, redraws,
     /// and rebinds the animation renderer's painter. @see render_backend::on_resize
