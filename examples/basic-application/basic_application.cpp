@@ -93,6 +93,18 @@ static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
  *
  * This function initializes an ezgl application and runs it.
  *
+ * Usage: `basic-application [--renderer immediate|deferred|rhi]`
+ *
+ * @c --renderer selects the backend the main canvas draws through:
+ *  - @c immediate sends every draw call straight to a QPainter;
+ *  - @c deferred records the calls and replays them in batches;
+ *  - @c rhi (the default here, and ezgl's own default) draws on the GPU.
+ *
+ * All three draw the same scene, so the flag is mainly for comparing their
+ * output and speed, or for running without a GPU. An unknown renderer name
+ * is an error: the accepted values are printed and the program exits with
+ * status 1.
+ *
  * @param argc The number of arguments provided.
  * @param argv The arguments as an array of c-strings.
  *
