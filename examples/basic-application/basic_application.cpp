@@ -107,9 +107,9 @@ static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
  *    flag leaves the canvas on it.
  *
  * All three draw the same scene, so the flag is mainly for comparing their
- * output and speed, or for running without a GPU. An unknown renderer name
- * is an error: the accepted values are printed and the program exits with
- * status 1.
+ * output and speed, or for running without a GPU. An unknown renderer name,
+ * a @c --renderer with no value after it, and any unrecognised argument are
+ * all errors: a message is printed and the program exits with status 1.
  *
  * @param argc The number of arguments provided.
  * @param argv The arguments as an array of c-strings.
@@ -122,9 +122,16 @@ int main(int argc, char **argv)
   // already starts on rhi, so there is nothing to set in the default case.
   std::optional<ezgl::renderer_type> renderer;
 
+  const std::string usage =
+      std::string("Usage: ") + argv[0] + " [--renderer immediate|deferred|rhi]\n";
+
   for (int i = 1; i < argc; ++i) {
     std::string arg(argv[i]);
-    if (arg == "--renderer" && i + 1 < argc) {
+    if (arg == "--renderer") {
+      if (i + 1 >= argc) {
+        std::cerr << "Missing value for --renderer.\n" << usage;
+        return 1;
+      }
       std::string val(argv[++i]);
       if      (val == "immediate") renderer = ezgl::renderer_type::immediate;
       else if (val == "deferred")  renderer = ezgl::renderer_type::deferred;
@@ -133,6 +140,10 @@ int main(int argc, char **argv)
         std::cerr << "Unknown renderer '" << val << "'. Use: immediate | deferred | rhi\n";
         return 1;
       }
+    } else {
+      // Abort on unsupported argument.
+      std::cerr << "Unknown argument '" << arg << "'.\n" << usage;
+      return 1;
     }
   }
 
