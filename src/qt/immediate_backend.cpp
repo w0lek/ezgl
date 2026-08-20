@@ -63,7 +63,7 @@ void immediate_backend::redraw()
     q_debug("The canvas will be redrawn (immediate path).");
 }
 
-void immediate_backend::redraw_camera_only()
+void immediate_backend::redraw_at_view_change(view_change_reason /*reason*/)
 {
     redraw();
 }

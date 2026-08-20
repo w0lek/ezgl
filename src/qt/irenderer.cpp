@@ -108,10 +108,15 @@ rectangle irenderer::world_to_screen(const rectangle& box)
     return rectangle(m_camera->world_to_screen(box.bottom_left()), m_camera->world_to_screen(box.top_right()));
 }
 
-ezgl::t_text_dimension irenderer::get_text_dimension(const std::string& text) {
+double irenderer::world_units_per_pixel() {
+    point2d world_scale_factor = m_camera->get_world_scale_factor();
+    return world_scale_factor.x;
+}
+
+text_dimension_t irenderer::get_text_dimension(const std::string& text) {
     text_extents_t text_extents{0, 0, 0, 0, 0, 0};
     m_painter->text_extents(text.c_str(), &text_extents);
-    return ezgl::t_text_dimension{text_extents.width, text_extents.height};
+    return text_dimension_t{text_extents.width, text_extents.height};
 }
 
 // ---- State-setter implementations -------------------------------------------
