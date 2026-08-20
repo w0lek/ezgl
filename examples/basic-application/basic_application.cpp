@@ -163,7 +163,7 @@ int main(int argc, char **argv)
   // Create our EZGL application.
   ezgl::application application(settings, argc, argv);
   // Set some parameters for the main sub-window (MainCanvas), where
-  // visualization graphics are draw. Set the callback function that will be
+  // visualization graphics are drawn. Set the callback function that will be
   // called when the main window needs redrawing, and define the (world)
   // coordinate system we want to draw in.
   ezgl::canvas *c = application.add_canvas("MainCanvas", draw_main_canvas, initial_world);
