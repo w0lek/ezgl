@@ -28,6 +28,11 @@ public:
 
   /// Switches the pen to a custom dash line, storing @p dashPattern (in pixel
   /// units) and normalizing it to Qt's pen-width-relative units.
+  ///
+  /// The entries are lengths along the line, alternating drawn and skipped,
+  /// repeating until the line ends. For example @c {5.0, 3.0} draws 5px,
+  /// skips 3px, and repeats.
+  ///
   /// @param dashPattern Alternating on/off dash lengths, in pixels.
   void setDashPattern(const QList<double>& dashPattern);
 
