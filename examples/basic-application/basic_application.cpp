@@ -20,11 +20,16 @@
  * @file
  *
  * This example shows you how to create an application using the EZGL library.
+ *
+ * Run it with `--renderer immediate|deferred|rhi` to pick the backend the
+ * canvas draws through. If no renderer is specified, rhi is used: it is
+ * ezgl's own default, so the example simply leaves the canvas on it.
  */
 
 #include <chrono>
 #include <cfloat>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -98,7 +103,8 @@ static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
  * @c --renderer selects the backend the main canvas draws through:
  *  - @c immediate sends every draw call straight to a QPainter;
  *  - @c deferred records the calls and replays them in batches;
- *  - @c rhi (the default here, and ezgl's own default) draws on the GPU.
+ *  - @c rhi draws on the GPU. This is ezgl's own default, so omitting the
+ *    flag leaves the canvas on it.
  *
  * All three draw the same scene, so the flag is mainly for comparing their
  * output and speed, or for running without a GPU. An unknown renderer name
@@ -112,7 +118,9 @@ static ezgl::rectangle initial_world{{0, 0}, 1100, 1150};
  */
 int main(int argc, char **argv)
 {
-  ezgl::renderer_type renderer = ezgl::renderer_type::rhi;
+  // Stays empty unless --renderer asks for a specific backend. A canvas
+  // already starts on rhi, so there is nothing to set in the default case.
+  std::optional<ezgl::renderer_type> renderer;
 
   for (int i = 1; i < argc; ++i) {
     std::string arg(argv[i]);
@@ -148,7 +156,8 @@ int main(int argc, char **argv)
   // called when the main window needs redrawing, and define the (world)
   // coordinate system we want to draw in.
   ezgl::canvas *c = application.add_canvas("MainCanvas", draw_main_canvas, initial_world);
-  c->set_renderer_type(renderer);
+  if (renderer.has_value())
+    c->set_renderer_type(*renderer);
 
   // Run the application until the user quits.
   // This hands over all control to the Qt event loop---after this point
