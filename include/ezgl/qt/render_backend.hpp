@@ -119,6 +119,10 @@ public:
     /// paintEvent and their CPU paint is cheap and idempotent — Qt gives them
     /// the same coalescing for free. RHI flushes straight to the GPU, so it
     /// relies on the explicit suspend_redraw()/resume_redraw() bracket instead.
+    ///
+    /// Between suspend_redraw() and resume_redraw(), ezgl does its setup:
+    /// shows the window, wires up the button callbacks, and runs
+    /// @c initial_setup.
     virtual void suspend_redraw() {}
     /// @see suspend_redraw
     virtual void resume_redraw() {}
