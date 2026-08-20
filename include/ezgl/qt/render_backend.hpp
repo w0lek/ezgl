@@ -53,9 +53,9 @@ enum class renderer_type {
 /// coverage resolve thickens 1-pixel-wide primitives: each pixel a thin
 /// diagonal line touches gets partial coverage from multiple subsamples
 /// and is blended toward the line color, so the line reads as ~2 px wide
-/// (and softer) instead of crisp 1 px. For VPR's dense net / route /
-/// channel rendering — which is dominated by 1 px strokes — that
-/// visible widening is worse than the aliasing MSAA was meant to fix.
+/// (and softer) instead of crisp 1 px. For scenes dominated by 1 px
+/// lines, that visible widening is worse than the aliasing MSAA was
+/// meant to fix.
 inline constexpr int EZGL_RHI_SAMPLE_COUNT = 1;
 
 /// Stable short name for a @ref renderer_type, suitable for log lines and
