@@ -69,14 +69,18 @@ void center_window(QWidget* w);
 
 /// Sets the leading content margin of @p w. GTK analogue:
 /// @c gtk_widget_set_margin_start (mapped to the left margin, assuming LTR).
-void widget_set_margin_start(QWidget*, int);
+/// @param m Margin in pixels.
+void widget_set_margin_start(QWidget* w, int m);
 /// Sets the trailing content margin of @p w. GTK analogue:
 /// @c gtk_widget_set_margin_end (mapped to the right margin, assuming LTR).
-void widget_set_margin_end(QWidget*, int);
+/// @param m Margin in pixels.
+void widget_set_margin_end(QWidget* w, int m);
 /// Sets the top content margin of @p w. GTK analogue: @c gtk_widget_set_margin_top.
-void widget_set_margin_top(QWidget*, int);
+/// @param m Margin in pixels.
+void widget_set_margin_top(QWidget* w, int m);
 /// Sets the bottom content margin of @p w. GTK analogue: @c gtk_widget_set_margin_bottom.
-void widget_set_margin_bottom(QWidget*, int);
+/// @param m Margin in pixels.
+void widget_set_margin_bottom(QWidget* w, int m);
 
 /// Returns the immediate child widgets of @p container (non-recursive).
 /// GTK-style `widget_*` name; wraps QObject::findChildren with
