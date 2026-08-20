@@ -61,9 +61,26 @@ private:
  * @brief Glyph-string metrics, mirroring Cairo's @c cairo_text_extents_t.
  *
  * Field names are carried over from Cairo; they are filled from a QFontMetricsF
- * bounding box and advance. @c x_bearing / @c y_bearing are the bounding-box
- * origin relative to the text origin (baseline), @c width / @c height its size,
- * and @c x_advance / @c y_advance how far the pen moves after the string.
+ * bounding box and advance. Think of writing on lined paper: the baseline is
+ * the ruled line the letters sit on, and the text origin is the spot on it
+ * where you put the pen down before the first letter. @c x_bearing /
+ * @c y_bearing give the offset from that spot to the inked bounding box, and
+ * @c width / @c height its size. @c x_advance is where the pen ends up once
+ * the string is written, i.e. the origin you would pass to draw the next
+ * string so it follows on. That is usually a little more than @c width,
+ * because the advance also covers the blank side bearings and any trailing
+ * space, which leave no ink in the bounding box.
+ *
+ * @verbatim
+ *    |<-x_bearing->|<------ width ------>|
+ *    |             +---------------------+
+ *    |             |       ink box       |
+ * ---O-------------+---------------------+-----O---  baseline
+ *    |                                         |
+ *    |<-------------- x_advance -------------->|
+ *  origin                                 next origin
+ * @endverbatim
+ *
  * Layout here is always horizontal, so @c y_advance is always 0.
  */
 struct text_extents_t {
@@ -71,7 +88,7 @@ struct text_extents_t {
   double y_bearing;  ///< Vertical offset from the baseline to the bounding box's top edge.
   double width;      ///< Bounding-box width.
   double height;     ///< Bounding-box height.
-  double x_advance;  ///< Horizontal pen advance after rendering the string.
+  double x_advance;  ///< Horizontal pen advance: x offset from this string's origin to the next one's.
   double y_advance;  ///< Vertical pen advance; always 0 for horizontal layout.
 };
 
