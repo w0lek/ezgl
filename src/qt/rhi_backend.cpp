@@ -80,7 +80,6 @@ void rhi_backend::redraw_camera_only() {
         m_renderer->flush_mvp_only();
         m_is_redraw_requested        = false;
         m_is_camera_update_requested = false;
-        m_has_drawn_frame            = true;
         q_debug("The canvas overlay+MVP are updated (camera-only RHI path).");
     } else {
         redraw();
