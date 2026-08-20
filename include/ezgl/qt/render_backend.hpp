@@ -141,6 +141,15 @@ public:
     /// (A *swap chain* is the small set of images the GPU rotates through: it
     /// draws into one while the screen displays another, then they swap. Only
     /// the GPU backend has one; see @ref rhi_types.hpp's glossary.)
+    ///
+    /// @param w New width of the drawing canvas widget, in logical pixels.
+    /// @param h New height of the drawing canvas widget, in logical pixels.
+    ///
+    /// These are the canvas widget's own size, not the top-level window's:
+    /// they come straight from the widget's @c width() / @c height() as it
+    /// emits @c resized. They are logical (device-independent) pixels, so a
+    /// backend that needs device pixels must scale by the widget's device
+    /// pixel ratio itself.
     virtual void on_resize(int w, int h) = 0;
 
     /// Return a transient @c renderer instance suitable for one-off
