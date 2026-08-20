@@ -32,8 +32,10 @@ public:
     /// and destroyed automatically.
     ~SwitchButton() override = default;
 
-    /// @return The widget's preferred size
-    QSize sizeHint() const override;
+    /// @return The widget's preferred size, 58 x 26 logical pixels. The fixed
+    /// size policy set in the constructor makes a layout use it as-is, and
+    /// paintEvent() derives the track radius, thumb, and travel from it.
+    QSize sizeHint() const override { return {58, 26}; }
 
     /// @return The current animated thumb position in [0.0, 1.0].
     qreal position() const { return m_position; }
