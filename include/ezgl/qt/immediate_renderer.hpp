@@ -16,7 +16,8 @@ namespace ezgl {
 class immediate_renderer final : public irenderer {
 public:
     // irenderer interface — each call paints synchronously to the active
-    // QPainter (no recording or batching).
+    // QPainter (no recording or batching). Semantics otherwise match the
+    // irenderer base declarations.
 
     /// @name Paint a line immediately to the QPainter.
     /// @{
