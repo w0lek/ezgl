@@ -31,50 +31,43 @@ void rhi_backend::redraw()
     if (!m_widget)
         return;
 
-    using namespace std::placeholders;
-
     if (!m_renderer) {
         m_renderer = std::make_unique<rhi_renderer>(
             m_widget,
-            std::bind(&camera::world_to_screen, m_camera, _1),
             m_camera,
             m_draw_callback,
             m_bg_color);
-    } else if (m_defer_redraw) {
-        m_pending_redraw = true;
-        return;
     } else {
         m_renderer->begin_frame();
     }
 
     m_draw_callback(m_renderer.get());
     m_renderer->flush();
-    m_has_drawn_frame = true;
+
+    m_is_redraw_suspended        = false;
+    m_is_redraw_requested        = false;
+    m_is_camera_update_requested = false;
+    m_has_drawn_frame            = true;
     q_debug("The canvas is redrawn (RHI path).");
 }
 
 void rhi_backend::redraw_at_view_change(view_change_reason reason)
 {
-    if (m_renderer && m_has_drawn_frame && valid_to_reuse_geometry(reason)) {
-        if (m_defer_redraw) {
-            m_pending_camera_only = true;
-        } else {
-            m_renderer->flush_mvp_only();
-            q_debug("The canvas overlay+MVP is updated (camera-only RHI path).");
-        }
-        return;
+    if (valid_to_reuse_geometry(reason)) {
+        redraw_camera_only();
+    } else {
+        redraw();
     }
-    redraw();
 }
 
 bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
 {
-    // This enum value is only triggered by EZGL's internal methods during intial setup
-    // and is distinct from user interaction with the GUI. Default to approval.
-    if (reason == view_change_reason::setup)
-        return true;
+    // Setup is not yet complete. No valid geometry to reuse.
+    if (!m_renderer || !m_has_drawn_frame) {
+        return false;
+    }
 
-    // The callback function is not available. Default to approval.
+    // The callback function is not available. Default to reuse.
     if (!m_decide_reuse_geometry_callback)
         return true;
 
@@ -82,22 +75,33 @@ bool rhi_backend::valid_to_reuse_geometry(view_change_reason reason)
     return m_decide_reuse_geometry_callback(reason, m_renderer.get());
 }
 
-void rhi_backend::begin_deferred_redraw_cycle()
-{
-    m_defer_redraw        = true;
-    m_pending_redraw      = false;
-    m_pending_camera_only = false;
+void rhi_backend::redraw_camera_only() {
+    if (m_renderer && m_has_drawn_frame) {
+        m_renderer->flush_mvp_only();
+        m_is_redraw_requested        = false;
+        m_is_camera_update_requested = false;
+        q_debug("The canvas overlay+MVP are updated (camera-only RHI path).");
+    } else {
+        redraw();
+    }
 }
 
-void rhi_backend::end_deferred_redraw_cycle()
+void rhi_backend::suspend_redraw()
 {
-    if (!m_defer_redraw)
+    m_is_redraw_suspended        = true;
+    m_is_redraw_requested        = false;
+    m_is_camera_update_requested = false;
+}
+
+void rhi_backend::resume_redraw()
+{
+    if (!m_is_redraw_suspended)
         return;
-    m_defer_redraw = false;
-    if (m_pending_redraw || !m_has_drawn_frame)
+    m_is_redraw_suspended = false;
+    if (m_is_redraw_requested || !m_has_drawn_frame)
         redraw();
-    else if (m_pending_camera_only)
-        redraw_at_view_change(view_change_reason::setup);
+    else if (m_is_camera_update_requested)
+        redraw_camera_only();
     else
         redraw();
 }
@@ -109,9 +113,15 @@ void rhi_backend::on_resize(int w, int h)
     m_last_h = h;
 
     const bool can_reuse_geometry = size_changed && m_renderer && m_has_drawn_frame;
-
-    if (can_reuse_geometry) {
-        redraw_at_view_change(view_change_reason::setup);
+    if (m_is_redraw_suspended) {
+        if (can_reuse_geometry)
+            m_is_camera_update_requested = true;
+        else {
+            m_is_redraw_requested        = true;
+            m_is_camera_update_requested = false;
+        }
+    } else if (can_reuse_geometry) {
+        redraw_camera_only();
     } else {
         redraw();
     }
@@ -132,10 +142,8 @@ renderer* rhi_backend::create_animation_renderer()
     // never receive nullptr — same defensive pattern as
     // deferred_backend::create_animation_renderer().
     if (!m_renderer) {
-        using namespace std::placeholders;
         m_renderer = std::make_unique<rhi_renderer>(
             m_widget,
-            std::bind(&camera::world_to_screen, m_camera, _1),
             m_camera,
             m_draw_callback,
             m_bg_color);
@@ -155,9 +163,7 @@ QImage rhi_backend::render_to_image(int w, int h)
     //
     // The off-screen path uses an independent QRhi + render target, so the
     // live widget and live renderer are not touched at all.
-    using namespace std::placeholders;
     rhi_renderer renderer(QSize(w, h),
-                          std::bind(&camera::world_to_screen, *m_camera, _1),
                           m_camera,
                           m_draw_callback,
                           m_bg_color);
